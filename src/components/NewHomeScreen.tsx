@@ -8,7 +8,7 @@ interface NewHomeScreenProps {
 
 export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab }) => {
   return (
-    <div className="h-full flex flex-col justify-center max-w-2xl mx-auto w-full px-4 py-4 gap-4 text-stone-100">
+    <div className="min-h-full flex flex-col justify-center max-w-2xl mx-auto w-full px-4 py-4 gap-4 text-stone-100">
       {/* Header Title */}
       <div className="text-center space-y-1.5 shrink-0">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px] font-semibold">

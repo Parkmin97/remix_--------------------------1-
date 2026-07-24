@@ -601,7 +601,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     : 0;
 
   return (
-    <div className="h-full w-full max-w-2xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 sm:gap-3 text-stone-100 overflow-hidden">
+    <div className="min-h-full w-full max-w-2xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 sm:gap-3 text-stone-100">
       {/* Header Banner */}
       <div className="shrink-0 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-stone-900 border border-amber-600/40 text-center space-y-1.5 relative overflow-hidden shadow-2xl">
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">

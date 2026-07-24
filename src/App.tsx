@@ -121,8 +121,8 @@ export default function App() {
         user={user}
       />
 
-      {/* Main Content Area — no-scroll 프레임. 숏폼/랜딩만 내부 스크롤 허용 */}
-      <main className={`flex-1 min-h-0 animate-fade-in ${currentTab === 'shorts' || currentTab === 'landing' ? 'overflow-y-auto no-scrollbar' : 'overflow-hidden'}`}>
+      {/* Main Content Area — 콘텐츠가 길면 세로 스크롤로 위아래를 모두 볼 수 있게 한다 */}
+      <main className="flex-1 min-h-0 animate-fade-in overflow-y-auto">
         {currentTab === 'landing' && (
           <LandingScreen onNavigateToScreen={setCurrentTab} onFreeStart={handleFreeStart} />
         )}
@@ -134,11 +134,11 @@ export default function App() {
         {/* 서비스 진입 게이트: 로그인 전에는 로그인/회원가입 화면을 띄운다. */}
         {needsAuth && (
           authChecked ? (
-            <div className="h-full flex items-center justify-center">
+            <div className="min-h-full flex items-center justify-center">
               <LoginScreen user={user} onNavigateToScreen={setCurrentTab} />
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center">
+            <div className="min-h-full flex items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
             </div>
           )

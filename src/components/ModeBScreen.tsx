@@ -52,7 +52,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession }) => {
   };
 
   return (
-    <div className="h-full flex flex-col max-w-2xl mx-auto w-full px-4 py-4 gap-3 text-stone-100">
+    <div className="min-h-full flex flex-col max-w-2xl mx-auto w-full px-4 py-4 gap-3 text-stone-100">
       {/* Banner */}
       <div className="p-3.5 rounded-2xl bg-gradient-to-br from-stone-900 via-stone-900 to-amber-950 border border-amber-500/40 shadow-xl space-y-1 shrink-0">
         <div className="flex items-center gap-2">

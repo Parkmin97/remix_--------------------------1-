@@ -55,7 +55,7 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
   const avatarUrl = user?.user_metadata?.avatar_url;
 
   return (
-    <div className="h-full flex flex-col justify-center max-w-2xl mx-auto w-full px-4 py-4 gap-4 text-stone-100">
+    <div className="min-h-full flex flex-col justify-center max-w-2xl mx-auto w-full px-4 py-4 gap-4 text-stone-100">
       {/* 프로필 정보 배너 */}
       <div className="p-4 rounded-2xl bg-gradient-to-br from-stone-900 via-stone-900 to-amber-950 border border-amber-500/40 shadow-xl flex items-center gap-3 shrink-0">
         {/* 프로필 사진 영역 (왼쪽) */}

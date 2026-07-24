@@ -19,7 +19,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="h-full flex flex-col max-w-4xl mx-auto px-4 py-3 gap-3 text-stone-100">
+    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-3 gap-3 text-stone-100">
       {/* Title Header */}
       <div className="flex flex-row items-center justify-between gap-3 border-b border-amber-900/40 pb-2.5 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">

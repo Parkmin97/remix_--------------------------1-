@@ -240,7 +240,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
   };
 
   return (
-    <div className="h-full bg-stone-950 text-stone-100 px-3 sm:px-6 py-2 sm:py-3 flex flex-col overflow-hidden">
+    <div className="min-h-full bg-stone-950 text-stone-100 px-3 sm:px-6 py-2 sm:py-3 flex flex-col">
       <div className="max-w-5xl w-full mx-auto flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 overflow-hidden">
 
         {/* Header Title Banner */}

@@ -149,7 +149,7 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col max-w-md mx-auto w-full px-2 py-2">
+    <div className="min-h-full flex flex-col max-w-md mx-auto w-full px-2 py-2">
       {/* Smartphone Outer Container */}
       <div className="bg-stone-950 rounded-[2.5rem] border-4 border-stone-800 shadow-2xl overflow-hidden relative text-white flex-1 min-h-0 flex flex-col justify-between select-none">
         

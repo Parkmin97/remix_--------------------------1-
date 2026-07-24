@@ -71,7 +71,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
   /* -------------------- 로그인 완료 상태 -------------------- */
   if (user) {
     return (
-      <div className="h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
+      <div className="min-h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
         <div className="w-full rounded-3xl border border-amber-500/20 bg-stone-900/60 p-6 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15">
             <CheckCircle2 className="h-7 w-7 text-emerald-400" />
@@ -105,7 +105,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
 
   /* -------------------- 로그인 / 회원가입 폼 -------------------- */
   return (
-    <div className="h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
+    <div className="min-h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
       <div className="w-full rounded-3xl border border-amber-500/20 bg-stone-900/60 p-6">
         {/* 헤더 */}
         <div className="text-center">

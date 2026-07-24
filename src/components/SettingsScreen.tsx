@@ -33,7 +33,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col max-w-3xl mx-auto px-4 py-4 gap-4 text-stone-100">
+    <div className="min-h-full flex flex-col max-w-3xl mx-auto px-4 py-4 gap-4 text-stone-100">
       <div className="flex items-center gap-2 border-b border-amber-900/40 pb-3 shrink-0">
         <Settings className="w-5 h-5 text-amber-400" />
         <h2 className="text-lg font-bold font-serif text-amber-200 break-keep">

@@ -46,7 +46,7 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
   };
 
   return (
-    <div className="h-full flex items-center justify-center max-w-lg mx-auto px-4 py-4 text-stone-100">
+    <div className="min-h-full flex items-center justify-center max-w-lg mx-auto px-4 py-4 text-stone-100">
       <div className="w-full bg-stone-900 border-2 border-amber-500/50 rounded-3xl p-5 text-center space-y-4 shadow-2xl relative overflow-hidden">
         {/* Background Glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>

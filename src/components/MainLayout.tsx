@@ -49,8 +49,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
         </div>
       </header>
 
-      {/* Main Content Area — no-scroll 프레임 */}
-      <main className="flex-1 min-h-0 overflow-hidden animate-fade-in">
+      {/* Main Content Area — 콘텐츠가 길면 세로 스크롤 허용 */}
+      <main className="flex-1 min-h-0 overflow-y-auto animate-fade-in">
         {renderContent()}
       </main>
 
