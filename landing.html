@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 인생 지휘자 (My Life Conductor) | 디지털 중독에서 일상의 하모니로</title>
+  <meta name="description" content="무의식적인 숏폼 탐닉과 도파민 소음에서 벗어나 나만의 일상 템포를 지휘하세요. 디지털 웰빙 & 리듬 미션 인터벤션 앱 '내 인생 지휘자'">
+  <meta name="keywords" content="내인생지휘자, 디지털웰빙, 스마트폰중독, 숏폼중독, 도파민디톡스, 라이프코칭, 마에스트로, 집중력, 습관 형성">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="내 인생 지휘자 (My Life Conductor)">
+  <meta property="og:description" content="소음으로 가득 찬 일상, 당신이 직접 지휘하는 삶의 아름다운 하모니">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* CSS Variables & Design System */
+    :root {
+      --bg-dark: #09090b;
+      --bg-card: rgba(24, 24, 27, 0.7);
+      --bg-card-hover: rgba(39, 39, 42, 0.8);
+      --border-amber: rgba(245, 158, 11, 0.25);
+      --border-amber-light: rgba(251, 191, 36, 0.5);
+      --amber-glow: rgba(245, 158, 11, 0.15);
+      --text-main: #f5f5f4;
+      --text-muted: #a8a29e;
+      --amber-accent: #f59e0b;
+      --amber-bright: #fbbf24;
+      --amber-deep: #b45309;
+      --emerald-accent: #10b981;
+      --font-kr: 'Noto Sans KR', sans-serif;
+      --font-en: 'Outfit', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-kr);
+      overflow-x: hidden;
+    }
+
+    body {
+      min-height: 100vh;
+      line-height: 1.6;
+      background: radial-gradient(circle at 50% 0%, #291e12 0%, #09090b 70%);
+      position: relative;
+    }
+
+    /* Ambient Background Canvas */
+    #hero-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+    }
+
+    /* Typography */
+    h1, h2, h3, .brand-font {
+      font-family: var(--font-kr);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .en-sub {
+      font-family: var(--font-en);
+      letter-spacing: 0.05em;
+    }
+
+    /* Glassmorphism Styles */
+    .glass-nav {
+      background: rgba(9, 9, 11, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+    }
+
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-amber);
+      border-radius: 20px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .glass-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--border-amber-light);
+      box-shadow: 0 20px 40px -15px var(--amber-glow);
+    }
+
+    /* Buttons */
+    .btn-gold {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #09090b;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 9999px;
+      border: none;
+      cursor: pointer;
+      font-size: 1.05rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-gold:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 30px rgba(245, 158, 11, 0.6);
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+
+    .btn-outline {
+      background: rgba(255, 255, 255, 0.05);
+      color: #f5f5f4;
+      font-weight: 600;
+      padding: 14px 30px;
+      border-radius: 9999px;
+      border: 1px solid var(--border-amber);
+      cursor: pointer;
+      font-size: 1.05rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline:hover {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--amber-accent);
+      color: var(--amber-bright);
+    }
+
+    /* Layout Containers */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Header Navigation */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 76px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #f59e0b, #78350f);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #ffffff, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--amber-bright);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      padding-top: 180px;
+      padding-bottom: 120px;
+      text-align: center;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      border-radius: 9999px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--amber-bright);
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 28px;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      line-height: 1.2;
+      font-weight: 900;
+      margin-bottom: 24px;
+      background: linear-gradient(to bottom, #ffffff 30%, #a8a29e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto 40px;
+      font-weight: 400;
+    }
+
+    .hero-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+
+    /* Musical Staff Decorative Divider */
+    .staff-divider {
+      width: 100%;
+      height: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      opacity: 0.2;
+      margin: 40px 0;
+    }
+
+    .staff-line {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #f59e0b, transparent);
+    }
+
+    /* Sections Shared Styling */
+    .section-padding {
+      padding: 100px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-subtitle {
+      color: var(--amber-accent);
+      font-family: var(--font-en);
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 28px;
+    }
+
+    .feature-card {
+      padding: 36px 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--amber-bright);
+      margin-bottom: 24px;
+    }
+
+    .feature-title {
+      font-size: 1.35rem;
+      color: #fff;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .feature-desc {
+      color: var(--text-muted);
+      font-size: 0.98rem;
+      line-height: 1.65;
+    }
+
+    /* Interactive Demo Simulator */
+    .demo-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      background: rgba(18, 18, 22, 0.8);
+      border: 1px solid var(--border-amber);
+      border-radius: 28px;
+      padding: 48px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .demo-info h3 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .demo-info p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      margin-bottom: 28px;
+    }
+
+    .demo-phone-mockup {
+      width: 320px;
+      height: 540px;
+      background: #09090b;
+      border: 8px solid #27272a;
+      border-radius: 40px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(245, 158, 11, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .phone-screen-header {
+      height: 44px;
+      background: #18181b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      font-size: 0.75rem;
+      color: #a8a29e;
+      border-bottom: 1px solid #27272a;
+    }
+
+    .phone-screen-body {
+      flex: 1;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      background: radial-gradient(circle at center, #1f140a 0%, #09090b 100%);
+    }
+
+    .tempo-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 3px solid var(--amber-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--amber-bright);
+      margin-bottom: 20px;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease;
+    }
+
+    .tempo-circle:active {
+      transform: scale(0.92);
+    }
+
+    .tempo-pulse {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid var(--amber-bright);
+      animation: pulse-ring 1.5s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    .tempo-status {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .bpm-counter {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #fff;
+      font-family: var(--font-en);
+    }
+
+    /* How It Works Steps */
+    .steps-wrapper {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      position: relative;
+    }
+
+    .step-card {
+      text-align: center;
+      padding: 40px 24px;
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f59e0b, #92400e);
+      color: #09090b;
+      font-weight: 900;
+      font-size: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+
+    .step-title {
+      font-size: 1.3rem;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .step-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Statistics Banner */
+    .stats-banner {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(180, 83, 9, 0.05) 100%);
+      border: 1px solid var(--border-amber);
+      border-radius: 24px;
+      padding: 48px 24px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      text-align: center;
+      margin: 80px 0;
+    }
+
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--amber-bright);
+      font-family: var(--font-en);
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 60px 0 40px;
+      background: #050507;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    .footer-copy {
+      text-align: center;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      color: #78716c;
+      font-size: 0.85rem;
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 992px) {
+      .hero-title { font-size: 2.6rem; }
+      .demo-container { grid-template-columns: 1fr; text-align: center; }
+      .steps-wrapper { grid-template-columns: 1fr; }
+      .stats-banner { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Animated Canvas -->
+  <canvas id="hero-canvas"></canvas>
+
+  <!-- Header Navigation -->
+  <header class="glass-nav">
+    <div class="container">
+      <nav class="nav-container" id="main-nav">
+        <a href="#" class="brand-logo" id="nav-brand-logo">
+          <div class="brand-icon">
+            <i data-lucide="music" style="color: #09090b; width: 22px; height: 22px;"></i>
+          </div>
+          <span class="brand-title">내 인생 지휘자</span>
+        </a>
+
+        <ul class="nav-links" id="nav-links-list">
+          <li><a href="#features" id="link-features">기능 소개</a></li>
+          <li><a href="#how-it-works" id="link-how-it-works">작동 방식</a></li>
+          <li><a href="#interactive-demo" id="link-demo">지휘 미션 체험</a></li>
+          <li><a href="#stats" id="link-stats">성과 리포트</a></li>
+        </ul>
+
+        <a href="index.html" class="btn-gold" id="btn-header-start" style="padding: 10px 24px; font-size: 0.9rem;">
+          <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+          <span>앱 실행하기</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero-section">
+      <div class="container">
+        <div class="badge-pill" id="hero-badge">
+          <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i>
+          <span>디지털 웰빙 & 리듬 코칭 시스템 v1.0</span>
+        </div>
+
+        <h1 class="hero-title" id="hero-main-title">
+          소음으로 가득 찬 일상,<br>
+          <span>당신이 직접 지휘하는 삶의 하모니</span>
+        </h1>
+
+        <p class="hero-subtitle" id="hero-sub-title">
+          무의식적인 숏폼 스크롤과 도파민 피로에서 벗어나세요.<br>
+          <strong>내 인생 지휘자 (My Life Conductor)</strong>는 스마트폰 개입 미션과 마에스트로 리포트로 당신만의 완벽한 템포를 찾아드립니다.
+        </p>
+
+        <div class="hero-actions" id="hero-actions-container">
+          <a href="index.html" class="btn-gold" id="btn-hero-launch">
+            <i data-lucide="play-circle" style="width: 20px; height: 20px;"></i>
+            <span>지휘 시작하기</span>
+          </a>
+          <a href="#interactive-demo" class="btn-outline" id="btn-hero-demo">
+            <i data-lucide="sliders" style="width: 20px; height: 20px;"></i>
+            <span>미니 미션 체험</span>
+          </a>
+        </div>
+
+        <!-- Staff Divider -->
+        <div class="staff-divider">
+          <div class="staff-line"></div>
+          <div class="staff-line"></div>
+          <div class="staff-line"></div>
+          <div class="staff-line"></div>
+          <div class="staff-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section-padding" id="features">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-subtitle">Core Features</p>
+          <h2 class="section-title">디지털 라이프를 지휘하는 핵심 솔루션</h2>
+        </div>
+
+        <div class="features-grid" id="features-grid">
+          <!-- Feature 1 -->
+          <div class="glass-card feature-card" id="feature-card-1">
+            <div class="feature-icon-wrapper">
+              <i data-lucide="shield-alert" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="feature-title">안스마트 인터벤션</h3>
+            <p class="feature-desc">
+              무의식적인 숏폼/SNS 몰입 순간, 지휘자의 박자 경고가 작동하여 일상의 흐름을 깨뜨리지 않고 정돈해 줍니다.
+            </p>
+          </div>
+
+          <!-- Feature 2 -->
+          <div class="glass-card feature-card" id="feature-card-2">
+            <div class="feature-icon-wrapper">
+              <i data-lucide="disc" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="feature-title">지휘 미션 (Conducting)</h3>
+            <p class="feature-desc">
+              스마트폰 화면 위 리듬과 박자에 맞춰 템포를 맞추는 직관적인 지휘 미션으로 뇌의 전두엽을 깨우고 집중력을 환기합니다.
+            </p>
+          </div>
+
+          <!-- Feature 3 -->
+          <div class="glass-card feature-card" id="feature-card-3">
+            <div class="feature-icon-wrapper">
+              <i data-lucide="pen-tool" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="feature-title">자기 성찰 & 회고</h3>
+            <p class="feature-desc">
+              미션 완수 직후 진행되는 짧은 심호흡과 다짐 한 줄 기록으로 감정적 조율과 자기주도적 성장을 도모합니다.
+            </p>
+          </div>
+
+          <!-- Feature 4 -->
+          <div class="glass-card feature-card" id="feature-card-4">
+            <div class="feature-icon-wrapper">
+              <i data-lucide="bar-chart-3" style="width: 28px; height: 28px;"></i>
+            </div>
+            <h3 class="feature-title">마에스트로 리포트</h3>
+            <p class="feature-desc">
+              나의 디지털 밸런스 점수, 지휘 미션 성공률, 차분해진 시간 등의 하모니 스코어를 주간/일간 통계로 확인하세요.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Demo Section -->
+    <section class="section-padding" id="interactive-demo">
+      <div class="container">
+        <div class="demo-container" id="demo-interactive-wrapper">
+          <div class="demo-info">
+            <p class="section-subtitle">Live Interactive Demo</p>
+            <h3>지휘 템포 미션 맛보기</h3>
+            <p>
+              원 안의 앰버 골드 링을 템포 박자에 맞추어 클릭해보세요.<br>
+              당신의 일상 리듬이 어떻게 조율되는지 미리 체험해볼 수 있습니다.
+            </p>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <i data-lucide="award" style="color: var(--amber-accent); width: 24px; height: 24px;"></i>
+              <span style="color: var(--amber-bright); font-weight: 600;" id="demo-score-text">지휘 성공 횟수: 0 회</span>
+            </div>
+          </div>
+
+          <!-- Interactive Phone Mockup -->
+          <div class="demo-phone-mockup" id="demo-phone">
+            <div class="phone-screen-header">
+              <span>CONDUCTOR DEMO</span>
+              <span>100% FOCUS</span>
+            </div>
+            <div class="phone-screen-body">
+              <div class="tempo-circle" id="interactive-tempo-btn">
+                <div class="tempo-pulse"></div>
+                <i data-lucide="pointer" style="width: 36px; height: 36px; color: var(--amber-bright);"></i>
+              </div>
+              <div class="tempo-status" id="tempo-instruction">박자에 맞춰 버튼을 터치하세요</div>
+              <div class="bpm-counter" id="bpm-display">BPM 60</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="section-padding" id="how-it-works">
+      <div class="container">
+        <div class="section-header">
+          <p class="section-subtitle">Workflow</p>
+          <h2 class="section-title">3단계 마에스트로 프로세스</h2>
+        </div>
+
+        <div class="steps-wrapper" id="steps-wrapper">
+          <div class="glass-card step-card" id="step-1">
+            <div class="step-number">1</div>
+            <h3 class="step-title">1. 감지 & 개입</h3>
+            <p class="step-desc">무분별한 숏폼 탐닉 시점에 스마트폰 개입 알림으로 멈춤 신호를 줍니다.</p>
+          </div>
+
+          <div class="glass-card step-card" id="step-2">
+            <div class="step-number">2</div>
+            <h3 class="step-title">2. 지휘 미션 수행</h3>
+            <p class="step-desc">지정된 템포와 오케스트라 사운드에 맞춰 리듬을 정돈하는 미션을 완료합니다.</p>
+          </div>
+
+          <div class="glass-card step-card" id="step-3">
+            <div class="step-number">3</div>
+            <h3 class="step-title">3. 자기 주도 회고</h3>
+            <p class="step-desc">마음의 안정을 되찾고 새로운 목적에 맞게 스마트폰 사용을 주도합니다.</p>
+          </div>
+        </div>
+
+        <!-- Statistics Banner -->
+        <div class="stats-banner" id="stats">
+          <div class="stat-item" id="stat-1">
+            <div class="stat-number">42%</div>
+            <div class="stat-label">평균 숏폼 스크린타임 감소</div>
+          </div>
+          <div class="stat-item" id="stat-2">
+            <div class="stat-number">2.4h</div>
+            <div class="stat-label">매일 확보되는 깊은 몰입 시간</div>
+          </div>
+          <div class="stat-item" id="stat-3">
+            <div class="stat-number">98%</div>
+            <div class="stat-label">사용자 일상 만족도 증가</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call To Action Section -->
+    <section class="section-padding" style="text-align: center; background: radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, transparent 70%);">
+      <div class="container">
+        <h2 style="font-size: 2.8rem; margin-bottom: 20px; color: #fff;">지금 나만의 일상을 지휘해보세요</h2>
+        <p style="color: var(--text-muted); font-size: 1.15rem; max-width: 600px; margin: 0 auto 36px;">
+          더 이상 도파민 알림에 휘둘리지 마세요. 내 인생 지휘자가 당신의 오케스트라 단장이 되어 드립니다.
+        </p>
+        <a href="index.html" class="btn-gold" id="btn-cta-launch" style="padding: 16px 40px; font-size: 1.15rem;">
+          <i data-lucide="sparkles" style="width: 22px; height: 22px;"></i>
+          <span>무료로 시작하기</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div class="brand-logo">
+          <div class="brand-icon">
+            <i data-lucide="music" style="color: #09090b; width: 22px; height: 22px;"></i>
+          </div>
+          <span class="brand-title">내 인생 지휘자</span>
+        </div>
+        <div style="color: var(--text-muted); font-size: 0.9rem;">
+          My Life Conductor - Digital Wellbeing Solution
+        </div>
+      </div>
+      <div class="footer-copy">
+        &copy; 2026 My Life Conductor Team. All rights reserved. Built for Digital Harmony.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Background Canvas Wave Animation
+    const canvas = document.getElementById('hero-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    let step = 0;
+    function drawWave() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      step += 0.015;
+
+      const lines = 5; // Musical Staff lines metaphor
+      for (let i = 0; i < lines; i++) {
+        ctx.beginPath();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `rgba(245, 158, 11, ${0.15 - i * 0.02})`;
+
+        for (let x = 0; x < canvas.width; x += 10) {
+          const y = Math.sin(x * 0.003 + step + i * 0.4) * 40 + (canvas.height * 0.3 + i * 25);
+          if (x === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      }
+
+      requestAnimationFrame(drawWave);
+    }
+    drawWave();
+
+    // Interactive Demo Counter Logic
+    let score = 0;
+    const tempoBtn = document.getElementById('interactive-tempo-btn');
+    const scoreText = document.getElementById('demo-score-text');
+    const instruction = document.getElementById('tempo-instruction');
+
+    tempoBtn.addEventListener('click', () => {
+      score++;
+      scoreText.textContent = `지휘 성공 횟수: ${score} 회`;
+      instruction.textContent = `탁월한 템포 감각입니다! (${score}/10)`;
+      instruction.style.color = '#fbbf24';
+
+      if (score >= 10) {
+        instruction.textContent = '🎉 마에스트로 등급 달성! 실전에 도전해보세요.';
+        instruction.style.color = '#10b981';
+      }
+    });
+  </script>
+</body>
+</html>
