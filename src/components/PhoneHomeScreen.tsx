@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { SessionData } from '../types';
 import { TARGET_SERVICES } from '../data/targetServices';
 import { saveActiveSession } from '../lib/storage';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
-import { Sparkles, Clock, Lock, ArrowRight, Search, Phone, MessageCircle, Compass, Sun, AppWindow } from 'lucide-react';
+import { Sparkles, Clock, Lock, ArrowRight, Search, Phone, MessageCircle, Compass, Sun, AppWindow, ShieldCheck } from 'lucide-react';
 
 interface PhoneHomeScreenProps {
   activeSession: SessionData | null;
@@ -24,6 +24,13 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
   const [timeRemaining, setTimeRemaining] = useState<string>('00:00:00');
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isLaunchingApp, setIsLaunchingApp] = useState<boolean>(false);
+  const [showLockedNotice, setShowLockedNotice] = useState<boolean>(false);
+  const lockedNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 알림 타이머 정리
+  useEffect(() => () => {
+    if (lockedNoticeTimer.current) clearTimeout(lockedNoticeTimer.current);
+  }, []);
 
   const isGuidedReady = Boolean(activeSession && activeSession.state === 'GUIDED_READY');
   const isUsageActive = Boolean(activeSession && (activeSession.state === 'USAGE_ACTIVE' || activeSession.state === 'EXTENSION_ACTIVE'));
@@ -78,6 +85,15 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
 
   // Launch Conductor App with Splash Screen Transition
   const handleLaunchConductorApp = () => {
+    // 디톡스 진행 중(모드 A 잠금 또는 모드 B 활동 중 잠금)에는 앱을 실행하지 않고, 안내 알림을 3초간 띄운다.
+    if (isLocked || isModeBActive) {
+      audioSynthesizer.playBatonSwingSound();
+      setShowLockedNotice(true);
+      if (lockedNoticeTimer.current) clearTimeout(lockedNoticeTimer.current);
+      lockedNoticeTimer.current = setTimeout(() => setShowLockedNotice(false), 3000);
+      return;
+    }
+
     setIsLaunchingApp(true);
     audioSynthesizer.playBatonSwingSound();
 
@@ -291,6 +307,27 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
           </div>
 
         </div>
+
+        {/* Locked (Detox mode) Notice — 3초간 떴다 사라짐. 앱 실행 대신 안내 */}
+        {showLockedNotice && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-sm animate-fade-in select-none touch-none px-6">
+            <div className="w-full max-w-[15rem] rounded-3xl border border-amber-500/40 bg-stone-900/95 p-6 text-center shadow-2xl">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-400 animate-pulse">
+                <ShieldCheck className="h-8 w-8" />
+              </div>
+              <h2 className="mt-4 font-serif text-lg font-bold text-amber-100 break-keep">디톡스 모드 가동 중</h2>
+              <p className="mt-1.5 text-xs leading-snug text-stone-300 break-keep">
+                지금은 집중 약속 시간이에요.<br />잠금이 끝난 뒤 앱을 실행할 수 있어요.
+              </p>
+              {timeRemaining !== '00:00:00' && (
+                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-stone-950/80 px-3 py-1 text-xs font-mono font-bold text-amber-300">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>{timeRemaining}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* App Opening / Splash Animation Overlay Screen */}
         {isLaunchingApp && (

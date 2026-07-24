@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SessionData } from '../types';
 import { BottomTabBar, TabType } from './BottomTabBar';
 import { NewHomeScreen } from './NewHomeScreen';
@@ -8,23 +8,24 @@ import { MoreScreen } from './MoreScreen';
 
 interface MainLayoutProps {
   onStartSession: (session: SessionData) => void;
+  onNavigateToScreen: (screen: string) => void;
+  activeTab: TabType;
+  onTabChange: (tab: TabType) => void;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('home');
-
+export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNavigateToScreen, activeTab, onTabChange }) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <NewHomeScreen onSelectTab={setActiveTab} />;
+        return <NewHomeScreen onSelectTab={onTabChange} />;
       case 'mode-a':
         return <ModeAScreen onStartSession={onStartSession} />;
       case 'mode-b':
         return <ModeBScreen onStartSession={onStartSession} />;
       case 'more':
-        return <MoreScreen />;
+        return <MoreScreen onNavigateToScreen={onNavigateToScreen} />;
       default:
-        return <NewHomeScreen onSelectTab={setActiveTab} />;
+        return <NewHomeScreen onSelectTab={onTabChange} />;
     }
   };
 
@@ -54,7 +55,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession }) => {
       </main>
 
       {/* 4-Tab Bottom Navigation Bar */}
-      <BottomTabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomTabBar activeTab={activeTab} onTabChange={onTabChange} />
     </div>
   );
 };

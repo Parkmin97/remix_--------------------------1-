@@ -1,12 +1,12 @@
 import React from 'react';
 import { getDailyReports, clearAllData } from '../lib/storage';
-import { Award, Calendar, CheckCircle2, Music, Sparkles, Clock, Trash2, ArrowRight } from 'lucide-react';
+import { Award, Calendar, CheckCircle2, Music, Sparkles, Clock, Trash2, ArrowLeft } from 'lucide-react';
 
 interface ReportScreenProps {
-  onNavigateToScreen: (screen: string) => void;
+  onBack: () => void;
 }
 
-export const ReportScreen: React.FC<ReportScreenProps> = ({ onNavigateToScreen }) => {
+export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   const reports = getDailyReports();
   const totalFocusMinutes = reports.reduce((acc, r) => acc + r.completedFocusMinutes, 0);
   const totalConfirmed = reports.reduce((acc, r) => acc + r.confirmedCount, 0);
@@ -22,16 +22,25 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onNavigateToScreen }
     <div className="h-full flex flex-col max-w-4xl mx-auto px-4 py-3 gap-3 text-stone-100">
       {/* Title Header */}
       <div className="flex flex-row items-center justify-between gap-3 border-b border-amber-900/40 pb-2.5 shrink-0">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xl text-amber-400 font-serif">𝄞</span>
-            <h2 className="text-lg font-bold font-serif text-amber-200 break-keep">
-              디톡스 성과 & 지휘 리포트
-            </h2>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <button
+            onClick={onBack}
+            className="p-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-all active:scale-95 shrink-0"
+            title="더보기로 돌아가기"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </button>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xl text-amber-400 font-serif">𝄞</span>
+              <h2 className="text-lg font-bold font-serif text-amber-200 break-keep">
+                디톡스 성과 & 지휘 리포트
+              </h2>
+            </div>
+            <p className="text-[11px] text-stone-400 mt-0.5 break-keep">
+              계획 기반 집중 약속 달성 기록 및 지휘자 칭호 피드백
+            </p>
           </div>
-          <p className="text-[11px] text-stone-400 mt-0.5 break-keep">
-            계획 기반 집중 약속 달성 기록 및 지휘자 칭호 피드백
-          </p>
         </div>
 
         <button
@@ -137,16 +146,6 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onNavigateToScreen }
         </div>
       </div>
 
-      {/* Quick Return */}
-      <div className="flex justify-center shrink-0">
-        <button
-          onClick={() => onNavigateToScreen('home')}
-          className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-2xl text-xs flex items-center gap-2 shadow-lg transition-all"
-        >
-          <span className="break-keep">새 지휘 세션으로 돌아가기</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
-      </div>
     </div>
   );
 };

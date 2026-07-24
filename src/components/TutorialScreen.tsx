@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Square, RefreshCw, Camera, Sparkles, Volume2, VolumeX, CheckCircle, ArrowRight, HelpCircle, Music, Award, Compass, Zap } from 'lucide-react';
+import { Play, Square, RefreshCw, Camera, Sparkles, Volume2, VolumeX, CheckCircle, ArrowRight, ArrowLeft, HelpCircle, Music, Award, Compass, Zap } from 'lucide-react';
 import { BeatType } from '../types';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
 
 interface TutorialScreenProps {
   onNavigateToScreen: (tab: string) => void;
+  onBack: () => void;
 }
 
 interface BeatInfo {
@@ -99,7 +100,7 @@ const BEAT_TUTORIALS: Record<BeatType, BeatInfo> = {
   },
 };
 
-export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScreen }) => {
+export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScreen, onBack }) => {
   const [selectedBeat, setSelectedBeat] = useState<BeatType>('4/4');
   const [bpm, setBpm] = useState<number>(90);
   const [isPracticing, setIsPracticing] = useState<boolean>(false);
@@ -261,11 +262,11 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
               </p>
             </div>
             <button
-              onClick={() => onNavigateToScreen('mission')}
-              className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-lg shadow-amber-950/40 transition-all active:scale-95 shrink-0"
+              onClick={onBack}
+              className="px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border border-stone-700 shadow-lg transition-all active:scale-95 shrink-0"
             >
-              <Music className="w-4 h-4" />
-              <span className="break-keep">실전 지휘 미션 도전</span>
+              <ArrowLeft className="w-4 h-4" />
+              <span className="break-keep">뒤로가기</span>
             </button>
           </div>
         </div>

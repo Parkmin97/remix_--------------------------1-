@@ -3,7 +3,11 @@ import { Settings, HelpCircle, BarChart3, Bell, User as UserIcon, ChevronRight, 
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-export const MoreScreen: React.FC = () => {
+interface MoreScreenProps {
+  onNavigateToScreen: (screen: string) => void;
+}
+
+export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -18,12 +22,15 @@ export const MoreScreen: React.FC = () => {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const menuSections = [
+  const menuSections: Array<{
+    title: string;
+    items: Array<{ icon: React.ElementType; label: string; badge?: string; target?: string }>;
+  }> = [
     {
       title: '서비스 기능',
       items: [
-        { icon: BarChart3, label: '디톡스 일간/주간 리포트', badge: '기록' },
-        { icon: HelpCircle, label: '지휘 동작 연습 튜토리얼', badge: '연습' },
+        { icon: BarChart3, label: '디톡스 일간/주간 리포트', badge: '기록', target: 'report' },
+        { icon: HelpCircle, label: '지휘 동작 연습 튜토리얼', badge: '연습', target: 'tutorial' },
       ],
     },
     {
@@ -91,6 +98,7 @@ export const MoreScreen: React.FC = () => {
                 return (
                   <button
                     key={itemIdx}
+                    onClick={() => { if (item.target) onNavigateToScreen(item.target); }}
                     className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-stone-800/60 transition-all text-xs text-stone-200 group"
                   >
                     <div className="flex items-center gap-2.5">

@@ -8,14 +8,12 @@ interface ShortsFeedScreenProps {
   activeSession: SessionData | null;
   setActiveSession: (session: SessionData | null) => void;
   onNavigateToScreen: (screen: string) => void;
-  onOpenIntervention: () => void;
 }
 
 export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   activeSession,
   setActiveSession,
-  onNavigateToScreen,
-  onOpenIntervention
+  onNavigateToScreen
 }) => {
   const [currentShortIndex, setCurrentShortIndex] = useState(0);
   const [liked, setLiked] = useState(false);
@@ -36,7 +34,7 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
       setSecondsLeft(diffSecs);
 
       if (diffSecs <= 0 && activeSession.state === 'USAGE_ACTIVE') {
-        // 30s test usage limit reached -> Auto transition to soft lock & trigger intervention
+        // 이용 시간(30초) 종료 -> 잠금(FOCUS_ACTIVE)으로 전환하고, 잠금 상태의 폰 배경화면으로 이동한다.
         const updatedSession: SessionData = {
           ...activeSession,
           state: 'FOCUS_ACTIVE',
@@ -44,14 +42,14 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
         };
         saveActiveSession(updatedSession);
         setActiveSession(updatedSession);
-        onOpenIntervention();
+        onNavigateToScreen('phone-home');
       }
     };
 
     updateTimer();
     const interval = setInterval(updateTimer, 500);
     return () => clearInterval(interval);
-  }, [activeSession, setActiveSession, onOpenIntervention]);
+  }, [activeSession, setActiveSession, onNavigateToScreen]);
 
   // Scroll & Gesture States
   const [touchStartY, setTouchStartY] = useState<number | null>(null);

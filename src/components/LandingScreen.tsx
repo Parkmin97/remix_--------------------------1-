@@ -7,6 +7,7 @@ import {
 
 interface LandingScreenProps {
   onNavigateToScreen: (screen: string) => void;
+  onFreeStart: () => void;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -191,7 +192,7 @@ const MockReport: React.FC = () => (
 
 /* -------------------------------------------------------------------------- */
 
-export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen }) => {
+export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen, onFreeStart }) => {
   const [activeTab, setActiveTab] = useState<'screen1' | 'screen2' | 'screen3'>('screen1');
   const rootRef = useScrollReveal();
 
@@ -264,7 +265,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
 
           <div className="lp-reveal mt-8 flex justify-center" style={{ transitionDelay: '180ms' }}>
             <button
-              onClick={() => onNavigateToScreen('phone-home')}
+              onClick={onFreeStart}
               className="group flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-4 text-base font-black text-neutral-950 transition-all active:scale-[0.97] sm:w-auto sm:max-w-none"
             >
               무료로 시작하기
@@ -627,7 +628,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
             </p>
             <div className="mt-8 flex justify-center">
               <button
-                onClick={() => onNavigateToScreen('phone-home')}
+                onClick={onFreeStart}
                 className="group flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-400 to-amber-500 px-8 py-4 text-base font-black text-neutral-950 transition-all active:scale-[0.97] sm:w-auto sm:max-w-none"
               >
                 지금 무료로 시작하기
@@ -661,7 +662,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
       {/* ===================================================================== */}
       <div className="fixed inset-x-0 bottom-0 z-30 bg-neutral-950 p-3 sm:hidden">
         <button
-          onClick={() => onNavigateToScreen('phone-home')}
+          onClick={onFreeStart}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-3.5 text-sm font-black text-neutral-950 active:scale-[0.98]"
         >
           무료로 시작하기

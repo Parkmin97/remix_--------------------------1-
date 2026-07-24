@@ -10,6 +10,7 @@ import { getStoredActiveSession, saveActiveSession, getOnboardingCompleted, getS
 import { audioSynthesizer } from './lib/audioSynthesizer';
 import { supabase } from './lib/supabase';
 import { Header } from './components/Header';
+import type { TabType } from './components/BottomTabBar';
 import { LoginScreen } from './components/LoginScreen';
 import { OnboardingModal } from './components/OnboardingModal';
 import { LandingScreen } from './components/LandingScreen';
@@ -31,6 +32,8 @@ export default function App() {
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState<boolean>(false);
+  const [mainTab, setMainTab] = useState<TabType>('home');
 
   // Initialize on Mount
   useEffect(() => {
@@ -51,10 +54,12 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);
+      setAuthChecked(true);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setAuthChecked(true);
     });
 
     return () => sub.subscription.unsubscribe();
@@ -80,6 +85,23 @@ export default function App() {
     setCurrentTab('phone-home');
   };
 
+  // 흐름: 랜딩 → 무료로 시작하기 → 폰 배경화면(공개) → 내인생지휘자 앱 실행 → 로그인 → 기본 홈(서비스).
+  // 로그인 게이트는 '기본 홈(home, 실제 서비스)' 진입 시에만 적용한다. 랜딩·폰 배경화면 등은 공개.
+  const needsAuth = !user && currentTab === 'home';
+
+  // 무료로 시작하기: 과거 잠금 세션을 지우고 잠금효과 없는 폰 배경화면으로 진입한다.
+  const handleFreeStart = () => {
+    saveActiveSession(null);
+    setActiveSession(null);
+    setCurrentTab('phone-home');
+  };
+
+  // 리포트/튜토리얼 화면의 뒤로가기 → 기본 홈의 '더보기' 탭으로 돌아간다.
+  const handleBackToMore = () => {
+    setMainTab('more');
+    setCurrentTab('home');
+  };
+
   return (
     <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-stone-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-stone-950 text-stone-100'}`}>
       {/* Mobile-optimized status badge */}
@@ -102,15 +124,30 @@ export default function App() {
       {/* Main Content Area — no-scroll 프레임. 숏폼/랜딩만 내부 스크롤 허용 */}
       <main className={`flex-1 min-h-0 animate-fade-in ${currentTab === 'shorts' || currentTab === 'landing' ? 'overflow-y-auto no-scrollbar' : 'overflow-hidden'}`}>
         {currentTab === 'landing' && (
-          <LandingScreen onNavigateToScreen={setCurrentTab} />
+          <LandingScreen onNavigateToScreen={setCurrentTab} onFreeStart={handleFreeStart} />
         )}
 
         {currentTab === 'login' && (
           <LoginScreen user={user} onNavigateToScreen={setCurrentTab} />
         )}
 
+        {/* 서비스 진입 게이트: 로그인 전에는 로그인/회원가입 화면을 띄운다. */}
+        {needsAuth && (
+          authChecked ? (
+            <div className="h-full flex items-center justify-center">
+              <LoginScreen user={user} onNavigateToScreen={setCurrentTab} />
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
+            </div>
+          )
+        )}
+
+        {!needsAuth && (
+        <>
         {currentTab === 'home' && (
-          <MainLayout onStartSession={handleStartSession} />
+          <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} />
         )}
 
         {currentTab === 'phone-home' && (
@@ -128,7 +165,6 @@ export default function App() {
             activeSession={activeSession}
             setActiveSession={setActiveSession}
             onNavigateToScreen={setCurrentTab}
-            onOpenIntervention={() => setIsInterventionOpen(true)}
           />
         )}
 
@@ -142,7 +178,7 @@ export default function App() {
         )}
 
         {currentTab === 'tutorial' && (
-          <TutorialScreen onNavigateToScreen={setCurrentTab} />
+          <TutorialScreen onNavigateToScreen={setCurrentTab} onBack={handleBackToMore} />
         )}
 
         {currentTab === 'self-reflection' && (
@@ -154,7 +190,7 @@ export default function App() {
         )}
 
         {currentTab === 'report' && (
-          <ReportScreen onNavigateToScreen={setCurrentTab} />
+          <ReportScreen onBack={handleBackToMore} />
         )}
 
         {currentTab === 'settings' && (
@@ -163,6 +199,8 @@ export default function App() {
             isMuted={isMuted}
             setIsMuted={setIsMuted}
           />
+        )}
+        </>
         )}
       </main>
 
