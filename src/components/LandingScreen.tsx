@@ -241,22 +241,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
       {/* ===================================================================== */}
       {/* 1. HERO                                                                */}
       {/* ===================================================================== */}
-      <section className="relative overflow-hidden px-4 pt-12 pb-16 sm:pt-20 sm:pb-24">
-        {/* Ambient light */}
-        <div className="pointer-events-none absolute left-1/2 top-[-6rem] h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-amber-300/20 blur-[130px]" />
-        {/* Staff lines */}
-        <div className="pointer-events-none absolute inset-x-0 top-28 flex flex-col gap-6 opacity-[0.05]">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-px w-full bg-neutral-900" />
-          ))}
-        </div>
-        {/* Floating notes */}
-        <div className="pointer-events-none absolute inset-0 hidden sm:block">
-          <span className="lp-float absolute left-[10%] top-[22%] text-3xl text-amber-500/30" style={{ animationDelay: '0s' }}>♪</span>
-          <span className="lp-float absolute right-[12%] top-[30%] text-4xl text-amber-500/25" style={{ animationDelay: '1.2s' }}>♫</span>
-          <span className="lp-float absolute left-[16%] bottom-[26%] text-2xl text-amber-400/30" style={{ animationDelay: '2.1s' }}>𝄞</span>
-          <span className="lp-float absolute right-[18%] bottom-[30%] text-3xl text-amber-500/25" style={{ animationDelay: '0.6s' }}>♩</span>
-        </div>
+      <section className="relative overflow-hidden px-4 pt-12 pb-16 sm:pt-20 sm:pb-24 bg-white">
 
         <div className="relative z-10 mx-auto max-w-3xl text-center">
           <div className="lp-reveal inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-4 py-1.5 text-xs font-medium text-amber-700">
@@ -290,7 +275,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
 
         {/* Hero mockup — 블랙 블록 */}
         <div className="lp-reveal relative z-10 mx-auto mt-12 max-w-lg" style={{ transitionDelay: '160ms' }}>
-          <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-amber-300/25 blur-2xl" />
           <div className={`${block} p-2.5 sm:p-3`}>
             <img
               src="/hero_mockup.png"
