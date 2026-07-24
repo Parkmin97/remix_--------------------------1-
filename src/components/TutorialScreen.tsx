@@ -248,7 +248,15 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
           <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none text-9xl text-amber-400 font-serif">
             𝄞
           </div>
-          <div className="relative z-10 flex flex-row items-center justify-between gap-3">
+          <div className="relative z-10 flex flex-row items-center gap-3">
+            <button
+              onClick={onBack}
+              className="shrink-0 p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors active:scale-95"
+              title="뒤로가기"
+              aria-label="뒤로가기"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
             <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[11px] font-semibold mb-1">
                 <Compass className="w-3 h-3" />
@@ -261,13 +269,6 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
                 올바른 지휘 궤적(Pattern)과 타점(Ictus)을 익히고, 메트로놈과 함께 손짓을 연습해보세요.
               </p>
             </div>
-            <button
-              onClick={onBack}
-              className="px-3 py-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border border-stone-700 shadow-lg transition-all active:scale-95 shrink-0"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="break-keep">뒤로가기</span>
-            </button>
           </div>
         </div>
 

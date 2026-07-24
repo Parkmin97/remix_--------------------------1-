@@ -25,8 +25,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={onBack}
-            className="p-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-all active:scale-95 shrink-0"
-            title="더보기로 돌아가기"
+            className="shrink-0 p-2 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition-colors active:scale-95"
+            title="뒤로가기"
+            aria-label="뒤로가기"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
