@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Zap, Clock, Play, ArrowRight, ShieldCheck } from 'lucide-react';
 import { TARGET_SERVICES } from '../data/targetServices';
+import { TimeSlotPicker } from './TimeSlotPicker';
 
 export const ModeAScreen: React.FC = () => {
   const [selectedServices, setSelectedServices] = useState<string[]>(['instagram', 'youtube']);
@@ -93,21 +94,17 @@ export const ModeAScreen: React.FC = () => {
           {/* Form Inputs */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-stone-300 mb-1 flex items-center gap-1.5">
+              <label className="block text-xs font-semibold text-stone-300 mb-2 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
-                <span>집중 약속 시간</span>
+                <span>집중 약속 시간 (5분 단위 슬롯 선택)</span>
               </label>
-              <select
+              <TimeSlotPicker
                 value={focusDuration}
-                onChange={e => setFocusDuration(Number(e.target.value))}
-                className="w-full bg-stone-950 border border-amber-800/50 rounded-xl px-3 py-2.5 text-xs text-amber-100 focus:outline-none focus:border-amber-500"
-              >
-                <option value={30}>30분 집중</option>
-                <option value={45}>45분 집중</option>
-                <option value={60}>60분 (1시간 집중)</option>
-                <option value={120}>120분 (2시간 집중)</option>
-                <option value={180}>180분 (3시간 집중)</option>
-              </select>
+                onChange={(val) => setFocusDuration(val)}
+                min={5}
+                max={300}
+                step={5}
+              />
             </div>
 
             <div>

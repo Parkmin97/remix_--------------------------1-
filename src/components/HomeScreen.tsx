@@ -4,6 +4,7 @@ import { TARGET_SERVICES } from '../data/targetServices';
 import { CLASSICAL_PIECES, DAILY_QUOTES } from '../data/classicalPieces';
 import { getDailyReports, saveActiveSession } from '../lib/storage';
 import { Shield, Clock, Sparkles, CheckCircle2, Play, ExternalLink, ArrowRight, Calendar, Compass } from 'lucide-react';
+import { TimeSlotPicker } from './TimeSlotPicker';
 
 interface HomeScreenProps {
   activeSession: SessionData | null;
@@ -340,21 +341,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-stone-300 mb-1">
-              집중 약속 시간 (SNS를 멀리할 시간)
+            <label className="block text-xs font-semibold text-stone-300 mb-2">
+              집중 약속 시간 (5분 단위 슬롯 선택)
             </label>
-            <select
+            <TimeSlotPicker
               value={focusDuration}
-              onChange={e => setFocusDuration(Number(e.target.value))}
-              className="w-full bg-stone-950 border border-amber-800/50 rounded-xl px-3 py-2.5 text-xs text-amber-100 focus:outline-none focus:border-amber-500"
-            >
-              <option value={30}>30분 집중</option>
-              <option value={45}>45분 집중</option>
-              <option value={60}>60분 (1시간 집중)</option>
-              <option value={120}>120분 (2시간 집중)</option>
-              <option value={180}>180분 (3시간 집중)</option>
-              <option value={240}>240분 (4시간 집중)</option>
-            </select>
+              onChange={(val) => setFocusDuration(val)}
+              min={5}
+              max={300}
+              step={5}
+            />
           </div>
 
           <div>
