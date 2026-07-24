@@ -42,13 +42,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw error;
         // 성공 시 App의 onAuthStateChange가 user를 갱신 → 홈으로 이동
-        onNavigateToScreen('phone-home');
+        onNavigateToScreen('home');
       } else {
         const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
         if (error) throw error;
         if (data.session) {
           // 이메일 확인이 꺼져 있으면 바로 로그인됨
-          onNavigateToScreen('phone-home');
+          onNavigateToScreen('home');
         } else {
           setInfo('가입 확인 메일을 보냈습니다. 메일함에서 링크를 눌러 인증을 완료해주세요.');
         }
@@ -84,7 +84,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
 
           <div className="mt-7 flex flex-col gap-2.5">
             <button
-              onClick={() => onNavigateToScreen('phone-home')}
+              onClick={() => onNavigateToScreen('home')}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-sm font-bold text-stone-950 transition-colors hover:bg-amber-400"
             >
               <Music className="h-4 w-4" /> 디톡스 시작하기

@@ -116,6 +116,7 @@ export default function App() {
             setActiveSession={setActiveSession}
             onOpenIntervention={() => setIsInterventionOpen(true)}
             onNavigateToScreen={setCurrentTab}
+            user={user}
           />
         )}
 

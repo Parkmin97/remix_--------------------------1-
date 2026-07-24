@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { SessionData } from '../types';
 import { TARGET_SERVICES } from '../data/targetServices';
 import { saveActiveSession } from '../lib/storage';
@@ -10,13 +11,15 @@ interface PhoneHomeScreenProps {
   setActiveSession?: (session: SessionData | null) => void;
   onOpenIntervention: () => void;
   onNavigateToScreen: (screen: string) => void;
+  user: User | null;
 }
 
 export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
   activeSession,
   setActiveSession,
   onOpenIntervention,
-  onNavigateToScreen
+  onNavigateToScreen,
+  user
 }) => {
   const [timeRemaining, setTimeRemaining] = useState<string>('00:00:00');
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -63,6 +66,12 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
 
   // Launch Conductor App with Splash Screen Transition
   const handleLaunchConductorApp = () => {
+    // 로그인하지 않았으면 먼저 로그인 화면으로 보낸다.
+    if (!user) {
+      onNavigateToScreen('login');
+      return;
+    }
+
     setIsLaunchingApp(true);
     audioSynthesizer.playBatonSwingSound();
 
