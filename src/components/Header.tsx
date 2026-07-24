@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Smartphone className="w-3.5 h-3.5 shrink-0" />
-              <span>잠금 홈</span>
+              <span>핸드폰 홈</span>
             </button>
 
             <button
