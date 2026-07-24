@@ -71,12 +71,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
   /* -------------------- 로그인 완료 상태 -------------------- */
   if (user) {
     return (
-      <div className="mx-auto max-w-md px-4 py-10">
-        <div className="rounded-3xl border border-amber-500/20 bg-stone-900/60 p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15">
-            <CheckCircle2 className="h-8 w-8 text-emerald-400" />
+      <div className="h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
+        <div className="w-full rounded-3xl border border-amber-500/20 bg-stone-900/60 p-6 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15">
+            <CheckCircle2 className="h-7 w-7 text-emerald-400" />
           </div>
-          <h2 className="mt-5 font-serif text-2xl font-bold text-amber-100">로그인 완료</h2>
+          <h2 className="mt-4 font-serif text-2xl font-bold text-amber-100">로그인 완료</h2>
           <p className="mt-2 text-sm text-stone-400">
             <span className="font-semibold text-amber-200">{user.email}</span> 님으로<br />
             내인생 지휘자에 로그인되어 있습니다.
@@ -105,14 +105,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
 
   /* -------------------- 로그인 / 회원가입 폼 -------------------- */
   return (
-    <div className="mx-auto max-w-md px-4 py-10">
-      <div className="rounded-3xl border border-amber-500/20 bg-stone-900/60 p-7 sm:p-8">
+    <div className="h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
+      <div className="w-full rounded-3xl border border-amber-500/20 bg-stone-900/60 p-6">
         {/* 헤더 */}
         <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/15 font-serif text-2xl text-amber-300">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/15 font-serif text-xl text-amber-300">
             𝄞
           </div>
-          <h2 className="mt-4 font-serif text-2xl font-bold text-amber-100">
+          <h2 className="mt-3 font-serif text-2xl font-bold text-amber-100 break-keep">
             {mode === 'login' ? '다시 오신 걸 환영합니다' : '내인생 지휘자 시작하기'}
           </h2>
           <p className="mt-1.5 text-sm text-stone-400">

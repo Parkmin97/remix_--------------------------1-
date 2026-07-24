@@ -21,41 +21,9 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   const [liked, setLiked] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
-  // Ensure 30s USAGE_ACTIVE session on mount if not active or missing end time
-  useEffect(() => {
-    const now = new Date();
-    const TEST_USAGE_SECONDS = 30;
-
-    if (!activeSession || activeSession.state === 'GUIDED_READY' || !activeSession.usageEndsAt) {
-      const usageEndsAtIso = new Date(now.getTime() + TEST_USAGE_SECONDS * 1000).toISOString();
-      const focusEndsAtIso = new Date(now.getTime() + (TEST_USAGE_SECONDS * 1000) + ((activeSession?.focusDurationMinutes || 15) * 60 * 1000)).toISOString();
-
-      const newSession: SessionData = {
-        id: activeSession?.id || `session-${Date.now()}`,
-        mode: activeSession?.mode || 'GUIDED_USE',
-        state: 'USAGE_ACTIVE',
-        targetServices: activeSession?.targetServices || ['youtube_shorts', 'instagram_reels'],
-        usageLimitMinutes: activeSession?.usageLimitMinutes || 15,
-        focusDurationMinutes: activeSession?.focusDurationMinutes || 15,
-        usageIntent: activeSession?.usageIntent || '쇼츠 피드 시청',
-        focusTask: activeSession?.focusTask || '독서 및 집중',
-        missionBeatType: activeSession?.missionBeatType || '4_4',
-        selectedPieceId: activeSession?.selectedPieceId || 'beethoven_5',
-        createdAt: activeSession?.createdAt || now.toISOString(),
-        usageStartsAt: now.toISOString(),
-        usageEndsAt: usageEndsAtIso,
-        focusStartsAt: usageEndsAtIso,
-        focusEndsAt: focusEndsAtIso,
-        missionAttempted: activeSession?.missionAttempted || false,
-        missionSucceeded: activeSession?.missionSucceeded || false,
-        extensionUsed: activeSession?.extensionUsed || false,
-        launchAttemptCount: activeSession?.launchAttemptCount || 0
-      };
-
-      saveActiveSession(newSession);
-      setActiveSession(newSession);
-    }
-  }, []);
+  // 30초 카운트는 모드 B에서 SNS를 클릭해 만들어진 USAGE_ACTIVE 세션에서만 진행한다.
+  // (숏폼 화면에 들어왔다는 이유만으로 자동 세션을 만들지 않는다.)
+  const isUsageCounting = Boolean(activeSession && activeSession.state === 'USAGE_ACTIVE' && activeSession.usageEndsAt);
 
   // Countdown timer for active usage session (fixed to 30s test mode)
   useEffect(() => {
@@ -157,34 +125,36 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   }, []);
 
   return (
-    <div className="max-w-md mx-auto w-full relative">
+    <div className="h-full flex flex-col max-w-md mx-auto w-full relative p-2">
       {/* Short-form Feed Container with Wheel and Touch Scroll */}
       <div
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`relative h-[640px] rounded-3xl overflow-hidden shadow-2xl text-white ${currentShort.bgColor} border border-stone-800/80 flex flex-col justify-between select-none cursor-grab active:cursor-grabbing`}
+        className={`relative flex-1 min-h-0 rounded-3xl overflow-y-auto overflow-x-hidden shadow-2xl text-white ${currentShort.bgColor} border border-stone-800/80 flex flex-col justify-between select-none cursor-grab active:cursor-grabbing`}
       >
         {/* Animated Background Canvas Gradient */}
         <div className={`absolute inset-0 bg-gradient-to-tr ${currentShort.gradient} pointer-events-none opacity-60 animate-pulse`}></div>
 
         {/* Top Header & Planned Timer Bar */}
         <div className="relative z-20 bg-black/80 backdrop-blur-md border-b border-amber-500/30 pointer-events-auto">
-          {/* Real-time Countdown Progress Bar Gauge */}
-          <div className="w-full bg-stone-900 h-2.5 relative overflow-hidden">
-            <div
-              className={`h-full transition-all duration-1000 ease-linear ${
-                (secondsLeft ?? 30) <= 5
-                  ? 'bg-rose-500 animate-pulse'
-                  : (secondsLeft ?? 30) <= 10
-                  ? 'bg-amber-500'
-                  : 'bg-emerald-500'
-              }`}
-              style={{
-                width: `${Math.min(100, Math.max(0, ((secondsLeft ?? 30) / 30) * 100))}%`
-              }}
-            />
-          </div>
+          {/* Real-time Countdown Progress Bar Gauge — 카운트 중일 때만 */}
+          {isUsageCounting && (
+            <div className="w-full bg-stone-900 h-2.5 relative overflow-hidden">
+              <div
+                className={`h-full transition-all duration-1000 ease-linear ${
+                  (secondsLeft ?? 30) <= 5
+                    ? 'bg-rose-500 animate-pulse'
+                    : (secondsLeft ?? 30) <= 10
+                    ? 'bg-amber-500'
+                    : 'bg-emerald-500'
+                }`}
+                style={{
+                  width: `${Math.min(100, Math.max(0, ((secondsLeft ?? 30) / 30) * 100))}%`
+                }}
+              />
+            </div>
+          )}
 
           <div className="p-2.5 sm:p-3.5 flex items-center justify-between gap-1.5">
             <button
@@ -195,25 +165,27 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
               <span>나가기</span>
             </button>
 
-            {/* Real-time Count Bar (Mobile Optimized No-Wrap) */}
-            <div className="flex items-center gap-1.5 bg-stone-950/90 px-2.5 py-1.5 rounded-full border border-amber-500/50 shadow-md shrink-0 whitespace-nowrap">
-              <Clock className={`w-3.5 h-3.5 ${
-                (secondsLeft ?? 30) <= 10 ? 'text-rose-400 animate-bounce' : 'text-amber-400 animate-spin-slow'
-              }`} />
-              <div className="flex items-center gap-1 text-xs">
-                <span className="text-stone-400 font-medium">남은 이용:</span>
-                <span className={`font-mono font-bold ${
-                  (secondsLeft ?? 30) <= 10 ? 'text-rose-400' : 'text-amber-300'
-                }`}>
-                  {secondsLeft !== null && activeSession?.state === 'USAGE_ACTIVE'
-                    ? `${secondsLeft}초`
-                    : '30초'}
-                </span>
-                <span className="text-[10px] text-amber-400/90 font-mono bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/30">
-                  30초 고정
-                </span>
+            {/* Real-time Count Bar — 카운트 중일 때만 (Mobile Optimized No-Wrap) */}
+            {isUsageCounting ? (
+              <div className="flex items-center gap-1.5 bg-stone-950/90 px-2.5 py-1.5 rounded-full border border-amber-500/50 shadow-md shrink-0 whitespace-nowrap">
+                <Clock className={`w-3.5 h-3.5 ${
+                  (secondsLeft ?? 30) <= 10 ? 'text-rose-400 animate-bounce' : 'text-amber-400 animate-spin-slow'
+                }`} />
+                <div className="flex items-center gap-1 text-xs">
+                  <span className="text-stone-400 font-medium">남은 이용:</span>
+                  <span className={`font-mono font-bold ${
+                    (secondsLeft ?? 30) <= 10 ? 'text-rose-400' : 'text-amber-300'
+                  }`}>
+                    {secondsLeft !== null ? `${secondsLeft}초` : '30초'}
+                  </span>
+                  <span className="text-[10px] text-amber-400/90 font-mono bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/30">
+                    30초 고정
+                  </span>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div />
+            )}
 
             <div className="w-4 sm:w-8 shrink-0" />
           </div>

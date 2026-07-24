@@ -6,6 +6,17 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+/* ---------------------------------------------------------------- */
+/* No-scroll mobile frame: lock the document to the viewport height. */
+/* 개별 화면은 100dvh 프레임 안에 채워지고, 페이지 스크롤은 없앤다.   */
+/* ---------------------------------------------------------------- */
+html, body { height: 100%; }
+#root { height: 100%; }
+body {
+  overflow: hidden;
+  overscroll-behavior-y: none;
+}
+
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {

@@ -601,9 +601,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     : 0;
 
   return (
-    <div className="max-w-2xl mx-auto px-2 sm:px-4 py-3 sm:py-6 space-y-3 sm:space-y-6 text-stone-100">
+    <div className="h-full w-full max-w-2xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 sm:gap-3 text-stone-100 overflow-hidden">
       {/* Header Banner */}
-      <div className="p-3 sm:p-5 rounded-2xl sm:rounded-3xl bg-stone-900 border border-amber-600/40 text-center space-y-2 relative overflow-hidden shadow-2xl">
+      <div className="shrink-0 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-stone-900 border border-amber-600/40 text-center space-y-1.5 relative overflow-hidden shadow-2xl">
         <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
           <span className="text-amber-400 font-serif text-lg sm:text-2xl">𝄞</span>
           <h2 className="text-base sm:text-xl font-serif font-bold text-amber-200">
@@ -640,7 +640,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       </div>
 
       {/* Game Stage Area */}
-      <div className="bg-stone-950 border-2 border-amber-600/40 rounded-2xl sm:rounded-3xl p-3 sm:p-6 min-h-[380px] sm:min-h-[440px] flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
+      <div className="flex-1 min-h-0 bg-stone-950 border-2 border-amber-600/40 rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
         {/* Animated Background Musical Notes */}
         <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-around text-4xl text-amber-300 select-none">
           <span className="animate-bounce">♩</span>
@@ -651,9 +651,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
         {/* READY STATE */}
         {gameState === 'READY' && (
-          <div className="text-center space-y-4 sm:space-y-6 max-w-md z-10 w-full">
+          <div className="text-center space-y-3 sm:space-y-4 max-w-md z-10 w-full">
             {/* Phone Shake Graphic */}
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto flex items-center justify-center">
+            <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto flex items-center justify-center">
               <div className="absolute inset-0 rounded-3xl bg-amber-500/10 border-2 border-amber-500/40 animate-ping opacity-30"></div>
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-900/60 to-stone-900 border-2 border-amber-500/60 flex flex-col items-center justify-center text-amber-300 shadow-xl">
                 <Smartphone className="w-6 h-6 sm:w-8 sm:h-8 animate-bounce text-amber-400" />
@@ -661,11 +661,11 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h3 className="text-base sm:text-lg font-bold font-serif text-amber-200">
+            <div className="space-y-1.5">
+              <h3 className="text-sm sm:text-lg font-bold font-serif text-amber-200 break-keep">
                 박자 위치별 오차(1/4~4/4) 및 강한 지휘 모션 판정
               </h3>
-              <div className="text-xs text-stone-300 leading-relaxed bg-stone-900/90 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-stone-800 space-y-2 text-left">
+              <div className="text-[11px] sm:text-xs text-stone-300 leading-snug bg-stone-900/90 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-stone-800 space-y-1.5 text-left">
                 <p>• <strong>박자별 오차 비례 적용:</strong> 4/4 박자 기준(0.25초) 비율에 맞춰 <strong>1/4박(0.06초)</strong>, <strong>2/4박(0.12초)</strong>, <strong>3/4박(0.18초)</strong>, <strong>4/4박(0.25초)</strong>로 정밀하게 다단계 계산됩니다.</p>
                 <p>• <strong>강한 모션 필수:</strong> 살살 흔들면 감지되지 않으며, 스마트폰을 <strong>단호하고 크게 쳐내듯 지휘하는 강한 가속도 모션</strong>만 인식됩니다.</p>
                 <p>• <strong>성공 조건:</strong> 1분간 전체 박자의 <strong>80% 이상</strong>(최소 {requiredBeatsToPass}회) 성공 시 미션 통과!</p>
@@ -842,7 +842,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
         {/* CONDUCTING STATE */}
         {gameState === 'CONDUCTING' && (
-          <div className="w-full h-full flex flex-col items-center justify-between z-10 space-y-3">
+          <div className="w-full h-full flex flex-col items-center justify-between z-10 gap-2 sm:gap-3">
             {/* Top Bar: Time & Beat Counter */}
             <div className="w-full flex items-center justify-between px-2 text-xs font-mono">
               <div className="flex items-center gap-2 bg-stone-900/90 px-3 py-1.5 rounded-full border border-amber-600/40">
@@ -856,7 +856,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             </div>
 
             {/* Interactive Phone Shake Stage */}
-            <div className="relative w-full h-60 rounded-2xl border border-amber-500/30 bg-stone-900/80 overflow-hidden flex flex-col items-center justify-center p-4">
+            <div className="relative w-full flex-1 min-h-0 rounded-2xl border border-amber-500/30 bg-stone-900/80 overflow-hidden flex flex-col items-center justify-center p-3 sm:p-4">
               <canvas
                 ref={canvasRef}
                 width={500}

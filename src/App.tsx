@@ -73,10 +73,17 @@ export default function App() {
     setCurrentTab('phone-home');
   };
 
+  // 모드 A/B에서 세션을 시작하면 저장·반영 후 폰 홈 화면으로 이동한다.
+  const handleStartSession = (session: SessionData) => {
+    saveActiveSession(session);
+    setActiveSession(session);
+    setCurrentTab('phone-home');
+  };
+
   return (
-    <div className={`min-h-screen font-sans antialiased selection:bg-amber-500 selection:text-stone-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-stone-950 text-stone-100 pb-12'}`}>
+    <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-stone-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-stone-950 text-stone-100'}`}>
       {/* Mobile-optimized status badge */}
-      <div className="hidden sm:flex bg-amber-950/60 border-b border-amber-800/40 py-1 px-4 text-center text-[11px] text-amber-300 items-center justify-center gap-2">
+      <div className="hidden sm:flex shrink-0 bg-amber-950/60 border-b border-amber-800/40 py-1 px-4 text-center text-[11px] text-amber-300 items-center justify-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
         <span className="font-semibold">모바일 최적화 규격 (390 × 844px) 적용됨</span>
         <span className="text-amber-400/70">| PWA 테스트 완료</span>
@@ -92,8 +99,8 @@ export default function App() {
         user={user}
       />
 
-      {/* Main Content Area */}
-      <main className="animate-fade-in pt-4">
+      {/* Main Content Area — no-scroll 프레임. 숏폼/랜딩만 내부 스크롤 허용 */}
+      <main className={`flex-1 min-h-0 animate-fade-in ${currentTab === 'shorts' || currentTab === 'landing' ? 'overflow-y-auto no-scrollbar' : 'overflow-hidden'}`}>
         {currentTab === 'landing' && (
           <LandingScreen onNavigateToScreen={setCurrentTab} />
         )}
@@ -103,7 +110,7 @@ export default function App() {
         )}
 
         {currentTab === 'home' && (
-          <MainLayout />
+          <MainLayout onStartSession={handleStartSession} />
         )}
 
         {currentTab === 'phone-home' && (

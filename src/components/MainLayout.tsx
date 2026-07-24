@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
+import { SessionData } from '../types';
 import { BottomTabBar, TabType } from './BottomTabBar';
 import { NewHomeScreen } from './NewHomeScreen';
 import { ModeAScreen } from './ModeAScreen';
 import { ModeBScreen } from './ModeBScreen';
 import { MoreScreen } from './MoreScreen';
 
-export const MainLayout: React.FC = () => {
+interface MainLayoutProps {
+  onStartSession: (session: SessionData) => void;
+}
+
+export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession }) => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
 
   const renderContent = () => {
@@ -13,9 +18,9 @@ export const MainLayout: React.FC = () => {
       case 'home':
         return <NewHomeScreen onSelectTab={setActiveTab} />;
       case 'mode-a':
-        return <ModeAScreen />;
+        return <ModeAScreen onStartSession={onStartSession} />;
       case 'mode-b':
-        return <ModeBScreen />;
+        return <ModeBScreen onStartSession={onStartSession} />;
       case 'more':
         return <MoreScreen />;
       default:
@@ -24,9 +29,9 @@ export const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950">
+    <div className="h-full bg-stone-950 text-stone-100 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950">
       {/* Top Header Banner */}
-      <header className="sticky top-0 z-40 bg-stone-900/90 backdrop-blur-md border-b border-amber-900/40 px-4 py-3 shadow-md">
+      <header className="shrink-0 z-40 bg-stone-900/90 backdrop-blur-md border-b border-amber-900/40 px-4 py-3 shadow-md">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl text-amber-400 font-serif font-bold">𝄞</span>
@@ -43,8 +48,8 @@ export const MainLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 animate-fade-in">
+      {/* Main Content Area — no-scroll 프레임 */}
+      <main className="flex-1 min-h-0 overflow-hidden animate-fade-in">
         {renderContent()}
       </main>
 

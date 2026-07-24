@@ -33,7 +33,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-stone-900/95 backdrop-blur-md border-t border-amber-900/40 shadow-2xl">
+    <nav className="shrink-0 w-full z-50 bg-stone-900/95 backdrop-blur-md border-t border-amber-900/40 shadow-2xl">
       <div className="max-w-md mx-auto flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;

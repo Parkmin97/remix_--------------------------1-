@@ -6,6 +6,7 @@ interface TimeSlotPickerProps {
   min?: number;
   max?: number;
   step?: number;
+  heightPx?: number; // overall wheel height; compact frames pass a smaller value
 }
 
 export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
@@ -14,6 +15,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   min = 5,
   max = 480,
   step = 5,
+  heightPx = 160,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -24,6 +26,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   }
 
   const ITEM_HEIGHT = 40; // Height of each slot item in px
+  const padY = (heightPx - ITEM_HEIGHT) / 2; // centers the selected item in the wheel
 
   useEffect(() => {
     if (containerRef.current) {
@@ -58,7 +61,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   };
 
   return (
-    <div className="relative w-full h-[160px] bg-stone-950/80 border border-amber-800/40 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none">
+    <div className="relative w-full bg-stone-950/80 border border-amber-800/40 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none" style={{ height: heightPx }}>
       {/* Top & Bottom Gradient Overlay for Slot Machine Wheel Blur Effect */}
       <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-stone-950 via-stone-950/70 to-transparent z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-stone-950 via-stone-950/70 to-transparent z-10 pointer-events-none" />
@@ -70,8 +73,8 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none py-[60px]"
-        style={{ scrollSnapType: 'y mandatory' }}
+        className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none"
+        style={{ scrollSnapType: 'y mandatory', paddingTop: padY, paddingBottom: padY }}
       >
         {options.map((mins) => {
           const isSelected = mins === value;

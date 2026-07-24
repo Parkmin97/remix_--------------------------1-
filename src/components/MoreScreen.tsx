@@ -48,15 +48,15 @@ export const MoreScreen: React.FC = () => {
   const avatarUrl = user?.user_metadata?.avatar_url;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6 text-stone-100 pb-24">
+    <div className="h-full flex flex-col justify-center max-w-2xl mx-auto w-full px-4 py-4 gap-4 text-stone-100">
       {/* 프로필 정보 배너 */}
-      <div className="p-5 rounded-3xl bg-gradient-to-br from-stone-900 via-stone-900 to-amber-950 border border-amber-500/40 shadow-xl flex items-center gap-4">
+      <div className="p-4 rounded-2xl bg-gradient-to-br from-stone-900 via-stone-900 to-amber-950 border border-amber-500/40 shadow-xl flex items-center gap-3 shrink-0">
         {/* 프로필 사진 영역 (왼쪽) */}
-        <div className="relative w-14 h-14 rounded-full bg-amber-500/10 border-2 border-amber-400/50 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner group">
+        <div className="relative w-12 h-12 rounded-full bg-amber-500/10 border-2 border-amber-400/50 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner group">
           {avatarUrl ? (
             <img src={avatarUrl} alt="프로필 사진" className="w-full h-full object-cover" />
           ) : (
-            <UserIcon className="w-7 h-7 text-amber-300" />
+            <UserIcon className="w-6 h-6 text-amber-300" />
           )}
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
             <Camera className="w-4 h-4 text-amber-200" />
@@ -79,10 +79,10 @@ export const MoreScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {menuSections.map((section, idx) => (
-          <div key={idx} className="space-y-2">
-            <h2 className="text-xs font-bold text-amber-400 uppercase tracking-wider px-2">
+          <div key={idx} className="space-y-1.5">
+            <h2 className="text-[11px] font-bold text-amber-400 uppercase tracking-wider px-2">
               {section.title}
             </h2>
             <div className="bg-stone-900/90 border border-stone-800 rounded-2xl overflow-hidden divide-y divide-stone-800 shadow-lg">
@@ -91,13 +91,13 @@ export const MoreScreen: React.FC = () => {
                 return (
                   <button
                     key={itemIdx}
-                    className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-stone-800/60 transition-all text-xs text-stone-200 group"
+                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-stone-800/60 transition-all text-xs text-stone-200 group"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
                         <Icon className="w-4 h-4" />
                       </div>
-                      <span className="font-medium group-hover:text-amber-200">{item.label}</span>
+                      <span className="font-medium group-hover:text-amber-200 break-keep">{item.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {item.badge && (

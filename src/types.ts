@@ -57,6 +57,7 @@ export interface SessionData {
   mode: ModeType;
   targetServices: TargetService[];
   usageLimitMinutes?: number;
+  activeUsageServiceId?: string; // 모드 B에서 마지막으로 클릭해 30초 카운트를 시작한 SNS id
   focusDurationMinutes: number;
   focusTask?: string;
   usageIntent?: string;
