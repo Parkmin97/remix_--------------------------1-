@@ -34,14 +34,22 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
         id: activeSession?.id || `session-${Date.now()}`,
         mode: activeSession?.mode || 'GUIDED_USE',
         state: 'USAGE_ACTIVE',
+        targetServices: activeSession?.targetServices || ['youtube_shorts', 'instagram_reels'],
         usageLimitMinutes: activeSession?.usageLimitMinutes || 15,
         focusDurationMinutes: activeSession?.focusDurationMinutes || 15,
         usageIntent: activeSession?.usageIntent || '쇼츠 피드 시청',
         focusTask: activeSession?.focusTask || '독서 및 집중',
+        missionBeatType: activeSession?.missionBeatType || '4_4',
+        selectedPieceId: activeSession?.selectedPieceId || 'beethoven_5',
+        createdAt: activeSession?.createdAt || now.toISOString(),
         usageStartsAt: now.toISOString(),
         usageEndsAt: usageEndsAtIso,
         focusStartsAt: usageEndsAtIso,
-        focusEndsAt: focusEndsAtIso
+        focusEndsAt: focusEndsAtIso,
+        missionAttempted: activeSession?.missionAttempted || false,
+        missionSucceeded: activeSession?.missionSucceeded || false,
+        extensionUsed: activeSession?.extensionUsed || false,
+        launchAttemptCount: activeSession?.launchAttemptCount || 0
       };
 
       saveActiveSession(newSession);

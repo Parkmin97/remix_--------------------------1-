@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Inter", "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", "Noto Sans KR", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {
@@ -10,4 +16,60 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+}
+
+/* ---------------------------------------------------------------- */
+/* Landing page motion primitives                                    */
+/* ---------------------------------------------------------------- */
+@keyframes lp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in { animation: lp-fade-in 0.6s ease-out both; }
+
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0) rotate(var(--tw-rotate, 0deg)); }
+  50% { transform: translateY(-14px) rotate(var(--tw-rotate, 0deg)); }
+}
+.lp-float { animation: lp-float 6s ease-in-out infinite; }
+
+@keyframes lp-baton-sway {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
+}
+.lp-baton { transform-origin: bottom center; animation: lp-baton-sway 2.4s ease-in-out infinite; }
+
+@keyframes lp-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes lp-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.lp-marquee { animation: lp-marquee 26s linear infinite; }
+
+@keyframes lp-pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  70% { transform: scale(1.25); opacity: 0; }
+  100% { opacity: 0; }
+}
+.lp-pulse-ring { animation: lp-pulse-ring 2.4s ease-out infinite; }
+
+/* Scroll reveal — toggled by IntersectionObserver via data attribute */
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+.lp-reveal[data-shown="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-float, .lp-baton, .lp-marquee, .lp-pulse-ring { animation: none; }
+  .lp-reveal { opacity: 1; transform: none; transition: none; }
 }

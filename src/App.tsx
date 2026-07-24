@@ -9,6 +9,7 @@ import { getStoredActiveSession, saveActiveSession, getOnboardingCompleted, getS
 import { audioSynthesizer } from './lib/audioSynthesizer';
 import { Header } from './components/Header';
 import { OnboardingModal } from './components/OnboardingModal';
+import { LandingScreen } from './components/LandingScreen';
 import { HomeScreen } from './components/HomeScreen';
 import { PhoneHomeScreen } from './components/PhoneHomeScreen';
 import { ShortsFeedScreen } from './components/ShortsFeedScreen';
@@ -20,7 +21,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<string>('phone-home');
+  const [currentTab, setCurrentTab] = useState<string>('landing');
   const [activeSession, setActiveSession] = useState<SessionData | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);
@@ -55,7 +56,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 font-sans antialiased selection:bg-amber-500 selection:text-stone-950 pb-12">
+    <div className={`min-h-screen font-sans antialiased selection:bg-amber-500 selection:text-stone-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-stone-950 text-stone-100 pb-12'}`}>
       {/* Mobile-optimized status badge */}
       <div className="hidden sm:flex bg-amber-950/60 border-b border-amber-800/40 py-1 px-4 text-center text-[11px] text-amber-300 items-center justify-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
@@ -74,6 +75,10 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="animate-fade-in pt-4">
+        {currentTab === 'landing' && (
+          <LandingScreen onNavigateToScreen={setCurrentTab} />
+        )}
+
         {currentTab === 'home' && (
           <HomeScreen
             activeSession={activeSession}

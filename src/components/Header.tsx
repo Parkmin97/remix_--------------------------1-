@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between w-full md:w-auto shrink-0">
           {/* Logo Brand */}
           <button
-            onClick={() => onTabChange('phone-home')}
+            onClick={() => onTabChange('landing')}
             className="flex items-center gap-2.5 group text-left transition-transform active:scale-95 shrink-0 whitespace-nowrap"
           >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 p-0.5 shadow-lg shadow-amber-950/50 flex items-center justify-center shrink-0">
@@ -81,6 +81,18 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Screen Switcher Nav Bar: Scrollable on Mobile, Inline on Desktop */}
         <div className="flex items-center justify-between w-full md:w-auto gap-2">
           <nav className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full md:w-auto py-0.5 px-0.5">
+            <button
+              onClick={() => onTabChange('landing')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all shrink-0 whitespace-nowrap ${
+                currentTab === 'landing'
+                  ? 'bg-amber-500 text-stone-950 shadow-md font-semibold'
+                  : 'bg-stone-900/60 text-amber-200/80 border border-stone-800 hover:bg-stone-800/80 hover:text-amber-100'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+              <span>서비스 소개</span>
+            </button>
+
             <button
               onClick={() => onTabChange('home')}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all shrink-0 whitespace-nowrap ${
