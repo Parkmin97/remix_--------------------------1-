@@ -1,0 +1,10 @@
+{
+  "name": "Remix: 내인생 지휘자",
+  "description": "지휘 모션과 클래식 음악 박자 맞추기 미션을 통한 디지털 디톡스 및 셀프 앱 잠금 PWA 프로토타입",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
