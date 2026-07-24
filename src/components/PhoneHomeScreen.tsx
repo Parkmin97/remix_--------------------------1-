@@ -267,11 +267,11 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
               onClick={handleLaunchConductorApp}
               className="flex flex-col items-center gap-1.5 group relative"
             >
-              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-600 to-stone-900 p-0.5 shadow-xl flex items-center justify-center relative ring-2 ring-amber-400 shadow-amber-500/40 transition-all group-hover:scale-105 group-active:scale-95">
-                <div className="w-full h-full bg-stone-950/80 rounded-[14px] flex items-center justify-center text-amber-300 font-serif text-2xl">
-                  𝄞
+              <div className="w-13 h-13 sm:w-14 sm:h-14 relative transition-all group-hover:scale-105 group-active:scale-95">
+                <div className="w-full h-full rounded-2xl overflow-hidden shadow-xl shadow-amber-500/40">
+                  <img src="/app_icon.png" alt="내인생지휘자 앱" className="w-full h-full object-cover" draggable={false} />
                 </div>
-                <div className="absolute -top-1.5 -right-1 px-1.5 py-0.5 rounded-full bg-amber-400 text-stone-950 font-black text-[8px] shadow animate-pulse">
+                <div className="absolute -top-1.5 -right-1 z-10 px-1.5 py-0.5 rounded-full bg-amber-400 text-stone-950 font-black text-[8px] shadow animate-pulse">
                   APP
                 </div>
               </div>
@@ -299,10 +299,10 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
             </div>
             <button
               onClick={handleLaunchConductorApp}
-              className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 border border-amber-400/60 flex items-center justify-center text-stone-950 text-xl font-serif font-bold shadow-lg animate-pulse"
+              className="w-11 h-11 rounded-xl overflow-hidden shadow-lg shadow-amber-500/30 ring-1 ring-amber-500/40 animate-pulse"
               title="내인생지휘자 앱 열기"
             >
-              𝄞
+              <img src="/app_icon.png" alt="내인생지휘자 앱" className="w-full h-full object-cover" draggable={false} />
             </button>
           </div>
 

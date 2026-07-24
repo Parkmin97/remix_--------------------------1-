@@ -18,6 +18,10 @@ body {
 }
 
 @layer utilities {
+  /* 워드마크용 — 클래식·우아하면서 가독성 좋은 명조 계열 */
+  .font-wordmark {
+    font-family: "Nanum Myeongjo", "Playfair Display", "Noto Serif KR", serif;
+  }
   /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {
     display: none;

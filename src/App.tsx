@@ -102,6 +102,16 @@ export default function App() {
     setCurrentTab('home');
   };
 
+  // 로그인 성공 시(어떤 상황이든) 항상 기본 홈으로 이동한다. mainTab도 'home'으로 리셋.
+  const handleAuthedNavigate = (screen: string) => {
+    setMainTab('home');
+    setCurrentTab(screen);
+  };
+
+  // 상단 네비게이션(각 화면 바로가기 버튼) 표시 여부.
+  // "상단버튼되돌려줘" 요청 시 이 값을 true로 바꾸면 지금 상태 그대로 복원된다.
+  const SHOW_TOP_NAV = false;
+
   return (
     <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-stone-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-stone-950 text-stone-100'}`}>
       {/* Mobile-optimized status badge */}
@@ -111,15 +121,17 @@ export default function App() {
         <span className="text-amber-400/70">| PWA 테스트 완료</span>
       </div>
 
-      {/* Musical Staff Header Navigation */}
-      <Header
-        currentTab={currentTab}
-        onTabChange={setCurrentTab}
-        onOpenOnboarding={() => setIsOnboardingOpen(true)}
-        isMuted={isMuted}
-        setIsMuted={setIsMuted}
-        user={user}
-      />
+      {/* Musical Staff Header Navigation — SHOW_TOP_NAV 로 표시 제어 */}
+      {SHOW_TOP_NAV && (
+        <Header
+          currentTab={currentTab}
+          onTabChange={setCurrentTab}
+          onOpenOnboarding={() => setIsOnboardingOpen(true)}
+          isMuted={isMuted}
+          setIsMuted={setIsMuted}
+          user={user}
+        />
+      )}
 
       {/* Main Content Area — 콘텐츠가 길면 세로 스크롤로 위아래를 모두 볼 수 있게 한다 */}
       <main className="flex-1 min-h-0 animate-fade-in overflow-y-auto">
@@ -128,14 +140,14 @@ export default function App() {
         )}
 
         {currentTab === 'login' && (
-          <LoginScreen user={user} onNavigateToScreen={setCurrentTab} />
+          <LoginScreen user={user} onNavigateToScreen={handleAuthedNavigate} />
         )}
 
         {/* 서비스 진입 게이트: 로그인 전에는 로그인/회원가입 화면을 띄운다. */}
         {needsAuth && (
           authChecked ? (
             <div className="min-h-full flex items-center justify-center">
-              <LoginScreen user={user} onNavigateToScreen={setCurrentTab} />
+              <LoginScreen user={user} onNavigateToScreen={handleAuthedNavigate} />
             </div>
           ) : (
             <div className="min-h-full flex items-center justify-center">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, HelpCircle, BarChart3, Bell, User as UserIcon, ChevronRight, Shield, Volume2, Camera } from 'lucide-react';
+import { Settings, HelpCircle, BarChart3, Bell, User as UserIcon, ChevronRight, Shield, Volume2, Camera, LogOut, Loader2 } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -9,6 +9,16 @@ interface MoreScreenProps {
 
 export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loggingOut, setLoggingOut] = useState<boolean>(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState<boolean>(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    // 로그아웃 → App의 onAuthStateChange가 user를 비우면 서비스 게이트(로그인)로 자동 전환된다.
+    await supabase.auth.signOut();
+    setLoggingOut(false);
+    setShowLogoutConfirm(false);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -84,6 +94,15 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
             {email}
           </p>
         </div>
+
+        {/* 로그아웃 버튼 */}
+        <button
+          onClick={() => setShowLogoutConfirm(true)}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-900/80 hover:bg-rose-950/60 text-stone-300 hover:text-rose-300 text-xs font-semibold border border-stone-700 hover:border-rose-800 transition-colors active:scale-95"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>로그아웃</span>
+        </button>
       </div>
 
       <div className="space-y-3">
@@ -122,6 +141,38 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
           </div>
         ))}
       </div>
+
+      {/* 로그아웃 확인 모달 */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-sm px-6 animate-fade-in">
+          <div className="w-full max-w-xs rounded-3xl border border-amber-500/30 bg-stone-900 p-6 text-center shadow-2xl">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-rose-500/40 bg-rose-500/15 text-rose-400">
+              <LogOut className="h-7 w-7" />
+            </div>
+            <h2 className="mt-4 font-serif text-lg font-bold text-amber-100 break-keep">로그아웃하시겠어요?</h2>
+            <p className="mt-1.5 text-xs leading-snug text-stone-400 break-keep">
+              로그아웃하면 로그인 화면으로 돌아갑니다.
+            </p>
+            <div className="mt-6 flex gap-2.5">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                disabled={loggingOut}
+                className="flex-1 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-semibold border border-stone-700 transition-colors disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold transition-colors active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-1.5"
+              >
+                {loggingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

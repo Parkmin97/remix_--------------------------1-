@@ -34,10 +34,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
       {/* Top Header Banner */}
       <header className="shrink-0 z-40 bg-stone-900/90 backdrop-blur-md border-b border-amber-900/40 px-4 py-3 shadow-md">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl text-amber-400 font-serif font-bold">𝄞</span>
-            <span className="font-serif font-bold text-base text-amber-200 tracking-wide">
-              REMIX DETOX
+          <div className="flex items-center gap-2.5">
+            <span className="text-3xl sm:text-4xl leading-none font-serif font-bold text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.55)] shrink-0">
+              𝄞
+            </span>
+            <span className="font-wordmark font-extrabold text-xl leading-none bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent">
+              내 인생 지휘자
             </span>
           </div>
           <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
