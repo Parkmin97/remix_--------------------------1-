@@ -1,7 +1,8 @@
 import React from 'react';
-import { Music, Shield, Smartphone, PlaySquare, Award, Settings, HelpCircle, Volume2, VolumeX, Compass } from 'lucide-react';
+import { Music, Shield, Smartphone, PlaySquare, Award, HelpCircle, Volume2, VolumeX, Compass, LogIn, UserCircle2 } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
-import { getSoundMuted, setSoundMuted } from '../lib/storage';
+import { setSoundMuted } from '../lib/storage';
 
 interface HeaderProps {
   currentTab: string;
@@ -9,6 +10,7 @@ interface HeaderProps {
   onOpenOnboarding: () => void;
   isMuted: boolean;
   setIsMuted: (muted: boolean) => void;
+  user: User | null;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,7 +18,8 @@ export const Header: React.FC<HeaderProps> = ({
   onTabChange,
   onOpenOnboarding,
   isMuted,
-  setIsMuted
+  setIsMuted,
+  user
 }) => {
   const toggleSound = () => {
     const next = !isMuted;
@@ -61,6 +64,17 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Controls (Sound & Help) on Mobile */}
           <div className="flex items-center gap-1 md:hidden">
+            <button
+              onClick={() => onTabChange('login')}
+              className={`p-1.5 rounded-lg border active:scale-95 transition-all ${
+                currentTab === 'login'
+                  ? 'bg-amber-500 border-amber-400 text-stone-950'
+                  : 'bg-stone-900/80 border-stone-800 text-amber-300'
+              }`}
+              title={user ? '내 계정' : '로그인'}
+            >
+              {user ? <UserCircle2 className="w-4 h-4 text-emerald-400" /> : <LogIn className="w-4 h-4" />}
+            </button>
             <button
               onClick={toggleSound}
               className="p-1.5 rounded-lg bg-stone-900/80 border border-stone-800 text-amber-300 active:scale-95 transition-all"
@@ -168,6 +182,18 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Quick Controls (Sound & Help) on Desktop */}
           <div className="hidden md:flex items-center gap-1 shrink-0 ml-2">
+            <button
+              onClick={() => onTabChange('login')}
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                currentTab === 'login'
+                  ? 'bg-amber-500 text-stone-950'
+                  : 'text-amber-200 hover:bg-stone-800/80'
+              }`}
+              title={user ? '내 계정' : '로그인'}
+            >
+              {user ? <UserCircle2 className="w-4 h-4 text-emerald-400" /> : <LogIn className="w-4 h-4" />}
+              <span>{user ? '내 계정' : '로그인'}</span>
+            </button>
             <button
               onClick={toggleSound}
               className="p-1.5 rounded-lg text-amber-300 hover:bg-stone-800/80 transition-colors"

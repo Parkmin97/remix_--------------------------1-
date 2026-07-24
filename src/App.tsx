@@ -4,10 +4,13 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { SessionData } from './types';
 import { getStoredActiveSession, saveActiveSession, getOnboardingCompleted, getSoundMuted } from './lib/storage';
 import { audioSynthesizer } from './lib/audioSynthesizer';
+import { supabase } from './lib/supabase';
 import { Header } from './components/Header';
+import { LoginScreen } from './components/LoginScreen';
 import { OnboardingModal } from './components/OnboardingModal';
 import { LandingScreen } from './components/LandingScreen';
 import { HomeScreen } from './components/HomeScreen';
@@ -26,6 +29,7 @@ export default function App() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
 
   // Initialize on Mount
   useEffect(() => {
@@ -40,6 +44,19 @@ export default function App() {
     const muted = getSoundMuted();
     setIsMuted(muted);
     audioSynthesizer.setMuted(muted);
+  }, []);
+
+  // Supabase 인증 상태 구독
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user ?? null);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => sub.subscription.unsubscribe();
   }, []);
 
   const handleStartMissionFromIntervention = () => {
@@ -71,12 +88,17 @@ export default function App() {
         onOpenOnboarding={() => setIsOnboardingOpen(true)}
         isMuted={isMuted}
         setIsMuted={setIsMuted}
+        user={user}
       />
 
       {/* Main Content Area */}
       <main className="animate-fade-in pt-4">
         {currentTab === 'landing' && (
           <LandingScreen onNavigateToScreen={setCurrentTab} />
+        )}
+
+        {currentTab === 'login' && (
+          <LoginScreen user={user} onNavigateToScreen={setCurrentTab} />
         )}
 
         {currentTab === 'home' && (
