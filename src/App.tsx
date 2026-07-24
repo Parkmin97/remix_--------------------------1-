@@ -14,7 +14,6 @@ import { LoginScreen } from './components/LoginScreen';
 import { OnboardingModal } from './components/OnboardingModal';
 import { LandingScreen } from './components/LandingScreen';
 import { HomeScreen } from './components/HomeScreen';
-import { MainLayout } from './components/MainLayout';
 import { PhoneHomeScreen } from './components/PhoneHomeScreen';
 import { ShortsFeedScreen } from './components/ShortsFeedScreen';
 import { InterventionModal } from './components/InterventionModal';
@@ -103,7 +102,12 @@ export default function App() {
         )}
 
         {currentTab === 'home' && (
-          <MainLayout />
+          <HomeScreen
+            activeSession={activeSession}
+            setActiveSession={setActiveSession}
+            onNavigateToScreen={setCurrentTab}
+            onOpenIntervention={() => setIsInterventionOpen(true)}
+          />
         )}
 
         {currentTab === 'phone-home' && (
