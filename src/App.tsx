@@ -113,12 +113,12 @@ export default function App() {
   const SHOW_TOP_NAV = false;
 
   return (
-    <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-amber-500 selection:text-stone-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-stone-950 text-stone-100'}`}>
+    <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-white selection:text-black ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-[url("/bg_conductor.png")] bg-cover bg-center bg-fixed text-neutral-100'}`}>
       {/* Mobile-optimized status badge */}
-      <div className="hidden sm:flex shrink-0 bg-amber-950/60 border-b border-amber-800/40 py-1 px-4 text-center text-[11px] text-amber-300 items-center justify-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+      <div className="hidden sm:flex shrink-0 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 py-1 px-4 text-center text-[11px] text-neutral-300 items-center justify-center gap-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
         <span className="font-semibold">모바일 최적화 규격 (390 × 844px) 적용됨</span>
-        <span className="text-amber-400/70">| PWA 테스트 완료</span>
+        <span className="text-neutral-400">| PWA 테스트 완료</span>
       </div>
 
       {/* Musical Staff Header Navigation — SHOW_TOP_NAV 로 표시 제어 */}

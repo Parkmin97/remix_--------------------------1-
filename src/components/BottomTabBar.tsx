@@ -33,7 +33,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
   ];
 
   return (
-    <nav className="shrink-0 w-full z-50 bg-stone-900/95 backdrop-blur-md border-t border-amber-900/40 shadow-2xl">
+    <nav className="shrink-0 w-full z-50 bg-black/90 backdrop-blur-md border-t border-neutral-800 shadow-2xl">
       <div className="max-w-md mx-auto flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -44,12 +44,12 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
               onClick={() => onTabChange(tab.id)}
               className={`flex-1 flex flex-col items-center justify-center py-1 transition-all duration-200 ${
                 isActive
-                  ? 'text-amber-400 scale-105 font-bold'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'text-white scale-105 font-extrabold'
+                  : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
               <div className={`relative p-1 rounded-xl transition-all ${
-                isActive ? 'bg-amber-500/20 border border-amber-500/30' : ''
+                isActive ? 'bg-neutral-800/90 border border-white/40 shadow-sm' : ''
               }`}>
                 <Icon className="w-5 h-5" />
               </div>

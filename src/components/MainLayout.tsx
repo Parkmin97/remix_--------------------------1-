@@ -30,19 +30,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
   };
 
   return (
-    <div className="h-full bg-stone-950 text-stone-100 flex flex-col font-sans selection:bg-amber-500 selection:text-stone-950">
+    <div className="h-full bg-[url('/bg_conductor.png')] bg-cover bg-center bg-fixed text-white flex flex-col font-sans relative select-none">
+      {/* Background Dark Scrim */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/75 to-black/90 pointer-events-none"></div>
+
       {/* Top Header Banner */}
-      <header className="shrink-0 z-40 bg-stone-900/90 backdrop-blur-md border-b border-amber-900/40 px-4 py-3 shadow-md">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-3xl sm:text-4xl leading-none font-serif font-bold text-amber-300 drop-shadow-[0_1px_6px_rgba(245,158,11,0.55)] shrink-0">
-              𝄞
-            </span>
-            <span className="font-wordmark font-extrabold text-xl leading-none bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent">
-              내 인생 지휘자
+      <header className="shrink-0 z-40 bg-black/80 backdrop-blur-md border-b border-neutral-800 px-4 py-3 shadow-lg relative">
+        <div className="max-w-2xl mx-auto flex items-center justify-center relative">
+          <div className="flex items-center justify-center">
+            <span className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.3)] text-center">
+              CONDUCTOR OF MY LIFE
             </span>
           </div>
-          <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+          <span className="absolute right-0 text-[11px] px-2.5 py-0.5 rounded-full bg-neutral-800/90 text-neutral-200 font-semibold border border-neutral-700 shadow-sm">
             {activeTab === 'home' && '기본 홈'}
             {activeTab === 'mode-a' && '바로 잠금'}
             {activeTab === 'mode-b' && '활동 중 잠금'}
@@ -52,7 +52,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
       </header>
 
       {/* Main Content Area — 콘텐츠가 길면 세로 스크롤 허용 */}
-      <main className="flex-1 min-h-0 overflow-y-auto animate-fade-in">
+      <main className="flex-1 min-h-0 overflow-y-auto animate-fade-in relative z-10">
         {renderContent()}
       </main>
 

@@ -61,13 +61,13 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   };
 
   return (
-    <div className="relative w-full bg-stone-950/80 border border-amber-800/40 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none" style={{ height: heightPx }}>
+    <div className="relative w-full bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none" style={{ height: heightPx }}>
       {/* Top & Bottom Gradient Overlay for Slot Machine Wheel Blur Effect */}
-      <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-stone-950 via-stone-950/70 to-transparent z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-stone-950 via-stone-950/70 to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black via-black/70 to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-black via-black/70 to-transparent z-10 pointer-events-none" />
 
       {/* Center Highlight Slot */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-amber-500/10 border-y border-amber-500/40 rounded-xl pointer-events-none z-0 shadow-[0_0_15px_rgba(245,158,11,0.15)]" />
+      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-neutral-800/90 border border-white/40 rounded-xl pointer-events-none z-0 shadow-md" />
 
       {/* Scrollable Container */}
       <div
@@ -91,9 +91,9 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                   });
                 }
               }}
-              className={`h-[40px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 ${isSelected
-                  ? 'text-amber-400 font-bold text-base scale-105'
-                  : 'text-stone-500 text-xs hover:text-stone-400'
+              className={`h-[40px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 relative z-10 ${isSelected
+                  ? 'text-white font-extrabold text-base scale-105 drop-shadow-sm'
+                  : 'text-neutral-500 text-xs hover:text-neutral-300'
                 }`}
             >
               <span>{formatLabel(mins)}</span>

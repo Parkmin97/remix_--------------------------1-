@@ -310,17 +310,17 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
 
         {/* Locked (Detox mode) Notice — 3초간 떴다 사라짐. 앱 실행 대신 안내 */}
         {showLockedNotice && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-sm animate-fade-in select-none touch-none px-6">
-            <div className="w-full max-w-[15rem] rounded-3xl border border-amber-500/40 bg-stone-900/95 p-6 text-center shadow-2xl">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-400 animate-pulse">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in select-none touch-none px-6">
+            <div className="w-full max-w-[15rem] rounded-3xl border border-neutral-700 bg-neutral-900/95 p-6 text-center shadow-2xl">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/40 bg-neutral-800 text-white animate-pulse">
                 <ShieldCheck className="h-8 w-8" />
               </div>
-              <h2 className="mt-4 font-serif text-lg font-bold text-amber-100 break-keep">디톡스 모드 가동 중</h2>
-              <p className="mt-1.5 text-xs leading-snug text-stone-300 break-keep">
+              <h2 className="mt-4 font-serif text-lg font-bold text-white break-keep">디톡스 모드 가동 중</h2>
+              <p className="mt-1.5 text-xs leading-snug text-neutral-300 break-keep">
                 지금은 집중 약속 시간이에요.<br />잠금이 끝난 뒤 앱을 실행할 수 있어요.
               </p>
               {timeRemaining !== '00:00:00' && (
-                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-stone-950/80 px-3 py-1 text-xs font-mono font-bold text-amber-300">
+                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-neutral-700 bg-black/80 px-3 py-1 text-xs font-mono font-bold text-white">
                   <Clock className="h-3.5 w-3.5" />
                   <span>{timeRemaining}</span>
                 </div>
@@ -332,42 +332,24 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
         {/* App Opening / Splash Animation Overlay Screen */}
         {isLaunchingApp && (
           <div
-            className="absolute inset-0 z-50 bg-stone-950 bg-cover bg-center flex flex-col items-center justify-between p-8 text-center animate-fade-in select-none overflow-hidden touch-none"
+            className="absolute inset-0 z-50 bg-black bg-cover bg-center flex flex-col items-center justify-between p-8 text-center animate-fade-in select-none overflow-hidden touch-none"
             style={{ backgroundImage: "url('/bg_conductor.png')" }}
           >
             {/* Legibility scrim over the background image */}
-            <div className="absolute inset-0 bg-gradient-to-b from-stone-950/70 via-stone-950/45 to-stone-950/85 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-black/85 pointer-events-none"></div>
             {/* Center vignette so the title/logo lift off the image */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0.55)_0%,_rgba(0,0,0,0.15)_45%,_transparent_75%)] pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(0,0,0,0.6)_0%,_rgba(0,0,0,0.2)_45%,_transparent_75%)] pointer-events-none"></div>
 
             {/* Glowing Orchestra Stage Rays */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
 
-            <div className="pt-8 z-10 space-y-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-950/50 backdrop-blur-md border border-amber-500/40 text-[11px] font-mono text-amber-200 shadow-lg">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>CONDUCTOR OF MY LIFE</span>
-              </div>
-            </div>
-
-            {/* Center Orchestra Conductor Visual */}
-            <div className="z-10 my-auto flex flex-col items-center space-y-6">
-              <div className="relative w-36 h-36 rounded-full bg-gradient-to-b from-amber-500/30 to-amber-950/60 p-1 border-2 border-amber-400/60 shadow-[0_0_50px_rgba(245,158,11,0.3)] flex items-center justify-center">
-                <svg className="w-24 h-24 text-amber-300 drop-shadow-[0_0_15px_rgba(251,191,36,0.8)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="5" r="2.5" />
-                  <path d="M8 21v-5a4 4 0 0 1 4-4h0a4 4 0 0 1 4 4v5" />
-                  <path d="M8 12L4 8" />
-                  <path d="M16 12l5-5" />
-                  <line x1="21" y1="7" x2="23" y2="5" stroke="#fef08a" strokeWidth="2.5" />
-                </svg>
-                <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-300 animate-ping opacity-75"></div>
-              </div>
-
-              <div className="space-y-2 rounded-2xl bg-stone-950/55 backdrop-blur-md border border-amber-500/20 px-6 py-4 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-                <h1 className="text-3xl font-serif font-black tracking-tight text-amber-50 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-                  내 인생 지휘자
+            {/* Top Title Card: CONDUCTOR OF MY LIFE */}
+            <div className="pt-8 z-10 w-full max-w-xs">
+              <div className="space-y-2 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-700 px-6 py-4 shadow-[0_8px_40px_rgba(0,0,0,0.65)] text-center">
+                <h1 className="text-lg sm:text-xl font-sans font-extrabold tracking-widest text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-center">
+                  CONDUCTOR OF MY LIFE
                 </h1>
-                <p className="text-xs text-amber-100/90 font-serif leading-relaxed px-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+                <p className="text-xs text-neutral-300 font-serif leading-relaxed px-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                   디지털 도파민 피드에서 벗어나,<br />
                   당신의 라이프 스타일을 품격 있게 연주하세요.
                 </p>
@@ -376,11 +358,11 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
 
             {/* Bottom Progress Loading Bar */}
             <div className="pb-8 z-10 w-full max-w-xs">
-              <div className="rounded-2xl bg-stone-950/55 backdrop-blur-md border border-amber-500/20 px-5 py-3.5 space-y-3 shadow-[0_8px_40px_rgba(0,0,0,0.55)]">
-                <div className="w-full bg-stone-900 h-1.5 rounded-full overflow-hidden border border-amber-900/50">
-                  <div className="bg-gradient-to-r from-amber-500 to-amber-300 h-full w-full animate-pulse rounded-full"></div>
+              <div className="rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-700 px-5 py-3.5 space-y-3 shadow-[0_8px_40px_rgba(0,0,0,0.65)]">
+                <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden border border-neutral-700">
+                  <div className="bg-gradient-to-r from-neutral-400 via-white to-neutral-400 h-full w-full animate-pulse rounded-full"></div>
                 </div>
-                <div className="flex items-center justify-center gap-1 text-[11px] text-amber-200 font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+                <div className="flex items-center justify-center gap-1 text-[11px] text-white font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                   <span>클래식 오케스트라 약속 세션 진입 중...</span>
                   <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
                 </div>

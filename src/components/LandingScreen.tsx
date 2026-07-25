@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Sparkles, Music, ArrowRight, Brain, Award, Lock, PlayCircle,
+  Sparkles, Music, ArrowRight, Brain, Award, Lock,
   Instagram, Youtube, Video, Twitter, Timer, HeartPulse,
   ChevronRight, Check, X, Star, Feather
 } from 'lucide-react';
@@ -196,15 +196,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
   const [activeTab, setActiveTab] = useState<'screen1' | 'screen2' | 'screen3'>('screen1');
   const rootRef = useScrollReveal();
 
-  const targetApps = [
-    { name: 'Instagram', Icon: Instagram },
-    { name: 'YouTube', Icon: Youtube },
-    { name: 'TikTok', Icon: Video },
-    { name: 'X (Twitter)', Icon: Twitter },
-    { name: 'Reels', Icon: PlayCircle },
-    { name: 'Shorts', Icon: Music },
-  ];
-
   const screens = {
     screen1: {
       label: '잠금 홈',
@@ -287,38 +278,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
         </div>
       </section>
 
-      {/* ===================================================================== */}
-      {/* SOCIAL PROOF / ALGORITHM BAND — 블랙 블록                              */}
-      {/* ===================================================================== */}
-      <section className="px-4 pb-16">
-        <div className={`lp-reveal mx-auto max-w-5xl ${block} px-5 py-10 sm:px-8`}>
-          <p className="text-center text-[11px] font-mono uppercase tracking-[0.28em] text-neutral-500">
-            우리가 매일 맞서는 알고리즘
-          </p>
-          <div className="relative mt-5 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]">
-            <div className="lp-marquee flex w-max items-center gap-10 text-neutral-400">
-              {[...targetApps, ...targetApps].map(({ name, Icon }, i) => (
-                <div key={i} className="flex shrink-0 items-center gap-2 opacity-80">
-                  <Icon className="h-5 w-5" />
-                  <span className="text-sm font-semibold">{name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mt-8 grid grid-cols-3 gap-3 text-center">
-            {[
-              { n: '1분', l: '주도권을 되찾는 시간' },
-              { n: '2곡', l: '실제 클래식 명곡 비트' },
-              { n: '5단계', l: '지휘자 랭크 성장' },
-            ].map((s) => (
-              <div key={s.l} className="rounded-2xl border border-white/10 bg-white/5 px-2 py-5">
-                <div className="font-serif text-2xl font-black text-amber-400 sm:text-3xl">{s.n}</div>
-                <div className="mt-1 text-[11px] text-neutral-400 sm:text-xs">{s.l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* ===================================================================== */}
       {/* 2. PROBLEM                                                             */}

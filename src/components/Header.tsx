@@ -45,18 +45,13 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Logo Brand */}
           <button
             onClick={() => onTabChange('landing')}
-            className="flex items-center gap-2.5 group text-left transition-transform active:scale-95 shrink-0 whitespace-nowrap"
+            className="flex items-center justify-center gap-2 group text-center transition-transform active:scale-95 shrink-0 whitespace-nowrap mx-auto"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 p-0.5 shadow-lg shadow-amber-950/50 flex items-center justify-center shrink-0">
-              <div className="w-full h-full bg-stone-900 rounded-[10px] flex items-center justify-center border border-amber-500/30">
-                <span className="text-lg text-amber-400 font-serif leading-none select-none">𝄞</span>
-              </div>
-            </div>
             <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-              <h1 className="font-serif font-bold text-base sm:text-lg tracking-tight bg-gradient-to-r from-amber-200 via-amber-400 to-amber-100 bg-clip-text text-transparent whitespace-nowrap">
-                내인생 지휘자
+              <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white whitespace-nowrap text-center">
+                CONDUCTOR OF MY LIFE
               </h1>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-900/50 text-amber-300 border border-amber-700/40 font-mono shrink-0">
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-800 text-neutral-300 border border-neutral-700 font-mono shrink-0">
                 PWA
               </span>
             </div>
