@@ -615,28 +615,46 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             랜덤 지정: {selectedBeat} 박자
           </span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] sm:text-xs text-neutral-300 font-medium px-1">
-          <span className="text-center leading-snug">🎵 {currentPiece.title} — {currentPiece.composer} ({currentPiece.bpm} BPM)</span>
+        {/* 곡 정보 — 곡 변경 시에도 높이/구조가 변하지 않도록 고정 2줄(말줄임) 영역 */}
+        <div className="px-1">
+          <div className="h-10 flex flex-col items-center justify-center">
+            <span className="block w-full truncate text-center text-xs sm:text-sm font-semibold text-white leading-tight">
+              🎵 {currentPiece.title}
+            </span>
+            <span className="block w-full truncate text-center text-[10px] sm:text-[11px] text-neutral-400 leading-tight mt-0.5">
+              {currentPiece.composer} · {currentPiece.bpm} BPM
+            </span>
+          </div>
           {gameState === 'READY' && (
-            <button
-              onClick={handlePickRandomPiece}
-              type="button"
-              className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg border border-neutral-700 text-[10px] transition-colors whitespace-nowrap shrink-0 font-semibold"
-            >
-              곡 변경 🎲
-            </button>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <button
+                onClick={handlePickRandomPiece}
+                type="button"
+                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl border border-neutral-700 text-xs sm:text-sm font-bold transition-colors active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
+              >
+                🎲 곡 변경
+              </button>
+              <button
+                onClick={toggleAudioPreview}
+                type="button"
+                className={`px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:scale-95 flex items-center gap-1.5 whitespace-nowrap ${
+                  isAudioPreviewPlaying
+                    ? 'bg-amber-500 text-stone-950 border-amber-400 shadow-md'
+                    : 'bg-white text-black border-white hover:bg-neutral-200 shadow-sm'
+                }`}
+              >
+                {isAudioPreviewPlaying ? '⏸ 정지' : '🎧 미리듣기'}
+              </button>
+            </div>
           )}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-xs pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs pt-1">
           <div className="p-2 rounded-xl bg-neutral-800/90 border border-neutral-700 text-neutral-200 font-bold text-center text-[11px] sm:text-xs">
             🎯 성공 규격: 박자별 비례 오차 (0.06s~0.25s)
           </div>
           <div className="p-2 rounded-xl bg-black/80 border border-neutral-800 text-neutral-300 text-center text-[11px] sm:text-xs">
             목표 일치율: <strong className="text-amber-400 font-mono font-bold">80% 이상</strong> (최소 {requiredBeatsToPass}/{totalExpectedBeatsIn60s}회)
-          </div>
-          <div className="p-2 rounded-xl bg-black/80 border border-neutral-800 text-neutral-300 text-center text-[11px] sm:text-xs">
-            현재 달성률: <strong className={`font-mono font-bold ${currentMatchPercent >= 80 ? 'text-emerald-400' : 'text-amber-400'}`}>{currentMatchPercent}% ({accurateBeatCount}회 성공)</strong>
           </div>
         </div>
       </div>
@@ -663,7 +681,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 pt-4 sm:pt-6">
               <h3 className="text-sm sm:text-lg font-bold font-serif text-amber-400 break-keep">
                 박자 위치별 오차(1/4~4/4) 및 강한 지휘 모션 판정
               </h3>
@@ -672,21 +690,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 <p>• <strong>강한 모션 필수:</strong> 살살 흔들면 감지되지 않으며, 스마트폰을 <strong className="text-white">단호하고 크게 쳐내듯 지휘하는 강한 가속도 모션</strong>만 인식됩니다.</p>
                 <p>• <strong>성공 조건:</strong> 1분간 전체 박자의 <strong className="text-amber-400">80% 이상</strong>(최소 {requiredBeatsToPass}회) 성공 시 미션 통과!</p>
               </div>
-            </div>
-
-            {/* Audio Preview & Sensor Permission */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 relative z-20">
-              <button
-                type="button"
-                onClick={toggleAudioPreview}
-                className={`w-full sm:w-auto px-4 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
-                  isAudioPreviewPlaying
-                    ? 'bg-amber-500 text-stone-950 border-amber-400 shadow-lg'
-                    : 'bg-white text-black border-white hover:bg-neutral-200 font-extrabold shadow-md'
-                }`}
-              >
-                <span>{isAudioPreviewPlaying ? '🔊 오케스트라 음원 재생 중 (클릭시 정지)' : '🎧 실제 음원 미리듣기 테스트'}</span>
-              </button>
             </div>
 
             {/* Device Motion Permission Card for iOS/Mobile */}
