@@ -930,6 +930,13 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               <p className="text-[10px] text-stone-400 text-center">
                 * 모바일에서는 스마트폰을 직접 흔들 수 있고, 노트북에서는 위 버튼 클릭 및 드래그로 미션을 진행할 수 있습니다.
               </p>
+              <button
+                type="button"
+                onClick={handleLose}
+                className="px-4 py-1.5 rounded-xl bg-stone-900/90 hover:bg-rose-950/70 text-neutral-300 hover:text-rose-300 text-[11px] font-semibold border border-neutral-700 hover:border-rose-800 transition-colors active:scale-95"
+              >
+                중도포기 (미션 실패)
+              </button>
             </div>
           </div>
         )}
