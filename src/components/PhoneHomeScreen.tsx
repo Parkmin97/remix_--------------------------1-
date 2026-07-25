@@ -6,6 +6,45 @@ import { saveActiveSession } from '../lib/storage';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
 import { Sparkles, Clock, Lock, ArrowRight, Search, Phone, MessageCircle, Compass, Sun, AppWindow, ShieldCheck } from 'lucide-react';
 
+// 요일별(0=일 … 6=토) 오늘의 한마디 — 지휘·시간·삶을 아우르는 명언
+const CONDUCTOR_QUOTES: Array<{ en: string; ko: string; author: string }> = [
+  { // 일요일
+    en: 'The art of conducting is the art of knowing when to stop.',
+    ko: '지휘의 예술은 언제 멈춰야 하는지를 아는 예술이다.',
+    author: '헤르베르트 폰 카라얀',
+  },
+  { // 월요일
+    en: 'Either you run the day, or the day runs you.',
+    ko: '당신이 하루를 이끌든지, 하루가 당신을 끌고 다니든지 둘 중 하나다.',
+    author: '짐 론',
+  },
+  { // 화요일
+    en: 'The future depends on what you do today.',
+    ko: '미래는 오늘 무엇을 하는가에 달려 있다.',
+    author: '마하트마 간디',
+  },
+  { // 수요일
+    en: 'It is not that we have a short time to live, but that we waste much of it.',
+    ko: '우리에게 주어진 시간이 짧은 것이 아니라, 그 시간을 너무 많이 낭비하고 있을 뿐이다.',
+    author: '세네카',
+  },
+  { // 목요일
+    en: 'Your time is limited, so don’t waste it living someone else’s life.',
+    ko: '당신의 시간은 한정되어 있다. 그러니 다른 사람의 삶을 사느라 낭비하지 마라.',
+    author: '스티브 잡스',
+  },
+  { // 금요일
+    en: 'To achieve great things, two things are needed: a plan, and not quite enough time.',
+    ko: '위대한 일을 이루기 위해서는 두 가지가 필요하다. 계획과, 넉넉하지 않은 시간이다.',
+    author: '레너드 번스타인',
+  },
+  { // 토요일
+    en: 'Music has the power to transform lives.',
+    ko: '음악은 사람의 삶을 변화시키는 힘이 있다.',
+    author: '구스타보 두다멜',
+  },
+];
+
 interface PhoneHomeScreenProps {
   activeSession: SessionData | null;
   setActiveSession?: (session: SessionData | null) => void;
@@ -47,6 +86,9 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
     activeSession.mode === 'GUIDED_USE' &&
     (activeSession.state === 'GUIDED_READY' || activeSession.state === 'USAGE_ACTIVE' || activeSession.state === 'EXTENSION_ACTIVE')
   );
+
+  // 오늘 요일(0=일 … 6=토)에 맞는 명언
+  const todayQuote = CONDUCTOR_QUOTES[new Date().getDay()];
 
   useEffect(() => {
     const updateTimes = () => {
@@ -353,6 +395,26 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                   디지털 도파민 피드에서 벗어나,<br />
                   당신의 라이프 스타일을 품격 있게 연주하세요.
                 </p>
+              </div>
+            </div>
+
+            {/* Daily Quote — 프레임 없이 화면을 채우는 오늘의 한마디 */}
+            <div className="z-10 w-full px-2 text-center">
+              <div className="mb-3 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.28em] text-amber-300 drop-shadow-[0_1px_6px_rgba(0,0,0,0.95)]">
+                <span className="text-base text-amber-400">𝄞</span>
+                <span>오늘의 한마디</span>
+              </div>
+              <span className="pointer-events-none block select-none font-serif text-6xl leading-none text-amber-400/40 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">“</span>
+              <p className="-mt-2 font-serif text-lg sm:text-2xl italic font-semibold leading-snug text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.98)]">
+                {todayQuote.en}
+              </p>
+              <p className="mt-4 text-base sm:text-xl font-medium leading-relaxed text-amber-100 break-keep drop-shadow-[0_2px_10px_rgba(0,0,0,0.98)]">
+                {todayQuote.ko}
+              </p>
+              <div className="mt-5 flex items-center justify-center gap-2.5">
+                <span className="h-px w-8 bg-amber-400/60"></span>
+                <span className="text-sm font-bold text-amber-300 break-keep drop-shadow-[0_1px_6px_rgba(0,0,0,0.95)]">{todayQuote.author}</span>
+                <span className="h-px w-8 bg-amber-400/60"></span>
               </div>
             </div>
 
