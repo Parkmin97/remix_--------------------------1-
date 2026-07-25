@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, BarChart3, User as UserIcon, ChevronRight, Camera, LogOut, Loader2 } from 'lucide-react';
+import { HelpCircle, BarChart3, User as UserIcon, ChevronRight, Camera, LogOut, Loader2, Pencil } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -54,14 +54,14 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
       {/* 프로필 정보 배너 */}
       <div className="p-4 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl flex items-center gap-3 shrink-0">
         {/* 프로필 사진 영역 (왼쪽) */}
-        <div className="relative w-12 h-12 rounded-full bg-neutral-800 border-2 border-neutral-600 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner group">
+        <div className="relative w-12 h-12 rounded-full bg-neutral-800 border-2 border-amber-400 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner group">
           {avatarUrl ? (
             <img src={avatarUrl} alt="프로필 사진" className="w-full h-full object-cover" />
           ) : (
-            <UserIcon className="w-6 h-6 text-white" />
+            <UserIcon className="w-6 h-6 text-amber-400" />
           )}
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-            <Camera className="w-4 h-4 text-white" />
+            <Camera className="w-4 h-4 text-amber-400" />
           </div>
         </div>
 
@@ -71,9 +71,9 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
             <h1 className="text-lg font-bold text-white truncate">
               {nickname}
             </h1>
-            <span className="px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-200 text-[10px] font-semibold border border-neutral-700">
-              마에스트로
-            </span>
+            <button className="p-1.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-amber-400 border border-amber-400/80 transition-colors shrink-0" title="프로필 수정">
+              <Pencil className="w-3.5 h-3.5 text-amber-400" />
+            </button>
           </div>
           <p className="text-xs text-neutral-400 font-mono truncate mt-0.5">
             {email}
@@ -83,9 +83,9 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
         {/* 로그아웃 버튼 */}
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-800/80 hover:bg-neutral-700 text-neutral-200 hover:text-white text-xs font-semibold border border-neutral-700 transition-colors active:scale-95"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-neutral-200 text-black font-extrabold text-xs border border-white transition-colors active:scale-95 shadow-md"
         >
-          <LogOut className="w-3.5 h-3.5" />
+          <LogOut className="w-3.5 h-3.5 text-black stroke-[2.5]" />
           <span>로그아웃</span>
         </button>
       </div>
@@ -103,17 +103,17 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
                   <button
                     key={itemIdx}
                     onClick={() => { if (item.target) onNavigateToScreen(item.target); }}
-                    className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-neutral-800/60 transition-all text-xs text-neutral-200 group"
+                    className="w-full px-3.5 py-3 flex items-center justify-between text-left hover:bg-neutral-800/60 transition-all text-xs group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-neutral-800/80 border border-neutral-700 flex items-center justify-center text-white shrink-0">
-                        <Icon className="w-4 h-4" />
+                      <div className="w-7 h-7 rounded-lg bg-neutral-800/80 border border-amber-400 flex items-center justify-center text-amber-400 shrink-0">
+                        <Icon className="w-4 h-4 text-amber-400" />
                       </div>
-                      <span className="font-medium group-hover:text-white break-keep">{item.label}</span>
+                      <span className="font-bold text-amber-400 group-hover:text-amber-300 text-sm break-keep">{item.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {item.badge && (
-                        <span className="px-2 py-0.5 rounded bg-neutral-800 text-neutral-200 text-[10px] font-semibold border border-neutral-700">
+                        <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-extrabold border border-white shadow-sm">
                           {item.badge}
                         </span>
                       )}

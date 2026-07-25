@@ -66,8 +66,8 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black via-black/70 to-transparent z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-black via-black/70 to-transparent z-10 pointer-events-none" />
 
-      {/* Center Highlight Slot */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-neutral-800/90 border border-white/40 rounded-xl pointer-events-none z-0 shadow-md" />
+      {/* Center Highlight Slot (White Filled Box) */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-white border border-white rounded-xl pointer-events-none z-0 shadow-lg" />
 
       {/* Scrollable Container */}
       <div
@@ -92,7 +92,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 }
               }}
               className={`h-[40px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 relative z-10 ${isSelected
-                  ? 'text-white font-extrabold text-base scale-105 drop-shadow-sm'
+                  ? 'text-black font-extrabold text-base scale-105 drop-shadow-sm'
                   : 'text-neutral-500 text-xs hover:text-neutral-300'
                 }`}
             >

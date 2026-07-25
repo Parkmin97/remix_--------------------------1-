@@ -247,8 +247,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
       <div className="max-w-5xl w-full mx-auto flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 overflow-hidden relative z-10">
 
         {/* Header Title Banner */}
-        <div className="shrink-0 bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl p-3.5 sm:p-4 relative overflow-hidden shadow-2xl">
-          <div className="relative z-10 flex flex-row items-center gap-3">
+        <div className="shrink-0 space-y-2">
+          <div className="flex flex-row items-center justify-between gap-3 border-b border-neutral-800 pb-3 shrink-0">
             <button
               onClick={onBack}
               className="shrink-0 p-2 rounded-xl bg-neutral-800/90 hover:bg-neutral-700 text-white border border-neutral-700 transition-colors active:scale-95 shadow-sm"
@@ -257,18 +257,22 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
-            <div className="min-w-0">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-neutral-800 text-neutral-200 border border-neutral-700 text-[11px] font-semibold mb-1">
-                <Compass className="w-3 h-3 text-white" />
-                <span>기초 지휘 아카데미</span>
-              </div>
-              <h1 className="text-lg sm:text-2xl font-serif font-bold text-white break-keep">
-                박자별 지휘 동작 튜토리얼
-              </h1>
-              <p className="hidden sm:block text-xs sm:text-sm text-neutral-300 mt-1 max-w-xl break-keep">
-                올바른 지휘 궤적(Pattern)과 타점(Ictus)을 익히고, 메트로놈과 함께 손짓을 연습해보세요.
-              </p>
-            </div>
+
+            <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white text-center">
+              CONDUCTOR OF MY LIFE
+            </h1>
+
+            <div className="w-8 shrink-0" />
+          </div>
+
+          {/* Sub Title Below Line */}
+          <div className="space-y-0.5 pt-0.5 pb-1 shrink-0">
+            <h2 className="text-lg sm:text-xl font-sans font-extrabold text-amber-400 tracking-wide">
+              지휘 동작 튜토리얼
+            </h2>
+            <p className="text-xs text-white font-medium break-keep">
+              올바른 지휘 궤적(Pattern)과 타점(Ictus)을 익히고, 메트로놈과 함께 손짓을 연습해보세요.
+            </p>
           </div>
         </div>
 
@@ -303,14 +307,11 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
           {/* Left Column: Pattern Diagram & Interactive Practice Canvas */}
           <div className="lg:col-span-7 space-y-3 lg:min-h-0 lg:flex lg:flex-col">
             <div className="bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-xl relative overflow-hidden lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
-              <div className="flex items-center justify-between mb-2 shrink-0">
-                <h2 className="font-serif font-bold text-lg text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-white" />
+              <div className="flex items-center justify-between mb-2 shrink-0 gap-2">
+                <h2 className="font-serif font-bold text-lg text-amber-400 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
                   <span>{tutorial.title}</span>
                 </h2>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-neutral-800 border border-neutral-700 text-neutral-200 font-mono">
-                  {tutorial.pattern}
-                </span>
               </div>
 
               {/* SVG Pattern Guide Visualizer & Practice Canvas */}
@@ -417,14 +418,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
                   {/* Play/Stop Button */}
                   <button
                     onClick={() => setIsPracticing(!isPracticing)}
-                    className={`px-4 py-2 rounded-lg font-extrabold text-xs flex items-center gap-2 transition-all active:scale-95 ${
-                      isPracticing
-                        ? 'bg-neutral-800 border border-neutral-600 text-white hover:bg-neutral-700'
-                        : 'bg-white text-black hover:bg-neutral-200 shadow-md'
-                    }`}
+                    className="px-4 py-2 rounded-xl bg-black border border-amber-400 text-amber-400 font-extrabold text-xs flex items-center gap-2 hover:bg-neutral-900 active:scale-95 transition-all cursor-pointer shadow-md"
                   >
-                    {isPracticing ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-                    <span>{isPracticing ? '연습 정지' : '메트로놈 연습 시작'}</span>
+                    {isPracticing ? <Square className="w-3.5 h-3.5 fill-current text-amber-400" /> : <Play className="w-3.5 h-3.5 fill-current text-amber-400" />}
+                    <span>{isPracticing ? '연습 정지' : '지휘 연습 시작'}</span>
                   </button>
 
                   {/* BPM Slider */}
@@ -454,25 +451,6 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
                     {metronomeOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
                     <span>소리 {metronomeOn ? 'ON' : 'OFF'}</span>
                   </button>
-
-                  {/* WebCam Toggle */}
-                  <button
-                    onClick={toggleCamera}
-                    className={`p-2 rounded-lg border text-xs flex items-center gap-1.5 ${
-                      cameraActive
-                        ? 'bg-neutral-800 border-neutral-600 text-white'
-                        : 'bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                    <span>{cameraActive ? '카메라 OFF' : '카메라 거울 모드'}</span>
-                  </button>
-                </div>
-
-                {/* Realtime Feedback Status Banner */}
-                <div className="bg-neutral-900/90 border border-neutral-800 rounded-xl p-2.5 flex items-center gap-2.5">
-                  <Zap className="w-4 h-4 text-white shrink-0" />
-                  <p className="text-xs text-neutral-200 font-medium">{feedback}</p>
                 </div>
               </div>
             </div>
@@ -481,27 +459,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
           {/* Right Column: Beat Step-by-Step Guide & Tips */}
           <div className="lg:col-span-5 space-y-3 lg:min-h-0">
 
-            {/* Overview Card */}
-            <div className="bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-xl">
-              <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider font-mono mb-1">
-                박자 가이드
-              </h3>
-              <p className="text-white font-semibold text-sm sm:text-base mb-1.5">{tutorial.name}</p>
-              <p className="text-xs text-neutral-300 leading-snug mb-3 break-keep">{tutorial.description}</p>
-
-              <div className="bg-neutral-950/90 rounded-xl p-2.5 border border-neutral-800 space-y-1">
-                <div className="text-[11px] text-neutral-300 font-mono font-semibold">대표 추천 클래식:</div>
-                <div className="text-xs text-white font-medium flex items-center gap-1.5">
-                  <Music className="w-3.5 h-3.5 text-white" />
-                  <span>{tutorial.examplePiece}</span>
-                </div>
-              </div>
-            </div>
-
             {/* Step-by-Step Beat Breakdown List */}
             <div className="bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-xl space-y-2">
-              <h3 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-white" />
+              <h3 className="text-xs sm:text-sm font-bold text-amber-400 flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-amber-400" />
                 <span>박자별 동작 포인트</span>
               </h3>
 

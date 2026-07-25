@@ -56,12 +56,13 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession }) => {
       {/* Banner */}
       <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1 shrink-0">
         <div className="flex items-center gap-2">
-          <span className="px-2.5 py-0.5 rounded-full bg-neutral-800 text-neutral-200 text-[11px] font-bold border border-neutral-700">
+          <span className="px-3 py-1 rounded-full bg-white text-black text-[11px] font-extrabold shadow-sm">
             모드 b
           </span>
-          <h1 className="text-lg font-serif font-bold text-white flex items-center gap-2 break-keep">
-            <Activity className="w-5 h-5 text-white" />
-            <span>활동 중 잠금 (상세 설정)</span>
+          <h1 className="text-lg font-serif font-bold flex items-center gap-2 break-keep">
+            <Activity className="w-5 h-5 text-amber-400" />
+            <span className="text-amber-400">활동 중 잠금</span>
+            <span className="text-xs font-normal text-neutral-300 font-sans">(의도적 SNS 이용 모드)</span>
           </h1>
         </div>
         <p className="text-xs text-neutral-300 leading-snug break-keep">
@@ -85,7 +86,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession }) => {
                     onClick={() => handleToggleService(service.id)}
                     className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all ${
                       isSelected
-                        ? 'bg-neutral-800/90 border-white text-white font-bold shadow-md'
+                        ? 'bg-white text-black font-extrabold border-white shadow-md'
                         : 'bg-neutral-900/60 border-neutral-800 text-neutral-400 hover:bg-neutral-800/60 hover:text-neutral-200'
                     }`}
                   >
@@ -154,7 +155,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession }) => {
                 value={focusTask}
                 onChange={e => setFocusTask(e.target.value)}
                 placeholder="예: 자기소개서, 자격증 공부"
-                className="w-full bg-neutral-950/90 border border-neutral-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white transition-colors"
+                className="w-full bg-neutral-950/90 border border-neutral-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition-colors"
               />
             </div>
           </div>
@@ -162,11 +163,11 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession }) => {
           {/* Start Button */}
           <button
             onClick={handleStart}
-            className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+            className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
-            <Play className="w-4 h-4 fill-current" />
-            <span>{usageLimit}분 활동 중 잠금 이용 시작하기</span>
-            <ArrowRight className="w-4 h-4" />
+            <Play className="w-4 h-4 fill-current text-stone-950" />
+            <span>약속 모드 실행 ({usageLimit}분 후 자동 집중)</span>
+            <ArrowRight className="w-4 h-4 text-stone-950" />
           </button>
       </div>
     </div>

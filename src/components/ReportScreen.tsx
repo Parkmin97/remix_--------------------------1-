@@ -25,26 +25,18 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
       {/* Title Header */}
       <div className="flex flex-row items-center justify-between gap-3 border-b border-neutral-800 pb-3 shrink-0">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <button
-            onClick={onBack}
-            className="shrink-0 p-2 rounded-xl bg-neutral-800/90 hover:bg-neutral-700 text-white border border-neutral-700 transition-colors active:scale-95 shadow-sm"
-            title="뒤로가기"
-            aria-label="뒤로가기"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-mono font-extrabold text-white break-keep tracking-wider">
-                CONDUCTOR OF MY LIFE REPORT
-              </h2>
-            </div>
-            <p className="text-[11px] text-neutral-400 mt-0.5 break-keep">
-              계획 기반 집중 약속 달성 기록 및 지휘자 칭호 피드백
-            </p>
-          </div>
-        </div>
+        <button
+          onClick={onBack}
+          className="shrink-0 p-2 rounded-xl bg-neutral-800/90 hover:bg-neutral-700 text-white border border-neutral-700 transition-colors active:scale-95 shadow-sm"
+          title="뒤로가기"
+          aria-label="뒤로가기"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+
+        <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white text-center">
+          CONDUCTOR OF MY LIFE
+        </h1>
 
         <button
           onClick={handleClearData}
@@ -55,12 +47,22 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         </button>
       </div>
 
+      {/* Sub Title & Description (Below Header Line, Above Summary Cards) */}
+      <div className="space-y-0.5 pt-1 pb-1 shrink-0">
+        <h2 className="text-base sm:text-lg font-sans font-extrabold text-amber-400 tracking-widest">
+          REPORT
+        </h2>
+        <p className="text-xs text-white font-medium break-keep">
+          계획 기반 집중 약속 달성 기록 및 지휘자 칭호 피드백
+        </p>
+      </div>
+
       {/* Summary Highlight Cards */}
       <div className="grid grid-cols-3 gap-2.5 shrink-0">
         <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-neutral-400">
+          <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
             <span className="break-keep">총 집중 시간</span>
-            <Clock className="w-3.5 h-3.5 text-white shrink-0" />
+            <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           </div>
           <div className="text-2xl font-serif font-extrabold text-white">
             {totalFocusMinutes}분
@@ -69,9 +71,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         </div>
 
         <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-neutral-400">
+          <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
             <span className="break-keep">확인 세션</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           </div>
           <div className="text-2xl font-serif font-extrabold text-white">
             {totalConfirmed}회
@@ -80,9 +82,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         </div>
 
         <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-neutral-400">
+          <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
             <span className="break-keep">지휘자 랭크</span>
-            <Award className="w-3.5 h-3.5 text-white shrink-0" />
+            <Award className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           </div>
           <div className="text-lg font-serif font-bold text-white break-keep leading-tight">
             {reports[reports.length - 1]?.conductorRank || '지휘자'}
@@ -93,8 +95,8 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
       {/* Weekly Visual Chart Bar */}
       <div className="p-4.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-3 flex-1 min-h-0 overflow-hidden flex flex-col">
-        <h3 className="text-sm font-bold font-serif text-white flex items-center gap-2 shrink-0">
-          <Sparkles className="w-4 h-4 text-white" />
+        <h3 className="text-sm font-bold font-serif text-amber-400 flex items-center gap-2 shrink-0">
+          <Sparkles className="w-4 h-4 text-amber-400" />
           <span>최근 지휘 약속 달성 기록</span>
         </h3>
 
@@ -122,10 +124,10 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         </div>
       </div>
 
-      {/* Conductor Rank Roadmap Explanation */}
-      <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 space-y-2 shrink-0">
-        <h3 className="text-sm font-bold font-serif text-white flex items-center gap-2">
-          <Music className="w-4 h-4 text-white" />
+      {/* Conductor Rank Table */}
+      <div className="p-4.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-3 shrink-0">
+        <h3 className="text-sm font-bold font-serif text-amber-400 flex items-center gap-2">
+          <Music className="w-4 h-4 text-amber-400" />
           <span>지휘자 칭호 등급표</span>
         </h3>
 

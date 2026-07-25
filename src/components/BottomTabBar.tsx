@@ -48,10 +48,10 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <div className={`relative p-1 rounded-xl transition-all ${
-                isActive ? 'bg-neutral-800/90 border border-white/40 shadow-sm' : ''
+              <div className={`relative p-1.5 rounded-xl transition-all ${
+                isActive ? 'bg-white text-black border border-white shadow-md' : ''
               }`}>
-                <Icon className="w-5 h-5" />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-black fill-current' : ''}`} />
               </div>
               <span className="text-[11px] mt-1 tracking-tight leading-none whitespace-nowrap">
                 {tab.label}
