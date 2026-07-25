@@ -11,6 +11,10 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
   const [user, setUser] = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState<boolean>(false);
+  const [showNicknameEdit, setShowNicknameEdit] = useState<boolean>(false);
+  const [nicknameInput, setNicknameInput] = useState<string>('');
+  const [savingNickname, setSavingNickname] = useState<boolean>(false);
+  const [nicknameError, setNicknameError] = useState<string | null>(null);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -18,6 +22,34 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
     await supabase.auth.signOut();
     setLoggingOut(false);
     setShowLogoutConfirm(false);
+  };
+
+  const openNicknameEdit = () => {
+    setNicknameInput(nickname);
+    setNicknameError(null);
+    setShowNicknameEdit(true);
+  };
+
+  const handleSaveNickname = async () => {
+    const next = nicknameInput.trim();
+    if (!next) {
+      setNicknameError('닉네임을 입력해주세요.');
+      return;
+    }
+    if (next.length > 20) {
+      setNicknameError('닉네임은 20자 이내로 입력해주세요.');
+      return;
+    }
+    setSavingNickname(true);
+    setNicknameError(null);
+    const { data, error } = await supabase.auth.updateUser({ data: { nickname: next } });
+    setSavingNickname(false);
+    if (error) {
+      setNicknameError('저장에 실패했어요. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    if (data.user) setUser(data.user);
+    setShowNicknameEdit(false);
   };
 
   useEffect(() => {
@@ -71,7 +103,12 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
             <h1 className="text-lg font-bold text-white truncate">
               {nickname}
             </h1>
-            <button className="p-1.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-amber-400 border border-amber-400/80 transition-colors shrink-0" title="프로필 수정">
+            <button
+              onClick={openNicknameEdit}
+              className="p-1.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-amber-400 border border-amber-400/80 transition-colors shrink-0"
+              title="닉네임 수정"
+              aria-label="닉네임 수정"
+            >
               <Pencil className="w-3.5 h-3.5 text-amber-400" />
             </button>
           </div>
@@ -126,6 +163,51 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
           </div>
         ))}
       </div>
+
+      {/* 닉네임 수정 모달 */}
+      {showNicknameEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-sm px-6 animate-fade-in">
+          <div className="w-full max-w-xs rounded-3xl border border-amber-500/30 bg-stone-900 p-6 shadow-2xl">
+            <div className="flex items-center gap-2 justify-center">
+              <Pencil className="h-5 w-5 text-amber-400" />
+              <h2 className="font-serif text-lg font-bold text-amber-100">닉네임 수정</h2>
+            </div>
+            <p className="mt-1.5 text-center text-xs text-stone-400 break-keep">
+              앱에서 표시될 닉네임을 입력해주세요.
+            </p>
+            <input
+              type="text"
+              value={nicknameInput}
+              onChange={(e) => setNicknameInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSaveNickname(); }}
+              maxLength={20}
+              autoFocus
+              placeholder="닉네임"
+              className="mt-4 w-full rounded-xl border border-neutral-700 bg-neutral-950 px-3 py-2.5 text-sm text-white placeholder-neutral-500 outline-none focus:border-amber-500 transition-colors"
+            />
+            {nicknameError && (
+              <p className="mt-2 text-xs text-rose-400 break-keep">{nicknameError}</p>
+            )}
+            <div className="mt-5 flex gap-2.5">
+              <button
+                onClick={() => setShowNicknameEdit(false)}
+                disabled={savingNickname}
+                className="flex-1 py-2.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-stone-200 text-sm font-semibold border border-stone-700 transition-colors disabled:opacity-60"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSaveNickname}
+                disabled={savingNickname}
+                className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-sm font-bold transition-colors active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-1.5"
+              >
+                {savingNickname ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 로그아웃 확인 모달 */}
       {showLogoutConfirm && (
