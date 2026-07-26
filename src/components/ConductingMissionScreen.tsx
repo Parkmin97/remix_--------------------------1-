@@ -112,12 +112,13 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   // Rhythm Beat Tracking States (±0.25s Rule & 80% Threshold)
   const [accurateBeatCount, setAccurateBeatCount] = useState<number>(0);
   const [totalAttemptCount, setTotalAttemptCount] = useState<number>(0);
-  const [timingFeedback, setTimingFeedback] = useState<{ text: string; isGood: boolean } | null>(null);
+  const [timingFeedbacks, setTimingFeedbacks] = useState<Array<{ id: number; text: string; isGood: boolean }>>([]);
+  const [guideBeat, setGuideBeat] = useState<number>(1);
+  const [isGuidePulsing, setIsGuidePulsing] = useState<boolean>(false);
   
   // Device Motion & Permission States
   const [permissionState, setPermissionState] = useState<'UNKNOWN' | 'GRANTED' | 'DENIED' | 'NOT_SUPPORTED'>('UNKNOWN');
   const [currentAccValue, setCurrentAccValue] = useState<number>(0);
-  const [isSwinging, setIsSwinging] = useState<boolean>(false);
 
   const [isAudioPreviewPlaying, setIsAudioPreviewPlaying] = useState<boolean>(false);
 
@@ -131,6 +132,33 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   const lastAccMagnitudeRef = useRef<number>(0);
   const bgAudioRef = useRef<HTMLAudioElement | null>(null);
   const previewTimerRef = useRef<number | null>(null);
+  const guidePulseTimerRef = useRef<number | null>(null);
+  const feedbackIdRef = useRef<number>(0);
+  const feedbackTimerRefs = useRef<Set<number>>(new Set());
+
+  const addTimingFeedback = (text: string, isGood: boolean) => {
+    const id = ++feedbackIdRef.current;
+    setTimingFeedbacks(prev => [...prev.slice(-2), { id, text, isGood }]);
+
+    const timer = window.setTimeout(() => {
+      setTimingFeedbacks(prev => prev.filter(feedback => feedback.id !== id));
+      feedbackTimerRefs.current.delete(timer);
+    }, 2400);
+    feedbackTimerRefs.current.add(timer);
+  };
+
+  const triggerVisualBeat = (beat: number) => {
+    setGuideBeat(beat);
+    setIsGuidePulsing(true);
+
+    if (guidePulseTimerRef.current !== null) {
+      window.clearTimeout(guidePulseTimerRef.current);
+    }
+    guidePulseTimerRef.current = window.setTimeout(() => {
+      setIsGuidePulsing(false);
+      guidePulseTimerRef.current = null;
+    }, 200);
+  };
 
   // Toggle & play preview classical orchestra audio with guaranteed Web Audio Orchestral Ensemble fallback
   const stopAudioPreview = () => {
@@ -225,6 +253,11 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     return () => {
       stopAudioPreview();
       clearTutorialTimers();
+      if (guidePulseTimerRef.current !== null) {
+        window.clearTimeout(guidePulseTimerRef.current);
+      }
+      feedbackTimerRefs.current.forEach(timer => window.clearTimeout(timer));
+      feedbackTimerRefs.current.clear();
     };
   }, []);
 
@@ -266,6 +299,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     setCountdown(3);
     setAccurateBeatCount(0);
     setTotalAttemptCount(0);
+    setTimingFeedbacks([]);
     setTimeLeft(60);
     matchedBeatIndicesRef.current.clear();
 
@@ -350,8 +384,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     if (now - lastBeatTimeRef.current < 220) return;
     lastBeatTimeRef.current = now;
 
-    setIsSwinging(true);
-    setTimeout(() => setIsSwinging(false), 200);
     audioSynthesizer.playBatonSwingSound();
 
     setTotalAttemptCount(prev => prev + 1);
@@ -377,26 +409,21 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       if (!matchedBeatIndicesRef.current.has(closestBeatIndex)) {
         matchedBeatIndicesRef.current.add(closestBeatIndex);
         setAccurateBeatCount(prev => prev + 1);
-        setTimingFeedback({
-          text: `PERFECT! [${beatFractionLabel}박] (오차 ±${diffSec}초 / 허용 ±${toleranceSec}초)`,
-          isGood: true
-        });
+        addTimingFeedback(
+          `PERFECT! [${beatFractionLabel}박] (오차 ±${diffSec}초 / 허용 ±${toleranceSec}초)`,
+          true
+        );
       } else {
         // Repeated swing on an already cleared beat -> Penalty / Duplicate
-        setTimingFeedback({
-          text: `중복 연사! (박자 낭비)`,
-          isGood: false
-        });
+        addTimingFeedback('중복 연사! (박자 낭비)', false);
       }
     } else {
       // Off-beat / Random Shake Penalty
-      setTimingFeedback({
-        text: `MISS! [${beatFractionLabel}박 이탈] (오차 ±${diffSec}초 / 허용 ±${toleranceSec}초)`,
-        isGood: false
-      });
+      addTimingFeedback(
+        `MISS! [${beatFractionLabel}박 이탈] (오차 ±${diffSec}초 / 허용 ±${toleranceSec}초)`,
+        false
+      );
     }
-
-    setTimeout(() => setTimingFeedback(null), 700);
   };
 
   // Conducting Loop & Music Playback
@@ -453,6 +480,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     // Immediately trigger 1st beat metronome click upon CONDUCTING start
     const initialNote = currentPiece.notesSequence[0];
     const initialAccent = initialNote ? initialNote.beatIndex === 1 : true;
+    triggerVisualBeat(initialNote?.beatIndex ?? 1);
     audioSynthesizer.playMetronomeClick(initialAccent, initialAccent ? accentVol : normalVol);
 
     const musicInterval = setInterval(() => {
@@ -460,7 +488,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       const currentNoteObj = currentPiece.notesSequence[noteIndex % currentPiece.notesSequence.length];
       const isAccent = currentNoteObj.beatIndex === 1;
 
-      // Always play background beat guide metronome click clearly (higher for Flower Waltz)
+      // Keep the visual hand guide and metronome on the same beat.
+      // The visual cue remains usable when audio is muted or unavailable.
+      triggerVisualBeat(currentNoteObj.beatIndex);
       audioSynthesizer.playMetronomeClick(isAccent, isAccent ? accentVol : normalVol);
     }, beatIntervalMs);
 
@@ -863,6 +893,45 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </div>
             </div>
 
+            {/* Dedicated judgement feed outside the hand stage to prevent overlap. */}
+            <div
+              className="z-20 w-full h-20 sm:h-24 shrink-0 flex flex-col justify-end items-center gap-1 px-2 py-1.5 overflow-hidden pointer-events-none rounded-xl border border-stone-800/80 bg-stone-950/75"
+              aria-live="polite"
+              aria-atomic="false"
+            >
+              {timingFeedbacks.length > 0 ? (
+                timingFeedbacks.map((feedback, index) => {
+                  const positionFromNewest = timingFeedbacks.length - 1 - index;
+                  const ageOpacity = positionFromNewest === 0
+                    ? 'opacity-100'
+                    : positionFromNewest === 1
+                      ? 'opacity-60'
+                      : 'opacity-30';
+
+                  return (
+                  <div
+                    key={feedback.id}
+                    className={`max-w-full transition-opacity duration-300 ${ageOpacity}`}
+                  >
+                    <div className="timing-feedback-lifetime">
+                      <div className={`timing-feedback-rise max-w-full px-3 sm:px-4 py-1 font-bold font-serif text-[10px] sm:text-xs text-center leading-snug rounded-lg shadow-xl border ${
+                        feedback.isGood
+                          ? 'bg-emerald-400 text-stone-950 border-emerald-100 shadow-emerald-500/40'
+                          : 'bg-rose-500 text-stone-950 border-rose-200 shadow-rose-500/40'
+                      }`}>
+                        {feedback.text}
+                      </div>
+                    </div>
+                  </div>
+                  );
+                })
+              ) : (
+                <div className="px-3 py-1.5 rounded-full border border-stone-700/80 bg-stone-950/70 text-[10px] sm:text-[11px] font-semibold text-stone-300">
+                  손바닥이 커지는 순간에 흔들거나 클릭하세요
+                </div>
+              )}
+            </div>
+
             {/* Interactive Phone Shake Stage */}
             <div className="relative w-full flex-1 min-h-0 rounded-2xl border border-amber-500/30 bg-stone-900/80 overflow-hidden flex flex-col items-center justify-center p-3 sm:p-4">
               <canvas
@@ -873,24 +942,29 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 className="absolute inset-0 w-full h-full touch-none cursor-crosshair opacity-80"
               />
 
-              {/* Central Phone Shake Visualizer */}
-              <div className="z-10 flex flex-col items-center justify-center text-center space-y-2 pointer-events-none">
+              {/* Central visual metronome: driven by the song beat, not user input. */}
+              <div className="z-10 w-full h-full min-h-0 flex flex-col items-center justify-center text-center space-y-2 pointer-events-none">
                 <div
-                  className={`w-16 h-16 rounded-full border-2 transition-all duration-150 flex items-center justify-center ${
-                    isSwinging
+                  className={`relative w-16 h-16 rounded-full border-2 transition-all duration-150 flex items-center justify-center ${
+                    isGuidePulsing
                       ? 'bg-amber-400 border-amber-200 text-stone-950 scale-125 shadow-[0_0_35px_rgba(251,191,36,0.9)]'
                       : 'bg-amber-950/60 border-amber-500/50 text-amber-300 scale-100 shadow-xl'
                   }`}
+                  role="img"
+                  aria-label={`${guideBeat}박 시각 안내`}
                 >
-                  <Hand className={`w-7 h-7 ${isSwinging ? 'animate-bounce' : ''}`} />
+                  <Hand className={`w-7 h-7 ${isGuidePulsing ? 'animate-bounce' : ''}`} />
+                  <span className="absolute -right-2 -top-2 min-w-6 h-6 px-1 rounded-full bg-stone-950 border border-amber-300 text-amber-200 text-[10px] font-mono font-extrabold flex items-center justify-center">
+                    {guideBeat}
+                  </span>
                 </div>
 
                 <div className="space-y-0.5">
                   <p className="text-xs font-bold font-serif text-amber-200">
-                    리듬에 맞춰 스마트폰을 힘차게 흔드세요! 📱
+                    손바닥 박자에 맞춰 힘차게 흔드세요! 📱
                   </p>
                   <p className="text-[11px] text-amber-300/80">
-                    🎷 실제 오케스트라 명곡 음원 & 메트로놈 정박에 맞춰 강하게 지휘하세요
+                    소리가 들리지 않아도 손바닥의 확대와 색상 변화를 따라가면 됩니다
                   </p>
                 </div>
 
@@ -902,19 +976,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   ></div>
                 </div>
               </div>
-
-              {/* Timing Feedback Popup */}
-              {timingFeedback && (
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center z-20">
-                  <div className={`px-5 py-2.5 font-bold font-serif text-lg rounded-2xl shadow-2xl animate-bounce border-2 ${
-                    timingFeedback.isGood
-                      ? 'bg-emerald-400 text-stone-950 border-emerald-100 shadow-emerald-500/50'
-                      : 'bg-rose-500 text-stone-950 border-rose-200 shadow-rose-500/50'
-                  }`}>
-                    {timingFeedback.text}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Laptop / PC rhythm trigger button */}

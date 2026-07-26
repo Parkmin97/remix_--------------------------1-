@@ -72,6 +72,28 @@ body {
 }
 .lp-pulse-ring { animation: lp-pulse-ring 2.4s ease-out infinite; }
 
+@keyframes timing-feedback-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.timing-feedback-rise {
+  animation: timing-feedback-rise 180ms ease-out both;
+}
+
+@keyframes timing-feedback-lifetime {
+  0%, 72% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.timing-feedback-lifetime {
+  animation: timing-feedback-lifetime 2400ms linear both;
+}
+
 /* Scroll reveal — toggled by IntersectionObserver via data attribute */
 .lp-reveal {
   opacity: 0;
@@ -85,6 +107,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-float, .lp-baton, .lp-marquee, .lp-pulse-ring { animation: none; }
+  .lp-float, .lp-baton, .lp-marquee, .lp-pulse-ring, .timing-feedback-rise { animation: none; }
   .lp-reveal { opacity: 1; transform: none; transition: none; }
 }
