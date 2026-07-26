@@ -65,6 +65,18 @@ export const CLASSICAL_PIECES: ClassicalPiece[] = [
     audioUrl: '/audio/summer.mp3',
     fallbackAudioUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Vivaldi%20-%20Four%20Seasons%202%20Summer%20mvt%203%20Presto%20-%20John%20Harrison%20violin.oga',
     notesSequence: generateNotesForPiece(132, '1/4', ['G5', 'G5', 'F5', 'Eb5', 'D5', 'C5', 'B4', 'C5', 'D5', 'G4', 'C5', 'D5'])
+  },
+  {
+    id: 'piece-spring-1',
+    title: '사계 중 "봄" 1악장 알레그로',
+    composer: '안토니오 비발디 (A. Vivaldi)',
+    beatType: '4/4',
+    bpm: 108,
+    durationSeconds: 60,
+    description: '봄의 도래를 노래하는 만개한 햇살처럼 밝고 경쾌한 바이올린 오케스트라입니다. 4박자의 경쾌한 지휘로 박자를 맞추세요.',
+    audioUrl: '/audio/spring.mp3',
+    fallbackAudioUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bd/Vivaldi_-_Four_Seasons_-_01_-_Spring_1_Allegro.mp3',
+    notesSequence: generateNotesForPiece(108, '4/4', ['E5', 'G#5', 'G#5', 'G#5', 'F#5', 'E5', 'B4', 'E5', 'G#5', 'G#5', 'G#5', 'F#5', 'E5', 'B4'])
   }
 ];
 

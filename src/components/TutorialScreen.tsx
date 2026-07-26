@@ -259,7 +259,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
             </button>
 
             <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white text-center">
-              CONDUCTOR OF MY LIFE
+              MY LIFE MAESTRO
             </h1>
 
             <div className="w-8 shrink-0" />

@@ -96,15 +96,33 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
       setCurrentTime(now.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
 
       if (activeSession) {
-        let targetEndMs = 0;
-        if (isUsageActive && activeSession.usageEndsAt) {
-          targetEndMs = new Date(activeSession.usageEndsAt).getTime();
-        } else if (isLocked && activeSession.focusEndsAt) {
-          targetEndMs = new Date(activeSession.focusEndsAt).getTime();
-        }
+        const nowMs = now.getTime();
+        const focusStartsMs = activeSession.focusStartsAt ? new Date(activeSession.focusStartsAt).getTime() : 0;
+        const focusEndsMs = activeSession.focusEndsAt ? new Date(activeSession.focusEndsAt).getTime() : 0;
 
-        if (targetEndMs > 0) {
-          const diff = Math.max(0, targetEndMs - now.getTime());
+        // 활동 중 잠금 모드(GUIDED_USE)이고 아직 활동 시간(focusStartsAt 전)인 경우
+        if (activeSession.mode === 'GUIDED_USE' && focusStartsMs > 0 && nowMs < focusStartsMs) {
+          const diff = Math.max(0, focusStartsMs - nowMs);
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+          setTimeRemaining(
+            `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+          );
+        } else if (focusEndsMs > 0 && nowMs < focusEndsMs) {
+          // 활동 시간이 끝났거나 바로 잠금 모드인 경우 -> 잠금 시간 타이머 진행
+          // 활동 시간 종료 시 자동으로 state를 FOCUS_ACTIVE로 업데이트
+          if (activeSession.mode === 'GUIDED_USE' && activeSession.state !== 'FOCUS_ACTIVE' && activeSession.state !== 'MISSION_ACTIVE') {
+            const updatedSession: SessionData = {
+              ...activeSession,
+              state: 'FOCUS_ACTIVE',
+            };
+            saveActiveSession(updatedSession);
+            setActiveSession(updatedSession);
+          }
+
+          const diff = Math.max(0, focusEndsMs - nowMs);
           const hours = Math.floor(diff / (1000 * 60 * 60));
           const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
           const secs = Math.floor((diff % (1000 * 60)) / 1000);
@@ -123,70 +141,49 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
     updateTimes();
     const interval = setInterval(updateTimes, 1000);
     return () => clearInterval(interval);
-  }, [activeSession, isGuidedReady, isUsageActive, isLocked]);
+  }, [activeSession, isGuidedReady, isUsageActive, isLocked, setActiveSession]);
 
   // Launch Conductor App with Splash Screen Transition
   const handleLaunchConductorApp = () => {
-    // 디톡스 진행 중(모드 A 잠금 또는 모드 B 활동 중 잠금)에는 앱을 실행하지 않고, 안내 알림을 3초간 띄운다.
-    if (isLocked || isModeBActive) {
-      audioSynthesizer.playBatonSwingSound();
-      setShowLockedNotice(true);
-      if (lockedNoticeTimer.current) clearTimeout(lockedNoticeTimer.current);
-      lockedNoticeTimer.current = setTimeout(() => setShowLockedNotice(false), 3000);
-      return;
-    }
-
     setIsLaunchingApp(true);
     audioSynthesizer.playBatonSwingSound();
 
-    // Auto transition to 'home' (우리 어플의 기본 홈 탭) screen after splash animation
     setTimeout(() => {
       setIsLaunchingApp(false);
-      onNavigateToScreen('home');
-    }, 1800);
-  };
-
-  // 클릭한 그 SNS에 대해 30초 이용 카운트를 (재)시작한다.
-  const startUsageForService = (serviceId: string) => {
-    if (!activeSession) return;
-    const now = new Date();
-    const TEST_USAGE_SECONDS = 30;
-    const usageEndsAtIso = new Date(now.getTime() + TEST_USAGE_SECONDS * 1000).toISOString();
-    const focusEndsAtIso = new Date(now.getTime() + (TEST_USAGE_SECONDS * 1000) + (activeSession.focusDurationMinutes * 60 * 1000)).toISOString();
-
-    const updatedSession: SessionData = {
-      ...activeSession,
-      state: 'USAGE_ACTIVE',
-      activeUsageServiceId: serviceId,
-      usageStartsAt: now.toISOString(),
-      usageEndsAt: usageEndsAtIso,
-      focusStartsAt: usageEndsAtIso,
-      focusEndsAt: focusEndsAtIso
-    };
-
-    saveActiveSession(updatedSession);
-    if (setActiveSession) {
-      setActiveSession(updatedSession);
-    }
-    audioSynthesizer.playBatonSwingSound();
-    onNavigateToScreen('shorts');
+      if (activeSession?.mode === 'FOCUS_NOW' && isLocked) {
+        onNavigateToScreen('home:mode-a');
+      } else if (activeSession?.mode === 'GUIDED_USE') {
+        onNavigateToScreen('home:mode-b');
+      } else {
+        onNavigateToScreen('home');
+      }
+    }, 800);
   };
 
   const handleAppIconClick = (serviceId: string) => {
-    // 모드 A: 선택되어 잠긴 앱을 다시 실행하려 하면 개입 → 지휘 미션으로 이어진다.
-    if (isServiceLocked(serviceId)) {
-      audioSynthesizer.playBatonSwingSound();
-      onOpenIntervention();
-      return;
+    // 모드 A/B 잠금 기간 중: '잠금할 앱 선택'에서 선택했던 대상 앱일 때만 개입/미션으로 진입
+    if (isLocked) {
+      if (sessionServiceIds.has(serviceId)) {
+        audioSynthesizer.playBatonSwingSound();
+        onOpenIntervention();
+        return;
+      }
     }
 
-    // 모드 B: 세션이 진행 중일 때 클릭한 '그 소셜 SNS'에 대해 30초 이용 카운트를 시작한다.
-    if (isModeBActive) {
-      startUsageForService(serviceId);
-      return;
+    // 세션에 현재 클릭한 서비스 ID 저장 후 숏폼 진입
+    if (activeSession) {
+      const updatedSession: SessionData = {
+        ...activeSession,
+        activeUsageServiceId: serviceId,
+      };
+      saveActiveSession(updatedSession);
+      if (setActiveSession) {
+        setActiveSession(updatedSession);
+      }
     }
 
-    // 그 외(모드 B 세션이 아님) → 카운트 없이 숏폼만 표시.
+    // 정상 진입 (숏폼 화면)
+    audioSynthesizer.playBatonSwingSound();
     onNavigateToScreen('shorts');
   };
 
@@ -219,7 +216,7 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                   <span>오늘의 스마트폰 홈</span>
                 </div>
                 <div className="text-xs text-stone-300 font-semibold">
-                  7월 24일 금요일
+                  {new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })}
                 </div>
               </div>
               <div className="text-right">
@@ -241,7 +238,13 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
               <div className="font-bold text-amber-300 flex items-center justify-between text-[11px]">
                 <span className="flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>디톡스 모드 가동 중</span>
+                  <span>
+                    {activeSession.mode === 'FOCUS_NOW'
+                      ? '바로 잠금 모드 실행 중'
+                      : isLocked
+                      ? '잠금 모드 실행 중'
+                      : '활동 모드 실행 중'}
+                  </span>
                 </span>
                 <span className="font-mono text-amber-400">{timeRemaining}</span>
               </div>
@@ -357,7 +360,11 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/40 bg-neutral-800 text-white animate-pulse">
                 <ShieldCheck className="h-8 w-8" />
               </div>
-              <h2 className="mt-4 font-serif text-lg font-bold text-white break-keep">디톡스 모드 가동 중</h2>
+              <h2 className="mt-4 font-serif text-lg font-bold text-white break-keep">
+                {activeSession?.mode === 'FOCUS_NOW'
+                  ? '바로 잠금 모드 실행 중'
+                  : '잠금 모드 실행 중'}
+              </h2>
               <p className="mt-1.5 text-xs leading-snug text-neutral-300 break-keep">
                 지금은 집중 약속 시간이에요.<br />잠금이 끝난 뒤 앱을 실행할 수 있어요.
               </p>
@@ -385,11 +392,11 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
             {/* Glowing Orchestra Stage Rays */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
 
-            {/* Top Title Card: CONDUCTOR OF MY LIFE */}
+            {/* Top Title Card: MY LIFE MAESTRO */}
             <div className="pt-8 z-10 w-full max-w-xs">
               <div className="space-y-2 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-700 px-6 py-4 shadow-[0_8px_40px_rgba(0,0,0,0.65)] text-center">
                 <h1 className="text-lg sm:text-xl font-sans font-extrabold tracking-widest text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] text-center">
-                  CONDUCTOR OF MY LIFE
+                  MY LIFE MAESTRO
                 </h1>
                 <p className="text-xs text-neutral-300 font-serif leading-relaxed px-2 drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
                   디지털 도파민 피드에서 벗어나,<br />

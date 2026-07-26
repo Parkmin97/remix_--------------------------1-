@@ -93,12 +93,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   const handlePickRandomPiece = () => {
     if (gameState !== 'READY') return;
     stopAudioPreview();
-    let nextPiece: ClassicalPiece;
-    do {
-      const randomIndex = Math.floor(Math.random() * CLASSICAL_PIECES.length);
-      nextPiece = CLASSICAL_PIECES[randomIndex];
-    } while (nextPiece.id === currentPiece.id && CLASSICAL_PIECES.length > 1);
-    setCurrentPiece(nextPiece);
+    const currentIndex = CLASSICAL_PIECES.findIndex(p => p.id === currentPiece.id);
+    const nextIndex = (currentIndex + 1) % CLASSICAL_PIECES.length;
+    setCurrentPiece(CLASSICAL_PIECES[nextIndex]);
   };
 
   const [gameState, setGameState] = useState<'READY' | 'TUTORIAL_PREVIEW' | 'COUNTDOWN' | 'CONDUCTING' | 'SUCCESS' | 'FAIL'>('READY');
@@ -635,39 +632,41 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       {/* Background Dark Scrim */}
       <div className="fixed inset-0 bg-gradient-to-b from-black/85 via-neutral-950/75 to-black/90 pointer-events-none -z-10"></div>
 
-      {/* Header Banner */}
-      <div className="shrink-0 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-black/75 backdrop-blur-md border border-neutral-800 text-center space-y-1.5 relative overflow-hidden shadow-2xl">
-        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-          <h2 className="text-base sm:text-xl font-serif font-extrabold text-amber-400">
-            1분 클래식 리듬 지휘 미션
+      {/* Header Banner (Equal Height Card 1) */}
+      <div className="flex-1 min-h-0 p-5 sm:p-6 rounded-2xl sm:rounded-3xl bg-black/75 backdrop-blur-md border border-neutral-800 text-center space-y-3 relative overflow-hidden shadow-2xl flex flex-col justify-center items-center">
+        <div className="flex flex-col items-center justify-center gap-2">
+          <h2 className="text-xl sm:text-3xl font-serif font-extrabold text-amber-400 tracking-wide">
+            클래식 1분 지휘 미션
           </h2>
-          <span className="px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] sm:text-[11px] font-extrabold whitespace-nowrap shadow-sm">
-            랜덤 지정: {selectedBeat} 박자
-          </span>
+          <div>
+            <span className="px-3.5 py-1 rounded-full bg-white text-black text-xs sm:text-sm font-extrabold whitespace-nowrap shadow-md inline-block">
+              랜덤 지정: {selectedBeat} 박자
+            </span>
+          </div>
         </div>
-        {/* 곡 정보 — 곡 변경 시에도 높이/구조가 변하지 않도록 고정 2줄(말줄임) 영역 */}
-        <div className="px-1">
-          <div className="h-10 flex flex-col items-center justify-center">
-            <span className="block w-full truncate text-center text-xs sm:text-sm font-semibold text-white leading-tight">
+        {/* 곡 정보 — 곡 변경 시에도 높이/구조가 변하지 않도록 고정 영역 */}
+        <div className="px-1 space-y-2.5 w-full">
+          <div className="flex flex-col items-center justify-center">
+            <span className="block w-full truncate text-center text-base sm:text-lg font-bold text-white leading-tight">
               🎵 {currentPiece.title}
             </span>
-            <span className="block w-full truncate text-center text-[10px] sm:text-[11px] text-neutral-400 leading-tight mt-0.5">
+            <span className="block w-full truncate text-center text-xs sm:text-sm text-neutral-300 font-medium leading-tight mt-1">
               {currentPiece.composer} · {currentPiece.bpm} BPM
             </span>
           </div>
           {gameState === 'READY' && (
-            <div className="mt-2 flex items-center justify-center gap-2">
+            <div className="mt-3 flex items-center justify-center gap-2.5">
               <button
                 onClick={handlePickRandomPiece}
                 type="button"
-                className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl border border-neutral-700 text-xs sm:text-sm font-bold transition-colors active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
+                className="px-4 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl border border-neutral-700 text-xs sm:text-sm font-bold transition-colors active:scale-95 flex items-center gap-1.5 whitespace-nowrap shadow-sm"
               >
                 🎲 곡 변경
               </button>
               <button
                 onClick={toggleAudioPreview}
                 type="button"
-                className={`px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:scale-95 flex items-center gap-1.5 whitespace-nowrap ${
+                className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:scale-95 flex items-center gap-1.5 whitespace-nowrap ${
                   isAudioPreviewPlaying
                     ? 'bg-amber-500 text-stone-950 border-amber-400 shadow-md'
                     : 'bg-white text-black border-white hover:bg-neutral-200 shadow-sm'
@@ -678,19 +677,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             </div>
           )}
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs pt-1">
-          <div className="p-2 rounded-xl bg-neutral-800/90 border border-neutral-700 text-neutral-200 font-bold text-center text-[11px] sm:text-xs">
-            🎯 성공 규격: 박자별 비례 오차 (0.06s~0.25s)
-          </div>
-          <div className="p-2 rounded-xl bg-black/80 border border-neutral-800 text-neutral-300 text-center text-[11px] sm:text-xs">
-            목표 일치율: <strong className="text-amber-400 font-mono font-bold">80% 이상</strong> (최소 {requiredBeatsToPass}/{totalExpectedBeatsIn60s}회)
-          </div>
-        </div>
       </div>
 
-      {/* Game Stage Area */}
-      <div className="flex-1 min-h-0 bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl sm:rounded-3xl p-3 sm:p-5 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
+      {/* Game Stage Area (Equal Height Card 2) */}
+      <div className="flex-1 min-h-0 bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
         {/* Animated Background Musical Notes */}
         <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-around text-4xl text-white select-none">
           <span className="animate-bounce">♩</span>
@@ -701,25 +691,19 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
         {/* READY STATE */}
         {gameState === 'READY' && (
-          <div className="text-center space-y-3 sm:space-y-4 max-w-md z-10 w-full">
+          <div className="text-center space-y-3.5 max-w-md z-10 w-full">
             {/* Phone Shake Graphic */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto flex items-center justify-center">
-              <div className="absolute inset-0 rounded-3xl bg-white/10 border-2 border-white/40 animate-ping opacity-30"></div>
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-white text-black border-2 border-white flex flex-col items-center justify-center shadow-xl">
-                <Smartphone className="w-6 h-6 sm:w-8 sm:h-8 animate-bounce text-black stroke-[2.5]" />
-                <span className="text-[9px] sm:text-[10px] font-extrabold mt-0.5 sm:mt-1 text-black">지휘 모션 감지</span>
+            <div className="relative w-12 h-12 sm:w-16 sm:h-16 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 rounded-2xl bg-white/10 border-2 border-white/40 animate-ping opacity-30"></div>
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-white text-black border-2 border-white flex flex-col items-center justify-center shadow-xl">
+                <Smartphone className="w-6 h-6 sm:w-7 sm:h-7 animate-bounce text-black stroke-[2.5]" />
               </div>
             </div>
 
-            <div className="space-y-1.5 pt-4 sm:pt-6">
-              <h3 className="text-sm sm:text-lg font-bold font-serif text-amber-400 break-keep">
-                박자 위치별 오차(1/4~4/4) 및 강한 지휘 모션 판정
-              </h3>
-              <div className="text-[11px] sm:text-xs text-neutral-300 leading-snug bg-neutral-900/90 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border border-neutral-800 space-y-1.5 text-left">
-                <p>• <strong>박자별 오차 비례 적용:</strong> 4/4 박자 기준(0.25초) 비율에 맞춰 <strong className="text-white">1/4박(0.06초)</strong>, <strong className="text-white">2/4박(0.12초)</strong>, <strong className="text-white">3/4박(0.18초)</strong>, <strong className="text-white">4/4박(0.25초)</strong>로 정밀하게 다단계 계산됩니다.</p>
-                <p>• <strong>강한 모션 필수:</strong> 살살 흔들면 감지되지 않으며, 스마트폰을 <strong className="text-white">단호하고 크게 쳐내듯 지휘하는 강한 가속도 모션</strong>만 인식됩니다.</p>
-                <p>• <strong>성공 조건:</strong> 1분간 전체 박자의 <strong className="text-amber-400">80% 이상</strong>(최소 {requiredBeatsToPass}회) 성공 시 미션 통과!</p>
-              </div>
+            <div className="text-xs sm:text-sm text-neutral-200 leading-relaxed bg-neutral-900/90 p-4 rounded-xl sm:rounded-2xl border border-neutral-800 text-left space-y-2 shadow-inner">
+              <p>• <strong>성공 규격:</strong> 박자별 비례 오차 (0.06s~0.25s)</p>
+              <p>• <strong>목표 일치율:</strong> <strong className="text-amber-400 font-mono font-bold">80% 이상</strong> (최소 {requiredBeatsToPass}/{totalExpectedBeatsIn60s}회)</p>
+              <p>• <strong>강한 모션 필수:</strong> 살살 흔들면 감지되지 않으며, 스마트폰을 <strong className="text-white font-bold">단호하고 크게 쳐내듯 지휘하는 강한 가속도 모션</strong>만 인식됩니다.</p>
             </div>
 
             {/* Device Motion Permission Card for iOS/Mobile */}
@@ -745,17 +729,17 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </div>
             )}
 
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full">
+            <div className="pt-1 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 w-full">
               <button
                 onClick={handleStartGame}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+                className="w-full sm:w-auto px-7 sm:px-9 py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm sm:text-base rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95"
               >
-                <Play className="w-4 h-4 fill-current text-stone-950" />
-                <span>지휘 미션 시작하기 (튜토리얼 10초 ➔ 3,2,1)</span>
+                <Play className="w-4.5 h-4.5 fill-current text-stone-950" />
+                <span>튜토리얼 후 시작하기</span>
               </button>
               <button
                 onClick={onCancel}
-                className="w-full sm:w-auto px-5 py-2.5 sm:py-3 bg-neutral-900 text-neutral-300 hover:text-white text-xs font-semibold rounded-xl sm:rounded-2xl border border-neutral-800"
+                className="w-full sm:w-auto px-5 py-2.5 bg-neutral-900 text-neutral-300 hover:text-white text-xs font-semibold rounded-xl sm:rounded-2xl border border-neutral-800"
               >
                 취소
               </button>
@@ -1029,13 +1013,13 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             </h3>
             <p className="text-xs text-stone-300 leading-relaxed">
               박자 일치율이 80% 미만으로 연장 기준을 충족하지 못했습니다.<br />
-              원래의 집중 약속을 계속 이어나가며 도파민 중독을 줄여보세요!
+              앱을 종료하고 내 인생을 지휘하러 가보세요!
             </p>
             <button
               onClick={onMissionFail}
               className="px-6 py-2.5 bg-stone-800 hover:bg-stone-700 text-amber-200 font-semibold text-xs rounded-xl border border-amber-600/40"
             >
-              집중 화면으로 돌아가기
+              미션 종료하기
             </button>
           </div>
         )}

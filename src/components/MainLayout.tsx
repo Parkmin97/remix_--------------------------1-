@@ -11,17 +11,18 @@ interface MainLayoutProps {
   onNavigateToScreen: (screen: string) => void;
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
+  activeSession?: SessionData | null;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNavigateToScreen, activeTab, onTabChange }) => {
+export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNavigateToScreen, activeTab, onTabChange, activeSession }) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
         return <NewHomeScreen onSelectTab={onTabChange} />;
       case 'mode-a':
-        return <ModeAScreen onStartSession={onStartSession} />;
+        return <ModeAScreen onStartSession={onStartSession} activeSession={activeSession} />;
       case 'mode-b':
-        return <ModeBScreen onStartSession={onStartSession} />;
+        return <ModeBScreen onStartSession={onStartSession} activeSession={activeSession} />;
       case 'more':
         return <MoreScreen onNavigateToScreen={onNavigateToScreen} />;
       default:
@@ -39,15 +40,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
         <div className="max-w-2xl mx-auto flex items-center justify-center relative">
           <div className="flex items-center justify-center">
             <span className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.3)] text-center">
-              CONDUCTOR OF MY LIFE
+              MY LIFE MAESTRO
             </span>
           </div>
-          <span className="absolute right-0 text-[11px] px-2.5 py-0.5 rounded-full bg-neutral-800/90 text-neutral-200 font-semibold border border-neutral-700 shadow-sm">
-            {activeTab === 'home' && '기본 홈'}
-            {activeTab === 'mode-a' && '바로 잠금'}
-            {activeTab === 'mode-b' && '활동 중 잠금'}
-            {activeTab === 'more' && '더보기'}
-          </span>
         </div>
       </header>
 
@@ -57,7 +52,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
       </main>
 
       {/* 4-Tab Bottom Navigation Bar */}
-      <BottomTabBar activeTab={activeTab} onTabChange={onTabChange} />
+      <BottomTabBar activeTab={activeTab} onTabChange={onTabChange} activeSession={activeSession} />
     </div>
   );
 };

@@ -49,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
               <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white whitespace-nowrap text-center">
-                CONDUCTOR OF MY LIFE
+                MY LIFE MAESTRO
               </h1>
               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-neutral-800 text-neutral-300 border border-neutral-700 font-mono shrink-0">
                 PWA

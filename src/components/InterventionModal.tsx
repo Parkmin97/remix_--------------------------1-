@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Lock, Music, ShieldCheck, ArrowRight, Play } from 'lucide-react';
+import { X, Lock, Music, Sparkles } from 'lucide-react';
 
 interface InterventionModalProps {
   isOpen: boolean;
@@ -35,11 +35,8 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
         </div>
 
         <div className="space-y-2">
-          <span className="px-3 py-1 rounded-full bg-white text-black text-xs font-extrabold shadow-sm">
-            소프트 앱 잠금 개입
-          </span>
           <h3 className="text-xl font-bold font-serif text-white leading-snug">
-            지금은 집중 약속 중이에요.<br />다시 열기 전에 한 번만 멈춰볼까요?
+            잠금 모드 실행 중이에요.<br />남이 아닌 내 인생을 지휘해보세요.
           </h3>
           <p className="text-xs text-neutral-300 bg-neutral-900/90 p-2.5 rounded-xl border border-neutral-800">
             목표: <strong className="text-amber-400">{focusTask}</strong>
@@ -47,13 +44,13 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
         </div>
 
         <div className="space-y-3 pt-1">
-          {/* Primary Action: Keep Focusing */}
+          {/* Primary Action: Exit App & Conduct My Life */}
           <button
             onClick={onClose}
             className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
-            <ShieldCheck className="w-4 h-4 text-stone-950" />
-            <span>계속 집중하기 (추천)</span>
+            <Sparkles className="w-4 h-4 text-stone-950" />
+            <span>내 인생 지휘하기 (앱 종료)</span>
           </button>
 
           {/* Secondary Action: Start 1-Minute Conducting Mission */}
@@ -62,8 +59,7 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
             className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-extrabold rounded-2xl text-xs border border-white flex items-center justify-center gap-2 transition-all shadow-md"
           >
             <Music className="w-4 h-4 text-black" />
-            <span>1분 클래식 지휘 미션 도전하기</span>
-            <ArrowRight className="w-4 h-4 text-black" />
+            <span>잠금 해제하기 (미션 도전)</span>
           </button>
         </div>
 

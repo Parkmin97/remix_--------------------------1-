@@ -64,7 +64,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         </button>
 
         <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white text-center">
-          CONDUCTOR OF MY LIFE
+          MY LIFE MAESTRO
         </h1>
 
         <button

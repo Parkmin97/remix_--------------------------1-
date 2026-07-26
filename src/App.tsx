@@ -159,7 +159,7 @@ export default function App() {
         {!needsAuth && (
         <>
         {currentTab === 'home' && (
-          <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} />
+          <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} activeSession={activeSession} />
         )}
 
         {currentTab === 'phone-home' && (
@@ -167,7 +167,17 @@ export default function App() {
             activeSession={activeSession}
             setActiveSession={setActiveSession}
             onOpenIntervention={() => setIsInterventionOpen(true)}
-            onNavigateToScreen={setCurrentTab}
+            onNavigateToScreen={(screen) => {
+              if (screen === 'home:mode-a') {
+                setMainTab('mode-a');
+                setCurrentTab('home');
+              } else if (screen === 'home:mode-b') {
+                setMainTab('mode-b');
+                setCurrentTab('home');
+              } else {
+                setCurrentTab(screen);
+              }
+            }}
             user={user}
           />
         )}

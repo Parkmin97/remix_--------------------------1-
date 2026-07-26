@@ -23,26 +23,38 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
   // (숏폼 화면에 들어왔다는 이유만으로 자동 세션을 만들지 않는다.)
   const isUsageCounting = Boolean(activeSession && activeSession.state === 'USAGE_ACTIVE' && activeSession.usageEndsAt);
 
-  // Countdown timer for active usage session (fixed to 30s test mode)
+  // Countdown timer for Mode B active session (30s physical timer based on focusStartsAt)
   useEffect(() => {
-    if (!activeSession || !activeSession.usageEndsAt) return;
+    if (!activeSession) return;
+    const targetEndIso = activeSession.focusStartsAt || activeSession.usageEndsAt;
+    if (!targetEndIso) return;
+
+    const sessionServiceIds = new Set(
+      (activeSession.targetServices ?? []).map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id))
+    );
+    const isCurrentAppSelected = Boolean(activeSession.activeUsageServiceId && sessionServiceIds.has(activeSession.activeUsageServiceId));
 
     const updateTimer = () => {
       const now = Date.now();
-      const endMs = new Date(activeSession.usageEndsAt!).getTime();
+      const endMs = new Date(targetEndIso).getTime();
       const diffSecs = Math.max(0, Math.ceil((endMs - now) / 1000));
       setSecondsLeft(diffSecs);
 
-      if (diffSecs <= 0 && activeSession.state === 'USAGE_ACTIVE') {
-        // 이용 시간(30초) 종료 -> 잠금(FOCUS_ACTIVE)으로 전환하고, 잠금 상태의 폰 배경화면으로 이동한다.
-        const updatedSession: SessionData = {
-          ...activeSession,
-          state: 'FOCUS_ACTIVE',
-          focusStartsAt: new Date().toISOString()
-        };
-        saveActiveSession(updatedSession);
-        setActiveSession(updatedSession);
-        onNavigateToScreen('phone-home');
+      if (diffSecs <= 0) {
+        // 이용 시간(30초) 종료 -> 세션 state를 FOCUS_ACTIVE로 전환
+        if (activeSession.state !== 'FOCUS_ACTIVE' && activeSession.state !== 'MISSION_ACTIVE') {
+          const updatedSession: SessionData = {
+            ...activeSession,
+            state: 'FOCUS_ACTIVE',
+          };
+          saveActiveSession(updatedSession);
+          setActiveSession(updatedSession);
+        }
+
+        // 설정한 (통제 대상) 앱을 이용 중이었다면 시간이 끝나는 즉시 홈 화면으로 튕겨나온다.
+        if (isCurrentAppSelected) {
+          onNavigateToScreen('phone-home');
+        }
       }
     };
 
@@ -163,26 +175,17 @@ export const ShortsFeedScreen: React.FC<ShortsFeedScreenProps> = ({
               <span>나가기</span>
             </button>
 
-            {/* Real-time Count Bar — 카운트 중일 때만 (Mobile Optimized No-Wrap) */}
-            {isUsageCounting ? (
-              <div className="flex items-center gap-1.5 bg-stone-950/90 px-2.5 py-1.5 rounded-full border border-amber-500/50 shadow-md shrink-0 whitespace-nowrap">
-                <Clock className={`w-3.5 h-3.5 ${
-                  (secondsLeft ?? 30) <= 10 ? 'text-rose-400 animate-bounce' : 'text-amber-400 animate-spin-slow'
-                }`} />
-                <div className="flex items-center gap-1 text-xs">
-                  <span className="text-stone-400 font-medium">남은 이용:</span>
-                  <span className={`font-mono font-bold ${
-                    (secondsLeft ?? 30) <= 10 ? 'text-rose-400' : 'text-amber-300'
-                  }`}>
-                    {secondsLeft !== null ? `${secondsLeft}초` : '30초'}
-                  </span>
-                  <span className="text-[10px] text-amber-400/90 font-mono bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/30">
-                    30초 고정
-                  </span>
-                </div>
+            {/* Persistent Status Toast Bar in App Header (활동 시간 30초 진행 중에만 표시, 0초 종료 시 숨김) */}
+            {activeSession && secondsLeft !== null && secondsLeft > 0 && (
+              <div className="flex items-center justify-between gap-2 bg-amber-950/90 border border-amber-500/50 px-3 py-1.5 rounded-full shadow-lg shrink-0 text-xs">
+                <span className="flex items-center gap-1.5 text-amber-300 font-bold text-[11px] truncate">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+                  <span>활동 모드 실행 중</span>
+                </span>
+                <span className="font-mono font-bold text-amber-400 shrink-0 text-[11px]">
+                  {`${secondsLeft}초`}
+                </span>
               </div>
-            ) : (
-              <div />
             )}
 
             <div className="w-4 sm:w-8 shrink-0" />

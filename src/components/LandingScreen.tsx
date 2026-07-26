@@ -612,7 +612,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
             <span className="rounded-full border border-amber-300 bg-amber-50 px-1.5 py-0.5 font-mono text-[10px] text-amber-700">PWA</span>
           </div>
           <p className="text-center text-[11px] text-neutral-400">
-            Conductor of My Life · Digital Dopamine Care · © 2026
+            My Life Maestro · Digital Dopamine Care · © 2026
           </p>
         </div>
       </footer>
