@@ -81,6 +81,36 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
     lockedNoticeTimer.current = setTimeout(() => setShowLockedNotice(false), 3000);
   };
 
+  // 잠금 중 서비스 앱 클릭 시 뜨는 선택 모달(홈으로 돌아가기 / 소셜앱 추가 잠금)
+  const [showLockChoice, setShowLockChoice] = useState<boolean>(false);
+  const [lockChoiceStep, setLockChoiceStep] = useState<'choice' | 'select'>('choice');
+  const [pendingLockIds, setPendingLockIds] = useState<string[]>([]);
+
+  const openLockChoice = () => {
+    setLockChoiceStep('choice');
+    setPendingLockIds([]);
+    setShowLockChoice(true);
+    audioSynthesizer.playBatonSwingSound();
+  };
+
+  const togglePendingLock = (id: string) => {
+    setPendingLockIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+  };
+
+  const confirmAddLock = () => {
+    if (!activeSession || pendingLockIds.length === 0) return;
+    const toAdd = TARGET_SERVICES.filter(s => pendingLockIds.includes(s.id));
+    const updatedSession: SessionData = {
+      ...activeSession,
+      targetServices: [...activeSession.targetServices, ...toAdd],
+    };
+    saveActiveSession(updatedSession);
+    if (setActiveSession) setActiveSession(updatedSession);
+    setShowLockChoice(false);
+    setPendingLockIds([]);
+    setLockChoiceStep('choice');
+  };
+
   const isGuidedReady = Boolean(activeSession && activeSession.state === 'GUIDED_READY');
   const isUsageActive = Boolean(activeSession && (activeSession.state === 'USAGE_ACTIVE' || activeSession.state === 'EXTENSION_ACTIVE'));
   const isLocked = Boolean(activeSession && (activeSession.state === 'FOCUS_ACTIVE' || activeSession.state === 'MISSION_ACTIVE' || activeSession.state === 'INTERVENTION'));
@@ -90,6 +120,8 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
     (activeSession?.targetServices ?? []).map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id))
   );
   const isServiceLocked = (serviceId: string) => isLocked && sessionServiceIds.has(serviceId);
+  // 아직 잠기지 않은(추가로 잠글 수 있는) 대상 소셜 앱들
+  const remainingLockApps = TARGET_SERVICES.filter(s => !sessionServiceIds.has(s.id));
   // 모드 B(활동 중 잠금) 세션이 진행 중인지
   const isModeBActive = Boolean(
     activeSession &&
@@ -155,8 +187,17 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
 
   // Launch Conductor App with Splash Screen Transition
   const handleLaunchConductorApp = () => {
-    // 잠금(디톡스) 상태에서는 서비스 앱 진입 불가 — 안내만 표시
-    if (isLocked || isModeBActive) {
+    // 잠금(디톡스) 상태에서는 서비스 앱 진입 불가.
+    // 단, 아직 잠기지 않은 대상 앱이 남아 있으면 '추가 잠금' 선택 모달을 띄운다.
+    if (isLocked) {
+      if (remainingLockApps.length > 0) {
+        openLockChoice();
+      } else {
+        triggerLockedNotice('locked');
+      }
+      return;
+    }
+    if (isModeBActive) {
       triggerLockedNotice('locked');
       return;
     }
@@ -402,6 +443,81 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                   <Clock className="h-3.5 w-3.5" />
                   <span>{timeRemaining}</span>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 잠금 중 서비스 앱 클릭 → 선택 모달 (홈으로 / 소셜앱 추가 잠금) */}
+        {showLockChoice && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in select-none px-6">
+            <div className="w-full max-w-[16rem] rounded-3xl border border-amber-500/30 bg-neutral-900/95 p-5 shadow-2xl">
+              {lockChoiceStep === 'choice' ? (
+                <>
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/15 text-amber-400">
+                    <Lock className="h-7 w-7" />
+                  </div>
+                  <h2 className="mt-4 text-center font-serif text-lg font-bold text-white break-keep">디톡스 잠금 진행 중</h2>
+                  <p className="mt-1.5 text-center text-xs leading-snug text-neutral-300 break-keep">
+                    현재 <strong className="text-amber-300">{sessionServiceIds.size}개</strong> 앱이 잠겨 있어요.<br />무엇을 할까요?
+                  </p>
+                  <div className="mt-5 space-y-2">
+                    <button
+                      onClick={() => setLockChoiceStep('select')}
+                      className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-sm font-extrabold transition-colors active:scale-[0.98] flex items-center justify-center gap-1.5"
+                    >
+                      <Lock className="h-4 w-4" /> 소셜앱 추가 잠금하기
+                    </button>
+                    <button
+                      onClick={() => setShowLockChoice(false)}
+                      className="w-full py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-semibold border border-neutral-700 transition-colors"
+                    >
+                      홈 화면으로 돌아가기
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-center font-serif text-lg font-bold text-white break-keep">추가로 잠글 앱 선택</h2>
+                  <p className="mt-1 text-center text-[11px] text-neutral-400 break-keep">잠글 소셜앱을 선택하세요.</p>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {remainingLockApps.map(service => {
+                      const selected = pendingLockIds.includes(service.id);
+                      return (
+                        <button
+                          key={service.id}
+                          type="button"
+                          onClick={() => togglePendingLock(service.id)}
+                          className={`p-2 rounded-xl border text-left flex items-center gap-2 transition-all ${
+                            selected
+                              ? 'bg-amber-500 text-stone-950 border-amber-400 font-bold shadow-md'
+                              : 'bg-neutral-800/60 border-neutral-700 text-neutral-300 hover:bg-neutral-800'
+                          }`}
+                        >
+                          <div className={`w-7 h-7 rounded-lg bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm`}>
+                            {service.name[0]}
+                          </div>
+                          <span className="text-xs font-bold leading-tight truncate">{service.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => { setLockChoiceStep('choice'); setPendingLockIds([]); }}
+                      className="px-3 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-sm font-semibold border border-neutral-700 transition-colors shrink-0"
+                    >
+                      뒤로
+                    </button>
+                    <button
+                      onClick={confirmAddLock}
+                      disabled={pendingLockIds.length === 0}
+                      className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 text-sm font-extrabold transition-colors active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
+                    >
+                      {pendingLockIds.length > 0 ? `${pendingLockIds.length}개 추가 잠금` : '앱을 선택하세요'}
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>
