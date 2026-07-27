@@ -67,9 +67,20 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
   const [lockedNoticeType, setLockedNoticeType] = useState<'locked' | 'mission-failed'>('locked');
   const lockedNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 재미 요소: 유틸 앱(카메라/음악/메모) 클릭 시 3초간 뜨는 한마디 토스트
+  const [funToast, setFunToast] = useState<string | null>(null);
+  const funToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showFunToast = (message: string) => {
+    setFunToast(message);
+    audioSynthesizer.playBatonSwingSound();
+    if (funToastTimer.current) clearTimeout(funToastTimer.current);
+    funToastTimer.current = setTimeout(() => setFunToast(null), 3000);
+  };
+
   // 알림 타이머 정리
   useEffect(() => () => {
     if (lockedNoticeTimer.current) clearTimeout(lockedNoticeTimer.current);
+    if (funToastTimer.current) clearTimeout(funToastTimer.current);
   }, []);
 
   // 잠금/미션실패 안내 알림을 3초간 띄운다.
@@ -348,26 +359,26 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
             ))}
 
             {/* Smartphone Utility Apps */}
-            <div className="flex flex-col items-center gap-1.5 opacity-80 cursor-pointer">
+            <button type="button" onClick={() => showFunToast('셀카 그만찍고싶어요 ㅠㅠ')} className="flex flex-col items-center gap-1.5 opacity-80 active:scale-95 transition-transform">
               <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-stone-700 to-stone-800 p-0.5 shadow-md flex items-center justify-center text-amber-300 text-xl">
                 📷
               </div>
               <span className="text-[11px] font-medium text-stone-300">카메라</span>
-            </div>
+            </button>
 
-            <div className="flex flex-col items-center gap-1.5 opacity-80 cursor-pointer">
+            <button type="button" onClick={() => showFunToast('클래식 들으러 가세요!')} className="flex flex-col items-center gap-1.5 opacity-80 active:scale-95 transition-transform">
               <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-stone-700 to-stone-800 p-0.5 shadow-md flex items-center justify-center text-amber-300 text-xl">
                 🎵
               </div>
               <span className="text-[11px] font-medium text-stone-300">음악</span>
-            </div>
+            </button>
 
-            <div className="flex flex-col items-center gap-1.5 opacity-80 cursor-pointer">
+            <button type="button" onClick={() => showFunToast('메모장이 도망갔습니다')} className="flex flex-col items-center gap-1.5 opacity-80 active:scale-95 transition-transform">
               <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-stone-700 to-stone-800 p-0.5 shadow-md flex items-center justify-center text-amber-300 text-xl">
                 📝
               </div>
               <span className="text-[11px] font-medium text-stone-300">메모</span>
-            </div>
+            </button>
 
             {/* OUR PRIMARY APP ICON: "내인생지휘자" */}
             <button
@@ -519,6 +530,17 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* 재미 요소 토스트 — 유틸 앱 클릭 시 3초간 표시 */}
+        {funToast && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center px-8 pointer-events-none">
+            <div className="animate-fade-in rounded-2xl bg-black/90 border border-amber-500/40 backdrop-blur-md px-5 py-4 text-center shadow-2xl">
+              <p className="text-sm font-bold text-amber-200 break-keep leading-snug drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
+                {funToast}
+              </p>
             </div>
           </div>
         )}
