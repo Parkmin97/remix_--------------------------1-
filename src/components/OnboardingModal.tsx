@@ -66,7 +66,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             <div>
               <h4 className="font-semibold text-amber-200">2. 1분 클래식 지휘 미션</h4>
               <p className="text-stone-400 mt-0.5">
-                4/4, 3/4, 2/4, 1/4 박자의 오케스트라 클래식 곡에 맞춰 스마트폰 움직임(DeviceMotion), 손가락/마우스 지휘, 또는 웹캠 모션으로 박자를 맞추는 지휘 미션을 수행합니다.
+                4/4, 3/4, 2/4 박자의 오케스트라 클래식 곡에 맞춰 스마트폰 움직임(DeviceMotion), 손가락/마우스 지휘, 또는 웹캠 모션으로 박자를 맞추는 지휘 미션을 수행합니다.
               </p>
             </div>
           </div>
