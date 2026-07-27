@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>내인생 지휘자 · 서비스 소개</title>
+<link rel="icon" href="public/app_icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@600;700;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0a0908;
+    --ink:#f5f5f4;
+    --sub:#a8a29e;
+    --dim:#78716c;
+    --line:#292524;
+    --card:#141210;
+    --amber:#fbbf24;
+    --amber-d:#f59e0b;
+    --good:#34d399;
+    --bad:#fb7185;
+    --sans:'Noto Sans KR',system-ui,sans-serif;
+    --serif:'Noto Serif KR',Georgia,serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#050403;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;word-break:keep-all}
+  body{padding:28px 0 96px}
+
+  /* ── 슬라이드 프레임: 1280×720 (16:9), 화면 폭에 맞춰 축소 ── */
+  .deck{width:min(1280px,94vw);margin:0 auto;display:flex;flex-direction:column;gap:28px}
+  .slide{
+    position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;
+    background:var(--bg);border:1px solid var(--line);border-radius:18px;
+    container-type:size;
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+  /* 슬라이드 내부는 모두 cqw/cqh 단위 → 어떤 크기로 축소해도 레이아웃이 깨지지 않는다 */
+  .pad{position:absolute;inset:0;padding:5.6cqw 6cqw;display:flex;flex-direction:column}
+  .num{position:absolute;right:2.4cqw;bottom:2cqh;font-family:var(--mono);font-size:1.15cqw;color:#57534e;letter-spacing:.1em}
+  .brandmark{position:absolute;left:2.6cqw;bottom:2cqh;display:flex;align-items:center;gap:.6cqw;font-size:1.1cqw;color:#57534e}
+  .brandmark b{color:#8a8480;font-weight:700}
+
+  .eyebrow{font-family:var(--mono);font-size:1.15cqw;letter-spacing:.28em;text-transform:uppercase;color:var(--amber-d)}
+  h1.title{font-family:var(--serif);font-size:4.4cqw;font-weight:900;line-height:1.18;letter-spacing:-.01em}
+  h2.head{font-family:var(--serif);font-size:3.1cqw;font-weight:800;line-height:1.25;margin-top:1.4cqh}
+  .lede{font-size:1.45cqw;line-height:1.75;color:var(--sub);margin-top:1.6cqh;max-width:64cqw}
+  .body{flex:1;min-height:0;display:flex;margin-top:3.4cqh}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6cqw;width:100%}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2cqw;width:100%}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2cqw;width:100%}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:1.1cqw;padding:2cqw;display:flex;flex-direction:column;gap:.9cqh}
+  .card .k{font-family:var(--mono);font-size:1.1cqw;font-weight:700;color:var(--amber)}
+  .card h3{font-size:1.6cqw;font-weight:800;line-height:1.35}
+  .card p{font-size:1.22cqw;line-height:1.7;color:var(--sub)}
+  .chip{display:inline-flex;align-items:center;gap:.5cqw;border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.1);color:var(--amber);border-radius:999px;padding:.7cqh 1.1cqw;font-size:1.1cqw;font-weight:700}
+  .stat{font-family:var(--mono);font-size:2.6cqw;font-weight:700;color:var(--amber);line-height:1}
+  .statlabel{font-size:1.1cqw;color:var(--dim);margin-top:.7cqh}
+
+  /* 표지 */
+  .cover{background:
+     radial-gradient(60cqw 40cqw at 78% 18%,rgba(245,158,11,.22),transparent 65%),
+     linear-gradient(160deg,#0d0b09,#070605 60%)}
+  .cover .staff{position:absolute;left:0;right:0;top:52%;display:flex;flex-direction:column;gap:1.6cqh;opacity:.28}
+  .cover .staff i{display:block;height:1px;background:linear-gradient(90deg,transparent,#7c6a44 20%,#7c6a44 80%,transparent)}
+  .logo{width:5.6cqw;height:5.6cqw;border-radius:1.4cqw;object-fit:cover;border:1px solid rgba(251,191,36,.4)}
+
+  /* IA 트리 */
+  .ia{display:flex;flex-direction:column;gap:1.4cqh;width:100%}
+  .ia-root{align-self:flex-start;background:linear-gradient(90deg,rgba(251,191,36,.18),rgba(251,191,36,.05));border:1px solid rgba(251,191,36,.45);border-radius:.9cqw;padding:1.1cqh 1.6cqw;font-weight:800;font-size:1.5cqw;color:var(--amber)}
+  .ia-cols{display:grid;grid-template-columns:repeat(5,1fr);gap:1cqw;flex:1;min-height:0}
+  .ia-col{background:var(--card);border:1px solid var(--line);border-radius:.9cqw;padding:1.4cqw;display:flex;flex-direction:column;gap:.8cqh}
+  .ia-col > .t{font-size:1.35cqw;font-weight:800;padding-bottom:.9cqh;border-bottom:1px dashed #3a352f}
+  .ia-col ul{list-style:none;display:flex;flex-direction:column;gap:.65cqh}
+  .ia-col li{font-size:1.08cqw;color:var(--sub);line-height:1.5;padding-left:1.1cqw;position:relative}
+  .ia-col li::before{content:'';position:absolute;left:0;top:.75cqh;width:.42cqw;height:.42cqw;border-radius:2px;background:var(--amber-d);opacity:.75}
+  .ia-col li span{color:#57534e;font-family:var(--mono);font-size:.95cqw}
+  .ia-note{font-size:1.08cqw;color:var(--dim);display:flex;gap:1.6cqw;flex-wrap:wrap}
+
+  /* 유저 플로우 */
+  .flow{display:flex;flex-direction:column;gap:1.6cqh;width:100%}
+  .lane{display:grid;grid-template-columns:9.5cqw 1fr;gap:1.2cqw;align-items:stretch}
+  .lane-name{background:#100e0c;border:1px solid var(--line);border-radius:.8cqw;display:flex;flex-direction:column;justify-content:center;gap:.4cqh;padding:1cqw;font-size:1.1cqw;font-weight:800}
+  .lane-name em{font-style:normal;font-family:var(--mono);font-size:.9cqw;color:var(--dim);letter-spacing:.08em}
+  .steps{display:flex;align-items:center;gap:.55cqw;flex-wrap:nowrap;overflow:hidden}
+  .step{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:.7cqw;padding:1.1cqh .8cqw;text-align:center}
+  .step b{display:block;font-size:1.06cqw;font-weight:700;line-height:1.35}
+  .step i{font-style:normal;display:block;font-size:.92cqw;color:var(--dim);margin-top:.35cqh;line-height:1.35}
+  .step.hot{border-color:rgba(251,191,36,.5);background:rgba(251,191,36,.1)}
+  .step.hot b{color:var(--amber)}
+  .step.ok{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+  .step.ok b{color:var(--good)}
+  .step.no{border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.07)}
+  .step.no b{color:var(--bad)}
+  .arrow{color:#57534e;font-size:1.1cqw;flex:0 0 auto}
+
+  /* 화면 소개 */
+  .shots{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6cqw;width:100%}
+  .shot{display:flex;flex-direction:column;gap:1.1cqh}
+  .phone{background:#1c1917;border:1px solid #3a352f;border-radius:1.6cqw;padding:.55cqw;flex:1;min-height:0}
+  .screen{height:100%;background:#0b0a09;border-radius:1.2cqw;overflow:hidden;position:relative;display:flex;flex-direction:column;padding:1.2cqw;gap:.9cqh}
+  .sbar{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.82cqw;color:#78716c}
+  .shot .cap b{display:block;font-size:1.35cqw;font-weight:800}
+  .shot .cap p{font-size:1.05cqw;line-height:1.6;color:var(--sub);margin-top:.5cqh}
+  .apps{display:grid;grid-template-columns:repeat(4,1fr);gap:.7cqw}
+  .app{aspect-ratio:1;border-radius:.6cqw;background:linear-gradient(135deg,#44403c,#292524)}
+  .app.ig{background:linear-gradient(135deg,#c026d3,#f59e0b)}
+  .app.yt{background:linear-gradient(135deg,#dc2626,#991b1b)}
+  .app.tk{background:linear-gradient(135deg,#06b6d4,#1c1917)}
+  .app.x{background:linear-gradient(135deg,#57534e,#0a0a0a)}
+  .overlay{margin-top:auto;border:1px solid rgba(251,191,36,.35);background:rgba(20,18,16,.97);border-radius:.8cqw;padding:1cqw}
+  .overlay .t{font-size:.98cqw;font-weight:800;color:var(--amber)}
+  .overlay .q{font-size:1.05cqw;font-weight:700;margin-top:.5cqh;line-height:1.4}
+  .overlay .g{font-size:.85cqw;color:var(--dim);margin-top:.4cqh}
+  .btnrow{display:flex;gap:.5cqw;margin-top:.9cqh}
+  .btn-a{flex:1;background:var(--amber);color:#0a0908;border-radius:.5cqw;text-align:center;font-size:.88cqw;font-weight:800;padding:.7cqh 0}
+  .btn-b{border:1px solid #44403c;color:var(--sub);border-radius:.5cqw;text-align:center;font-size:.88cqw;padding:.7cqh .8cqw}
+  .ring{margin:.6cqh auto 0;width:9cqw;height:9cqw;border-radius:50%;
+    background:conic-gradient(var(--amber) 0 78%,#292524 78% 100%);
+    display:flex;align-items:center;justify-content:center;position:relative}
+  .ring::before{content:'';position:absolute;inset:.7cqw;border-radius:50%;background:#0b0a09}
+  .ring b{position:relative;font-family:var(--mono);font-size:1.5cqw;color:var(--amber)}
+  .beats{display:flex;justify-content:center;gap:.45cqw;margin-top:.8cqh}
+  .beats i{font-style:normal;width:1.7cqw;height:1.7cqw;border-radius:.35cqw;background:#1c1917;color:#d6d3d1;font-family:var(--mono);font-size:.85cqw;display:flex;align-items:center;justify-content:center}
+  .beats i.on{background:var(--amber);color:#0a0908;font-weight:700}
+  .badge-ok{margin:.9cqh auto 0;background:rgba(52,211,153,.14);color:var(--good);font-size:.85cqw;font-weight:700;border-radius:999px;padding:.45cqh .9cqw}
+  .bars{display:flex;align-items:flex-end;gap:.35cqw;height:6cqh;margin-top:auto}
+  .bars i{flex:1;background:linear-gradient(180deg,var(--amber),var(--amber-d));border-radius:2px 2px 0 0}
+  .kv{display:grid;grid-template-columns:1fr 1fr;gap:.5cqw}
+  .kv div{background:#141210;border-radius:.5cqw;padding:.8cqh .6cqw;text-align:center}
+  .kv b{display:block;font-family:var(--mono);font-size:1.15cqw;color:var(--amber)}
+  .kv span{font-size:.78cqw;color:var(--dim)}
+  .rank{margin:.8cqh auto .4cqh;width:5cqw;height:5cqw;border-radius:50%;background:linear-gradient(135deg,var(--amber),#b45309);display:flex;align-items:center;justify-content:center;font-size:2cqw}
+
+  /* 차별점 비교 */
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:1.6cqw;width:100%}
+  .cmp-col{border-radius:1.1cqw;padding:2cqw;display:flex;flex-direction:column;gap:1.1cqh}
+  .cmp-old{background:#100f0e;border:1px solid var(--line)}
+  .cmp-new{background:linear-gradient(160deg,rgba(251,191,36,.12),rgba(20,18,16,.9));border:1px solid rgba(251,191,36,.42)}
+  .cmp-col .lab{font-family:var(--mono);font-size:1.05cqw;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+  .cmp-new .lab{color:var(--amber)}
+  .cmp-col li{list-style:none;display:flex;gap:.8cqw;font-size:1.22cqw;line-height:1.6;color:var(--sub)}
+  .cmp-new li{color:var(--ink);font-weight:500}
+  .mark{flex:0 0 auto;font-family:var(--mono);font-weight:700}
+  .mark.x{color:#57534e}
+  .mark.v{color:var(--good)}
+
+  table.diff{width:100%;border-collapse:collapse;font-size:1.15cqw}
+  table.diff th,table.diff td{border-bottom:1px solid var(--line);padding:1.1cqh 1cqw;text-align:left;vertical-align:top;line-height:1.55}
+  table.diff th{font-size:1.05cqw;color:var(--dim);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+  table.diff td:first-child{font-weight:800;color:var(--amber);width:22%}
+  table.diff td.mid{color:var(--sub)}
+
+  .split{display:grid;grid-template-columns:1.05fr .95fr;gap:2.4cqw;width:100%;align-items:center}
+  .hero-img{width:100%;max-height:60cqh;object-fit:contain;border-radius:1.2cqw;border:1px solid var(--line);display:block}
+  .quote{border-left:3px solid var(--amber);padding-left:1.4cqw;font-family:var(--serif);font-size:1.6cqw;line-height:1.7;color:#e7e5e4}
+
+  .timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4cqw;width:100%}
+  .tl{background:var(--card);border:1px solid var(--line);border-radius:1cqw;padding:1.8cqw;display:flex;flex-direction:column;gap:.8cqh}
+  .tl .p{font-family:var(--mono);font-size:1cqw;color:var(--amber);letter-spacing:.14em}
+  .tl h4{font-size:1.5cqw;font-weight:800}
+  .tl li{list-style:none;font-size:1.1cqw;color:var(--sub);line-height:1.6;padding-left:1cqw;position:relative}
+  .tl li::before{content:'·';position:absolute;left:.2cqw;color:var(--amber-d)}
+
+  /* 화면 상단 인쇄/이동 안내 */
+  .toolbar{width:min(1280px,94vw);margin:0 auto 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#8a8480;font-size:13px}
+  .toolbar b{color:#e7e5e4}
+  .toolbar button{font:inherit;font-weight:700;color:#0a0908;background:var(--amber);border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+  @media print{
+    body{padding:0;background:#fff}
+    .toolbar{display:none}
+    .deck{width:100%;gap:0}
+    .slide{border-radius:0;border:0;box-shadow:none;break-after:page;page-break-after:always}
+    @page{size:1280px 720px;margin:0}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span><b>내인생 지휘자 (My Life Maestro)</b> · 서비스 소개 10p · 스크롤로 이동</span>
+  <button onclick="window.print()">PDF로 저장 / 인쇄</button>
+</div>
+
+<div class="deck">
+
+  <!-- 1. 표지 ---------------------------------------------------------- -->
+  <section class="slide cover">
+    <div class="staff"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="pad" style="justify-content:center">
+      <div style="display:flex;align-items:center;gap:1.4cqw">
+        <img class="logo" src="public/app_icon.png" alt="내인생 지휘자 앱 아이콘" />
+        <div>
+          <div class="eyebrow">Digital Dopamine Care · PWA</div>
+          <div style="font-family:var(--mono);font-size:1.2cqw;color:var(--dim);margin-top:.5cqh">My Life Maestro</div>
+        </div>
+      </div>
+      <h1 class="title" style="margin-top:4cqh">
+        내인생 지휘자<br />
+        <span style="color:var(--amber)">무의식적인 숏폼 스크롤을<br />1분의 지휘로 멈춥니다</span>
+      </h1>
+      <p class="lede" style="max-width:52cqw">
+        앱을 강제로 막는 대신, 클래식 오케스트라를 1분간 지휘하게 만들어
+        스마트폰의 주도권을 사용자 스스로 되찾게 하는 디지털 디톡스 서비스입니다.
+      </p>
+      <div style="display:flex;gap:1cqw;margin-top:3.4cqh">
+        <span class="chip">소프트 개입</span>
+        <span class="chip">1분 지휘 미션</span>
+        <span class="chip">자각 &amp; 리포트</span>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞 My Life Maestro</b> · Service Introduction</div>
+    <div class="num">01 / 10</div>
+  </section>
+
+  <!-- 2. 문제 정의 ------------------------------------------------------ -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">Problem</div>
+      <h2 class="head">의지력의 문제가 아니라, 설계의 문제입니다</h2>
+      <p class="lede">
+        잠깐의 지루함에도 손가락이 먼저 숏폼 아이콘을 누릅니다. 알고리즘은 멈출 지점을 주지 않고,
+        기존 차단 앱은 화면만 가려 반발심을 키웁니다.
+      </p>
+      <div class="body">
+        <div class="grid3">
+          <div class="card">
+            <div class="k">01</div>
+            <h3>손가락의 자동 실행</h3>
+            <p>목적 없이 앱을 켜는 습관 회로. 무엇을 보려 했는지도 모르는 채 피드가 시작됩니다.</p>
+          </div>
+          <div class="card">
+            <div class="k">02</div>
+            <h3>강제 차단의 반발심</h3>
+            <p>일방적으로 막는 방식은 답답함을 유발하고, 결국 사용자가 차단을 스스로 해제합니다.</p>
+          </div>
+          <div class="card">
+            <div class="k">03</div>
+            <h3>신체 리셋의 부재</h3>
+            <p>도파민 과부하는 시각 자극을 끊고 몸을 움직이는 인지 전환이 있어야 풀립니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> 문제 정의</div>
+    <div class="num">02 / 10</div>
+  </section>
+
+  <!-- 3. 제작 이유 ------------------------------------------------------ -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">Why we built it</div>
+      <h2 class="head">막는 서비스가 아니라, 지휘하게 하는 서비스</h2>
+      <div class="body">
+        <div class="split">
+          <div style="display:flex;flex-direction:column;gap:2.2cqh">
+            <div class="quote">
+              “멈추라고 말하는 대신,<br />멈출 이유를 60초 동안 몸으로 경험하게 한다.”
+            </div>
+            <p style="font-size:1.3cqw;line-height:1.8;color:var(--sub)">
+              차단은 통제이고, 지휘는 선택입니다. 앱을 여는 순간 오늘의 목표를 다시 묻고(소프트 개입),
+              클래식 비트에 맞춰 손을 움직이는 1분 미션으로 시각 중독 회로를 느슨하게 만듭니다.
+              미션이 끝나면 사용자는 스스로 “지금 볼 필요가 없다”는 판단에 도달합니다.
+            </p>
+            <div class="grid3" style="gap:1cqw">
+              <div class="card" style="padding:1.4cqw;gap:.4cqh">
+                <div class="stat">60초</div><div class="statlabel">몰입 리셋 미션</div>
+              </div>
+              <div class="card" style="padding:1.4cqw;gap:.4cqh">
+                <div class="stat">±0.25s</div><div class="statlabel">박자 판정 허용 오차</div>
+              </div>
+              <div class="card" style="padding:1.4cqw;gap:.4cqh">
+                <div class="stat">80%</div><div class="statlabel">미션 통과 기준</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <img class="hero-img" src="public/hero_mockup.png" alt="내인생 지휘자 앱 화면 목업" />
+            <p style="font-size:1.05cqw;color:var(--dim);margin-top:1.2cqh;text-align:center">
+              지휘 컨셉을 전면에 둔 앱 메인 · 클래식 5곡 · 2/4·3/4·4/4 박자
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> 제작 이유</div>
+    <div class="num">03 / 10</div>
+  </section>
+
+  <!-- 4. 서비스 개요 ---------------------------------------------------- -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">Overview</div>
+      <h2 class="head">두 개의 잠금 모드, 하나의 지휘 미션</h2>
+      <p class="lede">
+        사용자는 상황에 따라 잠금 방식을 고르고, 잠금 중 SNS를 열면 언제나 같은 개입·미션 흐름을 만납니다.
+      </p>
+      <div class="body">
+        <div class="grid4">
+          <div class="card">
+            <span class="chip" style="align-self:flex-start">모드 A</span>
+            <h3>바로 잠금</h3>
+            <p>지금 즉시 집중 시작. 대상 앱·잠금 시간(30분~6시간)·오늘의 목표를 정하면 바로 잠금이 걸립니다.</p>
+          </div>
+          <div class="card">
+            <span class="chip" style="align-self:flex-start">모드 B</span>
+            <h3>활동 중 잠금</h3>
+            <p>SNS 이용 시간(5~120분)을 먼저 쓰고, 종료 후 집중 잠금으로 자동 연결됩니다.</p>
+          </div>
+          <div class="card">
+            <span class="chip" style="align-self:flex-start">핵심</span>
+            <h3>1분 지휘 미션</h3>
+            <p>베토벤·차이콥스키·비제·비발디 실제 곡의 박자를 흔들기 동작으로 따라갑니다. 80% 이상 일치 시 통과.</p>
+          </div>
+          <div class="card">
+            <span class="chip" style="align-self:flex-start">회고</span>
+            <h3>자각 &amp; 리포트</h3>
+            <p>미션 후 자각 질문에 답하고, 되찾은 집중 시간과 지휘자 랭크를 주간 리포트로 확인합니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> 서비스 개요</div>
+    <div class="num">04 / 10</div>
+  </section>
+
+  <!-- 5. IA ------------------------------------------------------------- -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">Information Architecture</div>
+      <h2 class="head">IA · 정보 구조</h2>
+      <div class="body" style="margin-top:2.4cqh">
+        <div class="ia">
+          <div class="ia-root">내인생 지휘자 (PWA) — 랜딩 → 로그인 → 기본 홈(4탭)</div>
+          <div class="ia-cols">
+            <div class="ia-col">
+              <div class="t">기본 홈</div>
+              <ul>
+                <li>오늘의 지휘 문구 <span>DAILY_QUOTES</span></li>
+                <li>진행 중 세션 요약</li>
+                <li>모드 A / B 바로가기</li>
+                <li>잠금 상태 배지</li>
+              </ul>
+            </div>
+            <div class="ia-col">
+              <div class="t">바로 잠금 (A)</div>
+              <ul>
+                <li>잠글 앱 선택 <span>4종</span></li>
+                <li>잠금 시간 <span>30~360분</span></li>
+                <li>오늘의 목표 할 일</li>
+                <li>잠금 실행</li>
+              </ul>
+            </div>
+            <div class="ia-col">
+              <div class="t">활동 중 잠금 (B)</div>
+              <ul>
+                <li>잠글 앱 선택</li>
+                <li>활동 시간 <span>5~120분</span></li>
+                <li>잠금 시간 <span>30~360분</span></li>
+                <li>목표 할 일 · 실행</li>
+              </ul>
+            </div>
+            <div class="ia-col">
+              <div class="t">잠금 경험</div>
+              <ul>
+                <li>폰 배경화면(홈)</li>
+                <li>소프트 개입 모달</li>
+                <li>지휘 미션 <span>튜토리얼·카운트다운·판정</span></li>
+                <li>자각 질문 화면</li>
+                <li>숏폼 피드 <span>연장 시</span></li>
+              </ul>
+            </div>
+            <div class="ia-col">
+              <div class="t">더보기</div>
+              <ul>
+                <li>프로필 · 닉네임 수정</li>
+                <li>주간 디톡스 리포트</li>
+                <li>지휘 동작 튜토리얼</li>
+                <li>설정 <span>사운드·온보딩</span></li>
+                <li>로그아웃</li>
+              </ul>
+            </div>
+          </div>
+          <div class="ia-note">
+            <span>· 하단 4탭 고정: 기본 홈 / 바로 잠금 / 활동 중 잠금 / 더보기</span>
+            <span>· 모드 A·B는 상호 배타 (한쪽 실행 중 다른 탭 비활성)</span>
+            <span>· 로그인 게이트는 ‘기본 홈’ 진입에만 적용 (랜딩·체험은 공개)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> IA</div>
+    <div class="num">05 / 10</div>
+  </section>
+
+  <!-- 6. User Flow ------------------------------------------------------ -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">User Flow</div>
+      <h2 class="head">User Flow · 진입부터 회고까지</h2>
+      <div class="body" style="margin-top:2.2cqh">
+        <div class="flow">
+          <div class="lane">
+            <div class="lane-name">온보딩<em>ONBOARDING</em></div>
+            <div class="steps">
+              <div class="step"><b>랜딩</b><i>서비스 이해</i></div>
+              <span class="arrow">→</span>
+              <div class="step"><b>무료로 시작</b><i>설치 없이 체험</i></div>
+              <span class="arrow">→</span>
+              <div class="step"><b>로그인 / 회원가입</b><i>Supabase 인증</i></div>
+              <span class="arrow">→</span>
+              <div class="step hot"><b>기본 홈</b><i>모드 선택</i></div>
+            </div>
+          </div>
+
+          <div class="lane">
+            <div class="lane-name">잠금 설정<em>SETUP</em></div>
+            <div class="steps">
+              <div class="step"><b>모드 A · 바로 잠금</b><i>앱·시간·목표 설정</i></div>
+              <span class="arrow">/</span>
+              <div class="step"><b>모드 B · 활동 중 잠금</b><i>활동 시간 먼저 사용</i></div>
+              <span class="arrow">→</span>
+              <div class="step hot"><b>잠금 세션 시작</b><i>폰 배경화면으로 이동</i></div>
+            </div>
+          </div>
+
+          <div class="lane">
+            <div class="lane-name">개입 &amp; 미션<em>INTERVENTION</em></div>
+            <div class="steps">
+              <div class="step"><b>대상 SNS 터치</b><i>습관적 실행</i></div>
+              <span class="arrow">→</span>
+              <div class="step hot"><b>소프트 개입 모달</b><i>“지금 정말 필요한가요?”</i></div>
+              <span class="arrow">→</span>
+              <div class="step"><b>지휘 튜토리얼</b><i>박자 패턴 10초</i></div>
+              <span class="arrow">→</span>
+              <div class="step hot"><b>1분 지휘 미션</b><i>±0.25s 판정</i></div>
+            </div>
+          </div>
+
+          <div class="lane">
+            <div class="lane-name">결과 분기<em>OUTCOME</em></div>
+            <div class="steps">
+              <div class="step ok"><b>통과 (80%↑)</b><i>자각 질문 화면</i></div>
+              <span class="arrow">→</span>
+              <div class="step ok"><b>사용 안 하기</b><i>집중 복귀 · 성과 저장</i></div>
+              <span class="arrow">|</span>
+              <div class="step"><b>연장 사용</b><i>숏폼 피드 제한 이용</i></div>
+              <span class="arrow">|</span>
+              <div class="step no"><b>실패</b><i>이번 잠금 재시도 불가 · 홈 복귀</i></div>
+            </div>
+          </div>
+
+          <div class="lane">
+            <div class="lane-name">회고<em>REVIEW</em></div>
+            <div class="steps">
+              <div class="step"><b>세션 종료</b><i>잠금 시간 만료</i></div>
+              <span class="arrow">→</span>
+              <div class="step"><b>주간 리포트</b><i>집중 시간 · 성공률</i></div>
+              <span class="arrow">→</span>
+              <div class="step hot"><b>지휘자 랭크</b><i>다음 세션 동기</i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> User Flow</div>
+    <div class="num">06 / 10</div>
+  </section>
+
+  <!-- 7. 서비스 화면 1 -------------------------------------------------- -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">Screens 1</div>
+      <h2 class="head">서비스 화면 · 잠금과 개입</h2>
+      <div class="body" style="margin-top:2.2cqh">
+        <div class="shots">
+          <div class="shot">
+            <div class="phone">
+              <div class="screen">
+                <div class="sbar"><span>11:34</span><span>5G ▪▪▪</span></div>
+                <div class="apps">
+                  <div class="app ig"></div><div class="app yt"></div><div class="app tk"></div><div class="app x"></div>
+                  <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+                </div>
+                <div style="margin-top:auto;border:1px solid #3a352f;border-radius:.7cqw;padding:.9cqw">
+                  <div style="font-size:.9cqw;color:var(--amber);font-weight:800">잠금 진행 중 · 42분 남음</div>
+                  <div style="font-size:.82cqw;color:var(--dim);margin-top:.4cqh">목표: 포트폴리오 마감</div>
+                </div>
+              </div>
+            </div>
+            <div class="cap">
+              <b>① 폰 배경화면 (잠금 홈)</b>
+              <p>실제 사용 맥락을 재현한 홈. 잠금 대상 앱만 개입 흐름으로 연결되고, 나머지는 그대로 열립니다.</p>
+            </div>
+          </div>
+
+          <div class="shot">
+            <div class="phone">
+              <div class="screen">
+                <div class="sbar"><span>11:35</span><span>5G ▪▪▪</span></div>
+                <div class="apps" style="opacity:.35">
+                  <div class="app ig"></div><div class="app yt"></div><div class="app tk"></div><div class="app x"></div>
+                </div>
+                <div class="overlay">
+                  <div class="t">🔒 소프트 개입</div>
+                  <div class="q">잠깐, 지금 정말 필요한가요?</div>
+                  <div class="g">오늘의 목표: 포트폴리오 마감</div>
+                  <div class="btnrow">
+                    <div class="btn-a">1분 지휘하기</div>
+                    <div class="btn-b">닫기</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="cap">
+              <b>② 소프트 개입 모달</b>
+              <p>차단 경고가 아니라 질문을 던집니다. 목표를 다시 보여주고 미션과 복귀 중 선택을 맡깁니다.</p>
+            </div>
+          </div>
+
+          <div class="shot">
+            <div class="phone">
+              <div class="screen">
+                <div class="sbar"><span>11:36</span><span>4/4 · 116BPM</span></div>
+                <div style="font-size:.95cqw;color:var(--amber);font-family:var(--mono);text-align:center">NOW CONDUCTING</div>
+                <div style="font-size:1cqw;text-align:center;font-weight:700">교향곡 5번 “운명”</div>
+                <div class="ring"><b>0:47</b></div>
+                <div class="beats"><i>1</i><i class="on">2</i><i>3</i><i>4</i></div>
+                <div class="badge-ok">PERFECT · 정확도 92%</div>
+                <div style="margin-top:auto" class="btnrow"><div class="btn-a">박자 치기</div><div class="btn-b">✕</div></div>
+              </div>
+            </div>
+            <div class="cap">
+              <b>③ 1분 지휘 미션</b>
+              <p>곡이 박자를 이끌고, 사용자는 흔들기 동작으로 따라갑니다. 진행률·정확도를 실시간 표시합니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> 서비스 화면 (1/2)</div>
+    <div class="num">07 / 10</div>
+  </section>
+
+  <!-- 8. 서비스 화면 2 -------------------------------------------------- -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">Screens 2</div>
+      <h2 class="head">서비스 화면 · 설정, 자각, 리포트</h2>
+      <div class="body" style="margin-top:2.2cqh">
+        <div class="shots">
+          <div class="shot">
+            <div class="phone">
+              <div class="screen">
+                <div class="sbar"><span>11:20</span><span>MY LIFE MAESTRO</span></div>
+                <div style="font-size:1cqw;font-weight:800;color:var(--amber)">🔒 바로 잠금 모드</div>
+                <div style="font-size:.85cqw;color:var(--dim);line-height:1.5">지금부터 즉시 소셜미디어를 멀리하고 집중을 시작합니다.</div>
+                <div style="font-size:.85cqw;color:var(--sub);margin-top:.4cqh">잠글 앱 선택</div>
+                <div class="apps" style="grid-template-columns:repeat(4,1fr)">
+                  <div class="app ig"></div><div class="app yt"></div><div class="app tk" style="opacity:.35"></div><div class="app x" style="opacity:.35"></div>
+                </div>
+                <div class="kv" style="margin-top:.6cqh">
+                  <div><b>60분</b><span>잠금 시간</span></div>
+                  <div><b>4/4</b><span>미션 박자</span></div>
+                </div>
+                <div style="border:1px solid #3a352f;border-radius:.5cqw;padding:.7cqh .7cqw;font-size:.82cqw;color:var(--sub)">오늘의 목표: 자기소개서 작성</div>
+                <div style="margin-top:auto" class="btnrow"><div class="btn-a">바로 잠금 모드 실행</div></div>
+              </div>
+            </div>
+            <div class="cap">
+              <b>④ 잠금 설정 (모드 A / B)</b>
+              <p>앱·시간·목표를 한 화면에서 정합니다. 실행 중에는 시간과 목표가 잠기고 앱 선택만 열립니다.</p>
+            </div>
+          </div>
+
+          <div class="shot">
+            <div class="phone">
+              <div class="screen">
+                <div class="sbar"><span>11:37</span><span>MISSION CLEAR</span></div>
+                <div style="font-size:2cqw;text-align:center;margin-top:1cqh">✅</div>
+                <div style="font-size:1.05cqw;font-weight:800;text-align:center">지휘 미션 통과</div>
+                <div style="font-size:.85cqw;color:var(--dim);text-align:center;line-height:1.5">달성률 92%로 기준(80%)을 넘겼습니다</div>
+                <div style="border:1px solid rgba(251,191,36,.35);border-radius:.6cqw;padding:.9cqw;margin-top:.8cqh">
+                  <div style="font-size:.9cqw;font-weight:700;color:var(--amber)">지금, 그래도 SNS를 볼까요?</div>
+                  <div style="font-size:.8cqw;color:var(--dim);margin-top:.4cqh">‘사용 안 하기’를 고르면 자각 성공으로 기록됩니다.</div>
+                </div>
+                <div class="btnrow"><div class="btn-a">사용 안 하기</div><div class="btn-b">연장 사용</div></div>
+                <div style="margin-top:auto;font-size:.8cqw;color:#57534e;text-align:center">자각 선택은 일간 리포트에 반영됩니다</div>
+              </div>
+            </div>
+            <div class="cap">
+              <b>⑤ 자각 질문 화면</b>
+              <p>미션 성공 직후 가장 판단이 맑은 순간에 선택을 묻습니다. 절제도, 연장도 데이터로 남습니다.</p>
+            </div>
+          </div>
+
+          <div class="shot">
+            <div class="phone">
+              <div class="screen">
+                <div class="sbar"><span>21:10</span><span>WEEKLY REPORT</span></div>
+                <div class="rank">🏅</div>
+                <div style="text-align:center;font-size:.8cqw;color:var(--dim)">현재 지휘자 랭크</div>
+                <div style="text-align:center;font-family:var(--serif);font-size:1.2cqw;font-weight:800;color:var(--amber)">마에스트로</div>
+                <div class="kv" style="margin-top:.8cqh">
+                  <div><b>128분</b><span>되찾은 집중</span></div>
+                  <div><b>7일</b><span>연속 디톡스</span></div>
+                </div>
+                <div class="bars">
+                  <i style="height:40%"></i><i style="height:62%"></i><i style="height:48%"></i><i style="height:80%"></i><i style="height:70%"></i><i style="height:95%"></i><i style="height:86%"></i>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:.72cqw;color:#57534e">
+                  <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+                </div>
+              </div>
+            </div>
+            <div class="cap">
+              <b>⑥ 주간 디톡스 리포트</b>
+              <p>미션 성공·실패, 연장 횟수, 되찾은 시간을 주간 단위로 시각화해 절제를 성취로 바꿉니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> 서비스 화면 (2/2)</div>
+    <div class="num">08 / 10</div>
+  </section>
+
+  <!-- 9. 차별점 --------------------------------------------------------- -->
+  <section class="slide">
+    <div class="pad">
+      <div class="eyebrow">Differentiation</div>
+      <h2 class="head">서비스 차별점</h2>
+      <div class="body" style="margin-top:2cqh;flex-direction:column;gap:2.4cqh">
+        <div class="cmp">
+          <div class="cmp-col cmp-old">
+            <div class="lab">기존 강제 차단 앱</div>
+            <li><span class="mark x">✕</span> 화면을 일방적으로 가려 통제한다</li>
+            <li><span class="mark x">✕</span> 답답함과 반발심으로 차단을 해제한다</li>
+            <li><span class="mark x">✕</span> 자극 갈망을 참는 방식(수동적 억제)</li>
+            <li><span class="mark x">✕</span> 사용 시간만 숫자로 보여준다</li>
+          </div>
+          <div class="cmp-col cmp-new">
+            <div class="lab">내인생 지휘자</div>
+            <li><span class="mark v">✓</span> 개입 질문으로 목적을 다시 확인시킨다</li>
+            <li><span class="mark v">✓</span> 클래식 사운드와 신체 동작으로 인지를 전환한다</li>
+            <li><span class="mark v">✓</span> 1분 미션 후 사용자가 스스로 선택한다(능동 전환)</li>
+            <li><span class="mark v">✓</span> 절제를 지휘자 랭크·되찾은 시간으로 보상한다</li>
+          </div>
+        </div>
+        <table class="diff">
+          <tr>
+            <th>차별 포인트</th><th>구현 방식</th><th>사용자에게 주는 효과</th>
+          </tr>
+          <tr>
+            <td>지휘라는 행위</td>
+            <td class="mid">실제 클래식 5곡의 BPM·박자 패턴을 흔들기 동작으로 따라가는 60초 미션</td>
+            <td class="mid">시각 자극에서 손·귀 감각으로 주의를 옮겨 스크롤 관성을 끊는다</td>
+          </tr>
+          <tr>
+            <td>측정되는 절제</td>
+            <td class="mid">±0.25초 판정, 80% 통과 기준, 실패 시 해당 잠금 재시도 불가</td>
+            <td class="mid">우연이 아닌 성취로 통과를 경험하고, 규칙이 가볍게 지켜진다</td>
+          </tr>
+          <tr>
+            <td>선택을 남기는 설계</td>
+            <td class="mid">미션 성공 후 ‘사용 안 하기 / 연장 사용’ 자각 질문과 기록</td>
+            <td class="mid">차단당한 기억이 아니라 스스로 멈춘 기억이 쌓인다</td>
+          </tr>
+          <tr>
+            <td>두 가지 잠금 문법</td>
+            <td class="mid">바로 잠금(A)과 활동 중 잠금(B)의 상호 배타 세션 모델</td>
+            <td class="mid">SNS를 아예 끊는 사람과 정해두고 쓰는 사람 모두를 담는다</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <div class="brandmark"><b>𝄞</b> 차별점</div>
+    <div class="num">09 / 10</div>
+  </section>
+
+  <!-- 10. 마무리 -------------------------------------------------------- -->
+  <section class="slide cover">
+    <div class="pad">
+      <div class="eyebrow">Next</div>
+      <h2 class="head">지금 체험할 수 있고, 다음이 준비돼 있습니다</h2>
+      <div class="body" style="flex-direction:column;gap:3cqh">
+        <div class="timeline">
+          <div class="tl">
+            <div class="p">NOW · 구현 완료</div>
+            <h4>체험 가능한 전체 흐름</h4>
+            <li>랜딩 · 로그인(Supabase)</li>
+            <li>모드 A/B 잠금 세션</li>
+            <li>개입 → 1분 지휘 미션 → 자각</li>
+            <li>주간 리포트 · 튜토리얼</li>
+          </div>
+          <div class="tl">
+            <div class="p">NEXT</div>
+            <h4>정확도와 습관 강화</h4>
+            <li>기기 모션 판정 정밀화</li>
+            <li>곡 라이브러리 확장</li>
+            <li>주간 목표·연속 기록 알림</li>
+          </div>
+          <div class="tl">
+            <div class="p">LATER</div>
+            <h4>함께 지휘하기</h4>
+            <li>친구와 절제 랭킹</li>
+            <li>OS 단위 앱 사용 연동</li>
+            <li>지휘자 랭크 시즌제</li>
+          </div>
+        </div>
+        <div style="margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;gap:2cqw">
+          <div>
+            <div style="font-family:var(--serif);font-size:2.6cqw;font-weight:900;line-height:1.3">
+              오늘 하루, 직접 지휘해보세요
+            </div>
+            <p style="font-size:1.25cqw;color:var(--sub);margin-top:1.2cqh">
+              설치도 회원가입도 없이 소프트 잠금과 1분 지휘 미션을 바로 체험할 수 있습니다.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;gap:1.2cqw">
+            <img class="logo" src="public/app_icon.png" alt="" />
+            <div>
+              <div style="font-family:var(--serif);font-size:1.5cqw;font-weight:800">내인생 지휘자</div>
+              <div style="font-family:var(--mono);font-size:1cqw;color:var(--dim)">My Life Maestro · PWA · © 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="num">10 / 10</div>
+  </section>
+
+</div>
+</body>
+</html>

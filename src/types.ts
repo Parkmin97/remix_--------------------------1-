@@ -48,8 +48,22 @@ export interface ShortVideo {
   musicTitle: string;
   likes: string;
   comments: string;
-  bgColor: string;
-  gradient: string;
+  shares: string;
+  saves: string;
+  /** X(트위터) 리포스트 수 */
+  reposts?: string;
+  /** 피드 배경으로 쓰는 세로형 클립 스틸 이미지 (public 경로) */
+  thumbnail: string;
+  /** 프로필 아바타에 쓰는 이모지 (실사 인물 사진 대체) */
+  avatar: string;
+  /** 공식 인증 배지 표시 여부 */
+  verified?: boolean;
+  /** 영상 길이 표기 (예: 0:32) */
+  duration: string;
+  /** 자동 재생 진행률 (0~100) — 실제 재생 대신 화면용 표시값 */
+  progress: number;
+  bgColor?: string;
+  gradient?: string;
 }
 
 export interface SessionData {

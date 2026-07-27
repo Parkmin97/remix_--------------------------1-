@@ -240,6 +240,14 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
       }
     }
 
+    // 세션이 없을 때(잠금 미설정 상태)도 방금 터치한 앱의 피드를 보여주기 위해
+    // 마지막으로 연 앱을 화면용으로 기록한다. (세션 데이터와는 무관한 표시 목적)
+    try {
+      sessionStorage.setItem('life_conductor_last_opened_app', serviceId);
+    } catch {
+      // 저장이 막힌 환경에서는 기본 피드로 보여준다.
+    }
+
     // 정상 진입 (숏폼 화면)
     audioSynthesizer.playBatonSwingSound();
     onNavigateToScreen('shorts');
