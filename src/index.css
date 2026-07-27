@@ -72,28 +72,6 @@ body {
 }
 .lp-pulse-ring { animation: lp-pulse-ring 2.4s ease-out infinite; }
 
-@keyframes timing-feedback-rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.timing-feedback-rise {
-  animation: timing-feedback-rise 180ms ease-out both;
-}
-
-@keyframes timing-feedback-lifetime {
-  0%, 72% { opacity: 1; }
-  100% { opacity: 0; }
-}
-.timing-feedback-lifetime {
-  animation: timing-feedback-lifetime 2400ms linear both;
-}
-
 /* Scroll reveal — toggled by IntersectionObserver via data attribute */
 .lp-reveal {
   opacity: 0;
@@ -107,6 +85,63 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-float, .lp-baton, .lp-marquee, .lp-pulse-ring, .timing-feedback-rise { animation: none; }
+  .lp-float, .lp-baton, .lp-marquee, .lp-pulse-ring { animation: none; }
   .lp-reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ---------------------------------------------------------------- */
+/* Conducting judgement feedback                                     */
+/* 판정은 1분에 100회 이상 반복된다. 가장 빠른 곡의 한 박이 약 440ms   */
+/* 이므로, 모든 판정 모션은 그보다 훨씬 짧게 끝나 박자 표시를 가리지   */
+/* 않아야 한다.                                                      */
+/* ---------------------------------------------------------------- */
+@keyframes cm-hit-ring {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+.cm-hit-ring { animation: cm-hit-ring 0.2s ease-out both; }
+
+/* 판정 순간 무대 전체에 아주 옅은 색만 얹어 결과를 주변시로도 알린다. */
+@keyframes cm-stage-flash {
+  0% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+.cm-stage-flash { animation: cm-stage-flash 0.18s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cm-hit-ring, .cm-stage-flash {
+    animation: none;
+  }
+}
+
+/* 판정 토스트는 헤더 바로 아래에 뜬다. 위에서 내려오는 기본 진입은 헤더를
+   스치며 잔상을 남기므로, 제자리에서 살짝 커지며 나타나도록 바꾼다. */
+[data-sonner-toaster] [data-sonner-toast][data-mounted='true'] {
+  --initial-height: auto;
+}
+[data-sonner-toaster] [data-sonner-toast] {
+  transition: transform 0.22s ease-out, opacity 0.22s ease-out, box-shadow 0.2s ease-out !important;
+}
+[data-sonner-toaster] [data-sonner-toast][data-mounted='true'] {
+  animation: cm-toast-in 0.22s ease-out both;
+}
+[data-sonner-toaster] [data-sonner-toast][data-removed='true'] {
+  animation: cm-toast-out 0.18s ease-in both;
+}
+
+@keyframes cm-toast-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes cm-toast-out {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toaster] [data-sonner-toast][data-mounted='true'],
+  [data-sonner-toaster] [data-sonner-toast][data-removed='true'] {
+    animation: none;
+  }
 }

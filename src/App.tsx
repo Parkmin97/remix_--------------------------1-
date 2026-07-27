@@ -24,6 +24,7 @@ import { SelfReflectionScreen } from './components/SelfReflectionScreen';
 import { ReportScreen } from './components/ReportScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
+import { ConductorToaster } from './components/ConductorToaster';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>('landing');
@@ -245,6 +246,9 @@ export default function App() {
         onStartMission={handleStartMissionFromIntervention}
         focusTask={activeSession?.focusTask}
       />
+
+      {/* 전역 토스트 계층 (sonner) */}
+      <ConductorToaster />
     </div>
   );
 }
