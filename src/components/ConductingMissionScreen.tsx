@@ -323,21 +323,23 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     stopAudioPreview();
     clearTutorialTimers();
 
-    // Ensure Web Audio API context is fully awake on user gesture
-    await audioSynthesizer.ensureAudioContext();
-
-    if (permissionState === 'UNKNOWN') {
-      await handleRequestPermission();
-    }
-
-    // Prepare audio on user gesture for autoplay policy compliance
+    // 자동재생 정책 대응: 사용자 제스처 안에서 즉시 mp3를 '무음'으로 재생 시작해 오디오 잠금을 해제한다.
+    // (튜토리얼/카운트다운 동안 무음으로 계속 재생되다가, CONDUCTING에서 음소거만 해제하면 확실히 소리가 난다.)
     if (currentPiece.audioUrl) {
       const audio = new Audio(currentPiece.audioUrl);
       audio.preload = 'auto';
       audio.loop = true;
       audio.volume = 1.0;
-      audio.load();
+      audio.muted = true;
       bgAudioRef.current = audio;
+      audio.play().catch(() => { /* 무음 재생 실패 시 CONDUCTING 진입 때 재시도 */ });
+    }
+
+    // Ensure Web Audio API context is fully awake on user gesture
+    await audioSynthesizer.ensureAudioContext();
+
+    if (permissionState === 'UNKNOWN') {
+      await handleRequestPermission();
     }
 
     setGameState('TUTORIAL_PREVIEW');
@@ -426,7 +428,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   // Conducting Loop & Music Playback
   useEffect(() => {
     if (gameState !== 'CONDUCTING') {
-      if (gameState !== 'COUNTDOWN' && bgAudioRef.current) {
+      // 튜토리얼/카운트다운 동안엔 미리 재생 중인(무음) 오디오를 보존한다. (그 외 상태에서만 정리)
+      if (gameState !== 'COUNTDOWN' && gameState !== 'TUTORIAL_PREVIEW' && bgAudioRef.current) {
         bgAudioRef.current.pause();
         bgAudioRef.current = null;
       }
@@ -435,14 +438,19 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
     // Play classical MP3 audio when CONDUCTING state actually starts
     if (bgAudioRef.current) {
+      // 이미 무음으로 재생 중 → 음소거만 해제하고 처음부터 들려준다.
       bgAudioRef.current.currentTime = 0;
+      bgAudioRef.current.muted = false;
       bgAudioRef.current.volume = 1.0;
-      bgAudioRef.current.play().catch(err => {
-        console.warn('Conducting audio play notice, retrying with fallback:', err);
-        if (currentPiece.audioUrl) {
-          playOrchestralAudio(currentPiece.audioUrl, currentPiece.fallbackAudioUrl, 1.0);
-        }
-      });
+      const playPromise = bgAudioRef.current.play();
+      if (playPromise) {
+        playPromise.catch(err => {
+          console.warn('Conducting audio play notice, retrying with fallback:', err);
+          if (currentPiece.audioUrl) {
+            playOrchestralAudio(currentPiece.audioUrl, currentPiece.fallbackAudioUrl, 1.0);
+          }
+        });
+      }
     } else if (currentPiece.audioUrl) {
       playOrchestralAudio(currentPiece.audioUrl, currentPiece.fallbackAudioUrl, 1.0);
     }
