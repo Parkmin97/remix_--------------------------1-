@@ -81,6 +81,7 @@ export interface DailyReport {
   date: string;
   completedFocusMinutes: number;
   confirmedCount: number;
+  totalSnsMinutes?: number;
   cancelledCount: number;
   missionSuccessCount: number;
   missionFailCount: number;

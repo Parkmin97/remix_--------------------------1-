@@ -62,6 +62,7 @@ export const getDailyReports = (): DailyReport[] => {
           date: '2026-07-21',
           completedFocusMinutes: 120,
           confirmedCount: 3,
+          totalSnsMinutes: 45,
           cancelledCount: 0,
           missionSuccessCount: 2,
           missionFailCount: 0,
@@ -72,6 +73,7 @@ export const getDailyReports = (): DailyReport[] => {
           date: '2026-07-22',
           completedFocusMinutes: 180,
           confirmedCount: 4,
+          totalSnsMinutes: 60,
           cancelledCount: 1,
           missionSuccessCount: 3,
           missionFailCount: 1,
@@ -82,6 +84,7 @@ export const getDailyReports = (): DailyReport[] => {
           date: new Date().toISOString().split('T')[0],
           completedFocusMinutes: 60,
           confirmedCount: 1,
+          totalSnsMinutes: 15,
           cancelledCount: 0,
           missionSuccessCount: 1,
           missionFailCount: 0,
@@ -108,6 +111,7 @@ export const addCompletedSessionToReport = (session: SessionData, wasConfirmed: 
       date: todayStr,
       completedFocusMinutes: 0,
       confirmedCount: 0,
+      totalSnsMinutes: 0,
       cancelledCount: 0,
       missionSuccessCount: 0,
       missionFailCount: 0,
@@ -120,6 +124,9 @@ export const addCompletedSessionToReport = (session: SessionData, wasConfirmed: 
   if (wasConfirmed) {
     todayReport.confirmedCount += 1;
     todayReport.completedFocusMinutes += session.focusDurationMinutes;
+    if (session.mode === 'GUIDED_USE' && session.usageLimitMinutes) {
+      todayReport.totalSnsMinutes = (todayReport.totalSnsMinutes || 0) + session.usageLimitMinutes;
+    }
   }
   if (session.missionSucceeded) {
     todayReport.missionSuccessCount += 1;

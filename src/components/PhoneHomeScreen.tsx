@@ -198,27 +198,12 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
 
   // Launch Conductor App with Splash Screen Transition
   const handleLaunchConductorApp = () => {
-    // 잠금(디톡스) 상태에서는 서비스 앱 진입 불가.
-    // 단, 아직 잠기지 않은 대상 앱이 남아 있으면 '추가 잠금' 선택 모달을 띄운다.
-    if (isLocked) {
-      if (remainingLockApps.length > 0) {
-        openLockChoice();
-      } else {
-        triggerLockedNotice('locked');
-      }
-      return;
-    }
-    if (isModeBActive) {
-      triggerLockedNotice('locked');
-      return;
-    }
-
     setIsLaunchingApp(true);
     audioSynthesizer.playBatonSwingSound();
 
     setTimeout(() => {
       setIsLaunchingApp(false);
-      if (activeSession?.mode === 'FOCUS_NOW' && isLocked) {
+      if (activeSession?.mode === 'FOCUS_NOW') {
         onNavigateToScreen('home:mode-a');
       } else if (activeSession?.mode === 'GUIDED_USE') {
         onNavigateToScreen('home:mode-b');

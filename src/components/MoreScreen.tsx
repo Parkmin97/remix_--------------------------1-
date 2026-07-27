@@ -68,14 +68,14 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
     title: string;
     items: Array<{ icon: React.ElementType; label: string; badge?: string; target?: string }>;
   }> = [
-    {
-      title: '서비스 기능',
-      items: [
-        { icon: BarChart3, label: '디톡스 일간/주간 리포트', badge: '기록', target: 'report' },
-        { icon: HelpCircle, label: '지휘 동작 연습 튜토리얼', badge: '연습', target: 'tutorial' },
-      ],
-    },
-  ];
+      {
+        title: '서비스 기능',
+        items: [
+          { icon: BarChart3, label: '디톡스 일간/주간 리포트', target: 'report' },
+          { icon: HelpCircle, label: '지휘 동작 연습 튜토리얼', target: 'tutorial' },
+        ],
+      },
+    ];
 
   const nickname = user?.user_metadata?.nickname || user?.user_metadata?.full_name || (user?.email ? user.email.split('@')[0] : '클래식 지휘자');
   const email = user?.email || 'user@example.com';

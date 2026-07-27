@@ -11,7 +11,7 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   const reports = getDailyReports();
   const totalFocusMinutes = reports.reduce((acc, r) => acc + r.completedFocusMinutes, 0);
-  const totalConfirmed = reports.reduce((acc, r) => acc + r.confirmedCount, 0);
+  const totalSnsMinutes = reports.reduce((acc, r) => acc + (r.totalSnsMinutes ?? 0), 0);
 
   // 잠금 기능을 사용한(활동 기록이 있는) 날짜 집합
   const usedDates = new Set(
@@ -87,24 +87,22 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
       <div className="grid grid-cols-2 gap-2.5 shrink-0">
         <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1">
           <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
-            <span className="break-keep">총 집중 시간</span>
+            <span className="break-keep">지켜낸 시간</span>
             <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           </div>
           <div className="text-2xl font-serif font-extrabold text-white">
             {totalFocusMinutes}분
           </div>
-          <p className="text-[10px] text-neutral-400 break-keep">지켜낸 총 시간</p>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1">
           <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
-            <span className="break-keep">확인 세션</span>
+            <span className="break-keep">SNS 이용 시간</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           </div>
           <div className="text-2xl font-serif font-extrabold text-white">
-            {totalConfirmed}회
+            {totalSnsMinutes}분
           </div>
-          <p className="text-[10px] text-neutral-400 break-keep">명시적 확인 수</p>
         </div>
       </div>
 
@@ -124,7 +122,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
               <div key={idx} className="space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-mono text-neutral-300">{r.date}</span>
-                  <span className="font-semibold text-white break-keep">{r.completedFocusMinutes}분 완료 ({r.confirmedCount}회 성공)</span>
+                  <span className="font-semibold text-white break-keep">{r.completedFocusMinutes}분 완료</span>
                 </div>
 
                 <div className="w-full h-2.5 bg-neutral-950 rounded-full overflow-hidden border border-neutral-800">
