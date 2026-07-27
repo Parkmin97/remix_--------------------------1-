@@ -821,7 +821,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
             {permissionState === 'DENIED' && (
               <div className="p-3 bg-stone-900/80 border border-stone-800 rounded-xl text-xs text-stone-300 break-keep">
-                센서 권한이 거부되었습니다. 화면 터치와 마우스 클릭으로도 지휘할 수 있습니다.
+                센서 권한이 거부되었습니다. 지휘 미션은 스마트폰을 흔드는 동작으로만 진행되니, 설정에서 동작 센서 권한을 허용해주세요.
               </div>
             )}
 
@@ -1029,8 +1029,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 ref={canvasRef}
                 width={500}
                 height={220}
-                onPointerMove={handlePointerMove}
-                className="absolute inset-0 w-full h-full touch-none cursor-crosshair opacity-80"
+                className="absolute inset-0 w-full h-full pointer-events-none opacity-80"
               />
 
               {/* 마디 위치 표시. 몇 번째 박을 치는지 세지 않아도 보이게 한다. */}
@@ -1090,16 +1089,12 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </div>
             </div>
 
-            {/* 하단 조작부: 지휘 트리거가 주 동작, 포기는 보조 동작이다. */}
+            {/* 하단 조작부: 지휘는 오직 스마트폰을 흔드는 동작 센서로만 진행된다(터치/클릭 불가). */}
             <div className="w-full shrink-0 grid grid-cols-[1fr_auto] items-stretch gap-2">
-              <button
-                type="button"
-                onClick={processUserSwingGesture}
-                className="rounded-xl bg-amber-400 hover:bg-amber-300 active:translate-y-px text-stone-950 font-bold text-sm shadow-lg flex items-center justify-center gap-2 py-3.5 transition-colors"
-              >
-                <Activity className="w-4 h-4" aria-hidden="true" />
-                <span>박자 치기</span>
-              </button>
+              <div className="rounded-xl border border-amber-500/30 bg-stone-900/70 text-amber-200 text-xs font-semibold flex items-center justify-center gap-2 py-3.5 px-3 text-center break-keep">
+                <Smartphone className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span>스마트폰을 힘차게 흔들어 박자를 맞추세요</span>
+              </div>
               <button
                 type="button"
                 onClick={handleLose}
