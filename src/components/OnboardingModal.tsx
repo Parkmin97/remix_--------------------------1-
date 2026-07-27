@@ -55,7 +55,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             <div>
               <h4 className="font-semibold text-amber-200">1. 두 가지 서비스 모드</h4>
               <p className="text-stone-400 mt-0.5">
-                • <strong>집중 약속 모드</strong>: 즉시 30분~480분 동안 SNS를 피하는 집중 모드<br/>
+                • <strong>집중 약속 모드</strong>: 즉시 15분~360분 동안 SNS를 피하는 집중 모드<br/>
                 • <strong>의도적 SNS 이용 모드</strong>: SNS 이용 시간(5~120분)을 먼저 약속 후 시작
               </p>
             </div>

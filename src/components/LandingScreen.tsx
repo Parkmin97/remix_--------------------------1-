@@ -362,7 +362,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
                 {[
                   { v: '60초', l: '몰입 리셋' },
                   { v: '±0.1s', l: '박자 정밀도' },
-                  { v: '80%', l: '통과 기준' },
+                  { v: '70%', l: '통과 기준' },
                 ].map((x) => (
                   <div key={x.l} className="rounded-xl bg-neutral-900 p-2.5">
                     <div className="font-mono text-sm font-bold text-amber-400">{x.v}</div>

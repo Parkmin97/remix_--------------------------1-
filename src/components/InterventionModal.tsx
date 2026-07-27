@@ -64,7 +64,7 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
         </div>
 
         <p className="text-[11px] text-neutral-400">
-          * 1분 지휘 미션(박자 80% 이상 일치) 성공 시 '성공했음에도 사용 안하기' 또는 '잠금 완전 해제'를 선택할 수 있습니다.
+          * 1분 지휘 미션(박자 70% 이상 일치) 성공 시 '성공했음에도 사용 안하기' 또는 '잠금 완전 해제'를 선택할 수 있습니다.
         </p>
       </div>
     </div>

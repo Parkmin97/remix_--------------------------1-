@@ -125,13 +125,13 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
               <label className="text-xs font-semibold text-neutral-200 mb-1.5 flex items-center gap-1.5 break-keep">
                 <Clock className="w-3.5 h-3.5 text-amber-400" />
                 <span>잠금 시간 설정</span>
-                <span className="text-[10px] text-neutral-400 font-normal">(최소 30분)</span>
+                <span className="text-[10px] text-neutral-400 font-normal">(최소 15분)</span>
                 {isLocked && <span className="text-[10px] text-rose-400 ml-auto font-normal">비활성화됨</span>}
               </label>
               <TimeSlotPicker
                 value={focusDuration}
                 onChange={(val) => setFocusDuration(val)}
-                min={30}
+                min={15}
                 max={360}
                 step={5}
               />

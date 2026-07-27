@@ -4,6 +4,12 @@ import { CLASSICAL_PIECES } from '../data/classicalPieces';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
 import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target, VolumeX } from 'lucide-react';
 
+// 미션 통과 기준(정확 타점 비율 %). 화면 안내 문구와 판정 로직이 이 값 하나를 공유한다.
+const PASS_THRESHOLD_PERCENT = 70;
+
+// 미션 시작 전 지휘 동작 튜토리얼을 유지하는 시간(초).
+const TUTORIAL_PREVIEW_SECONDS = 15;
+
 const TUTORIAL_SVG_GUIDES: Record<BeatType, {
   title: string;
   pattern: string;
@@ -99,14 +105,16 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   };
 
   const [gameState, setGameState] = useState<'READY' | 'TUTORIAL_PREVIEW' | 'COUNTDOWN' | 'CONDUCTING' | 'SUCCESS' | 'FAIL'>('READY');
-  const [tutorialTimeLeft, setTutorialTimeLeft] = useState<number>(10);
+  const [tutorialTimeLeft, setTutorialTimeLeft] = useState<number>(TUTORIAL_PREVIEW_SECONDS);
   const [countdown, setCountdown] = useState<number>(3);
   const [timeLeft, setTimeLeft] = useState<number>(60);
   const [activeTutorialBeat, setActiveTutorialBeat] = useState<number>(1);
+  // 튜토리얼은 한 루프(한 마디)마다 성공 예시 ↔ 실패 예시를 번갈아 보여준다.
+  const [tutorialDemoMode, setTutorialDemoMode] = useState<'SUCCESS' | 'FAIL'>('SUCCESS');
   const tutorialTimerRef = useRef<number | null>(null);
   const tutorialMetronomeTimerRef = useRef<number | null>(null);
   
-  // Rhythm Beat Tracking States (±0.25s Rule & 80% Threshold)
+  // Rhythm Beat Tracking States (±0.25s Rule & 70% Threshold)
   const [accurateBeatCount, setAccurateBeatCount] = useState<number>(0);
   const [totalAttemptCount, setTotalAttemptCount] = useState<number>(0);
   const [guideBeat, setGuideBeat] = useState<number>(1);
@@ -253,7 +261,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   // Calculate Total Expected Beats in 60s for current classical piece
   const beatIntervalMs = (60 / currentPiece.bpm) * 1000;
   const totalExpectedBeatsIn60s = Math.floor(60000 / beatIntervalMs);
-  const requiredBeatsToPass = Math.ceil(totalExpectedBeatsIn60s * 0.8);
+  const requiredBeatsToPass = Math.ceil(totalExpectedBeatsIn60s * (PASS_THRESHOLD_PERCENT / 100));
 
   // Initial check for DeviceMotionEvent support & Unmount cleanup
   useEffect(() => {
@@ -367,8 +375,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     }
 
     setGameState('TUTORIAL_PREVIEW');
-    setTutorialTimeLeft(10);
+    setTutorialTimeLeft(TUTORIAL_PREVIEW_SECONDS);
     setActiveTutorialBeat(1);
+    setTutorialDemoMode('SUCCESS');
 
     // Number of beats per bar for this piece
     const totalBeatsInBar = selectedBeat === '4/4' ? 4 : selectedBeat === '3/4' ? 3 : selectedBeat === '2/4' ? 2 : 1;
@@ -378,6 +387,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     const metronomeInterval = (60 / currentPiece.bpm) * 1000;
     tutorialMetronomeTimerRef.current = window.setInterval(() => {
       beatIdx = (beatIdx % totalBeatsInBar) + 1;
+      // 한 마디(루프)가 끝나 1박으로 돌아올 때마다 성공/실패 예시를 전환한다.
+      if (beatIdx === 1) {
+        setTutorialDemoMode(prev => (prev === 'SUCCESS' ? 'FAIL' : 'SUCCESS'));
+      }
       setActiveTutorialBeat(beatIdx);
       const isAccent = beatIdx === 1;
       audioSynthesizer.playMetronomeClick(isAccent, isAccent ? 0.38 : 0.22);
@@ -386,7 +399,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       setIsAppMuted(audioSynthesizer.getMuted());
     }, metronomeInterval);
 
-    // 10-second countdown timer
+    // 튜토리얼 유지 시간 카운트다운
     tutorialTimerRef.current = window.setInterval(() => {
       setTutorialTimeLeft(prev => {
         if (prev <= 1) {
@@ -481,7 +494,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         if (prev <= 1) {
           clearInterval(timerInterval);
           
-          // Evaluate Final 80% Success Criteria
+          // Evaluate Final 70% Success Criteria
           const currentAccurate = matchedBeatIndicesRef.current.size;
           if (currentAccurate >= requiredBeatsToPass) {
             handleWin();
@@ -783,7 +796,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 <Target className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="leading-snug break-keep">
                   <strong className="text-amber-400 font-bold">통과 기준: </strong>
-                  <span className="text-stone-300">60초 동안 {requiredBeatsToPass}회 이상 정확히 (80%)</span>
+                  <span className="text-stone-300">60초 동안 {requiredBeatsToPass}회 이상 정확히 ({PASS_THRESHOLD_PERCENT}%)</span>
                 </div>
               </div>
               <div className="flex items-start gap-2 text-xs text-stone-200">
@@ -878,6 +891,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             {/* Pattern Visualizer Diagram */}
             {(() => {
               const guide = TUTORIAL_SVG_GUIDES[selectedBeat] || TUTORIAL_SVG_GUIDES['4/4'];
+              // 지휘 모션 영역만 성공/실패 예시로 물들인다. 한 루프는 성공(초록), 다음 루프는 실패(빨강).
+              const isSuccessDemo = tutorialDemoMode === 'SUCCESS';
+              const activePoint = guide.points.find(pt => pt.beat === activeTutorialBeat) ?? guide.points[0];
               return (
                 <div className="bg-stone-950/85 backdrop-blur-md border border-stone-800 rounded-xl p-3.5 space-y-2.5 text-left">
                   {/* 괄호 설명은 오른쪽 패턴 칩과 중복되므로 제목에서는 덜어낸다. */}
@@ -886,25 +902,34 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                     <span className="font-mono text-[10px] text-stone-300 border border-stone-700 bg-stone-900 px-2 py-0.5 rounded self-start sm:self-auto sm:shrink-0">{guide.pattern}</span>
                   </div>
 
-                  {/* SVG Diagram Guide */}
-                  <div className="relative w-full aspect-[16/9] bg-stone-950 rounded-xl border border-stone-800 overflow-hidden flex items-center justify-center">
+                  {/* SVG Diagram Guide — 성공/실패 예시가 한 루프씩 번갈아 재생된다 */}
+                  <div
+                    className={`relative w-full aspect-[16/9] rounded-xl border overflow-hidden flex items-center justify-center ${
+                      isSuccessDemo
+                        ? 'bg-emerald-950/50 border-emerald-500/60'
+                        : 'bg-rose-950/50 border-rose-500/60'
+                    }`}
+                  >
                     <svg viewBox="0 0 200 150" className="w-full h-full p-2">
                       <path d={guide.svgPath} fill="none" stroke="#525252" strokeWidth="3" strokeDasharray="4 4" />
                       {guide.points.map(pt => {
                         const isActive = activeTutorialBeat === pt.beat;
+                        const activeFill = isSuccessDemo
+                          ? 'fill-emerald-400 stroke-emerald-200 stroke-2'
+                          : 'fill-rose-500 stroke-rose-300 stroke-2';
                         return (
                           <g key={pt.beat}>
                             <circle
                               cx={pt.x}
                               cy={pt.y}
                               r={isActive ? 11 : 6}
-                              className={isActive ? 'fill-amber-400 stroke-amber-200 stroke-2' : 'fill-stone-800 stroke-stone-600 stroke-1'}
+                              className={isActive ? activeFill : 'fill-stone-800 stroke-stone-600 stroke-1'}
                             />
                             <text
                               x={pt.x}
                               y={pt.y + 20}
                               textAnchor="middle"
-                              fill={isActive ? '#fbbf24' : '#a8a29e'}
+                              fill={isActive ? (isSuccessDemo ? '#34d399' : '#fb7185') : '#a8a29e'}
                               fontSize="9"
                               fontWeight={isActive ? 'bold' : 'normal'}
                               className="font-mono"
@@ -914,12 +939,62 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                           </g>
                         );
                       })}
+
+                      {/* 성공: 타점 위에 정확히 맞은 링 / 실패: 타점에서 벗어난 지점 표시 */}
+                      {isSuccessDemo ? (
+                        <circle
+                          cx={activePoint.x}
+                          cy={activePoint.y}
+                          r={17}
+                          fill="none"
+                          stroke="#34d399"
+                          strokeWidth="2"
+                          opacity="0.85"
+                        />
+                      ) : (
+                        <g>
+                          <circle
+                            cx={activePoint.x + 20}
+                            cy={activePoint.y + 14}
+                            r={8}
+                            fill="none"
+                            stroke="#fb7185"
+                            strokeWidth="2"
+                            strokeDasharray="3 3"
+                          />
+                          <line
+                            x1={activePoint.x}
+                            y1={activePoint.y}
+                            x2={activePoint.x + 20}
+                            y2={activePoint.y + 14}
+                            stroke="#fb7185"
+                            strokeWidth="1.5"
+                            strokeDasharray="2 3"
+                            opacity="0.8"
+                          />
+                        </g>
+                      )}
                     </svg>
 
                     <div className="absolute top-2 left-2 bg-stone-950/85 border border-stone-700 px-2 py-1 rounded text-[10px] font-mono text-stone-400 tabular-nums">
-                      <span className="text-amber-400 font-bold">{activeTutorialBeat}</span> / {guide.points.length}박
+                      <span className={`font-bold ${isSuccessDemo ? 'text-emerald-400' : 'text-rose-400'}`}>{activeTutorialBeat}</span> / {guide.points.length}박
+                    </div>
+
+                    {/* 우측 상단 판정 예시 라벨 */}
+                    <div
+                      className={`absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-bold tracking-wide border ${
+                        isSuccessDemo
+                          ? 'bg-emerald-500/20 border-emerald-400/70 text-emerald-300'
+                          : 'bg-rose-500/20 border-rose-400/70 text-rose-300'
+                      }`}
+                    >
+                      {isSuccessDemo ? 'PERFECT · 타점 정확 (성공 예시)' : 'MISS · 타점 어긋남 (실패 예시)'}
                     </div>
                   </div>
+
+                  <p className="text-[10px] text-stone-400 break-keep leading-snug">
+                    한 마디씩 <strong className="text-emerald-300">성공 예시</strong>와 <strong className="text-rose-300">실패 예시</strong>가 번갈아 재생됩니다. 타점(Ictus)에 정확히 맞춰야 PERFECT로 인정됩니다.
+                  </p>
 
                   {/* Step Breakdown */}
                   <div className="grid grid-cols-2 gap-1.5 pt-1">
@@ -997,13 +1072,13 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   </span>
                   <span
                     className={`font-mono text-xs font-bold tabular-nums ${
-                      currentMatchPercent >= 80 ? 'text-emerald-400' : 'text-amber-400'
+                      currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'text-emerald-400' : 'text-amber-400'
                     }`}
                   >
                     {currentMatchPercent}%
                   </span>
                 </div>
-                {/* 목표(80%)까지의 진행률 */}
+                {/* 목표 통과 기준까지의 진행률 */}
                 <div
                   className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-stone-800"
                   role="progressbar"
@@ -1014,7 +1089,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 >
                   <div
                     className={`h-full rounded-full transition-[width] duration-150 ${
-                      currentMatchPercent >= 80 ? 'bg-emerald-400' : 'bg-amber-400'
+                      currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'bg-emerald-400' : 'bg-amber-400'
                     }`}
                     style={{ width: `${Math.min(100, currentMatchPercent)}%` }}
                   />
@@ -1118,7 +1193,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               지휘 미션 통과
             </h3>
             <p className="text-xs text-stone-400 break-keep leading-relaxed">
-              달성률 <strong className="text-emerald-400 font-mono text-sm tabular-nums">{currentMatchPercent}%</strong>로 80% 기준을 넘겼습니다.
+              달성률 <strong className="text-emerald-400 font-mono text-sm tabular-nums">{currentMatchPercent}%</strong>로 {PASS_THRESHOLD_PERCENT}% 기준을 넘겼습니다.
               <br />잠시 후 자각 질문 화면으로 넘어갑니다.
             </p>
           </div>
@@ -1134,7 +1209,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               지휘 미션 실패
             </h3>
             <p className="text-xs text-stone-400 leading-relaxed break-keep">
-              달성률 <strong className="text-rose-400 font-mono text-sm tabular-nums">{currentMatchPercent}%</strong>로 연장 기준(80%)에 닿지 못했습니다.
+              달성률 <strong className="text-rose-400 font-mono text-sm tabular-nums">{currentMatchPercent}%</strong>로 연장 기준({PASS_THRESHOLD_PERCENT}%)에 닿지 못했습니다.
               <br />앱을 닫고 원래 하려던 일로 돌아가 보세요.
             </p>
             <button
