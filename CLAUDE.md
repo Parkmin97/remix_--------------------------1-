@@ -1,4 +1,4 @@
-# 내인생 지휘자 (Conductor of My Life)
+# 내인생 지휘자 (My Life Maestro)
 
 React 19 + Vite + Tailwind v4 기반 디지털 디톡스 PWA. 무의식적 숏폼 스크롤을 1분 클래식 오케스트라 지휘 미션으로 멈추게 하는 자기주도형 서비스.
 
