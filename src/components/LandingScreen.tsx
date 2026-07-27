@@ -584,7 +584,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
               오늘 하루, 직접 지휘해보세요
             </h2>
             <p className="mx-auto mt-4 max-w-md text-pretty text-sm text-neutral-300 sm:text-base">
-              설치도, 회원가입도 필요 없습니다. 지금 바로 소프트 잠금과 1분 지휘 미션을 체험하세요.
+              지금 바로 소프트 잠금과 1분 지휘 미션을 체험하세요.
             </p>
             <div className="mt-8 flex justify-center">
               <button

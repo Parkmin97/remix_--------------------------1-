@@ -584,7 +584,7 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                   <div className="bg-gradient-to-r from-neutral-400 via-white to-neutral-400 h-full w-full animate-pulse rounded-full"></div>
                 </div>
                 <div className="flex items-center justify-center gap-1 text-[11px] text-white font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]">
-                  <span>클래식 오케스트라 약속 세션 진입 중...</span>
+                  <span>잠금 모드 상세 설정 진입 중...</span>
                   <ArrowRight className="w-3.5 h-3.5 animate-pulse" />
                 </div>
               </div>

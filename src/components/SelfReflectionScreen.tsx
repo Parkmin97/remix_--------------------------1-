@@ -16,19 +16,20 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
 }) => {
   const focusTask = activeSession?.focusTask || '자기소개서 작성 및 자격증 공부';
 
-  // Option 1: Choose NOT to use app despite mission success (Return to life)
+  // Option 1: Choose NOT to use app despite mission success (Keep lock active & return to phone home)
   const handleChooseNotToUse = () => {
     if (activeSession) {
       const updated: SessionData = {
         ...activeSession,
-        state: 'COMPLETED',
-        missionSucceeded: true
+        state: 'FOCUS_ACTIVE',
+        missionSucceeded: true,
+        missionAttempted: true
       };
       saveActiveSession(updated);
       addCompletedSessionToReport(updated, true);
-      setActiveSession(null);
+      setActiveSession(updated);
     }
-    onNavigateToScreen('report');
+    onNavigateToScreen('phone-home');
   };
 
   // Option 2: Fully Unlock Lock and use app/shorts freely
@@ -65,34 +66,24 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
         </div>
 
         <div className="space-y-2.5 pt-1">
-          {/* Option 1: Choose NOT to use (Return to life) */}
+          {/* Option 1: Choose NOT to use (Return to phone home) */}
           <button
             onClick={handleChooseNotToUse}
-            className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-2xl shadow-xl flex flex-col items-center justify-center gap-0.5 transition-all active:scale-[0.99]"
+            className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 shrink-0 text-stone-950" />
-              <span className="text-sm font-extrabold text-stone-950 break-keep">[추천] 성공했음에도 사용 안하기 (목표로 복귀)</span>
-            </div>
-            <span className="text-[11px] text-stone-900/90 font-medium break-keep">자율적 의지로 도파민 앱을 닫고 원래의 중요 일로 돌아갑니다</span>
+            <ShieldCheck className="w-5 h-5 shrink-0 text-stone-950" />
+            <span className="text-sm font-extrabold text-stone-950 break-keep">성공했음에도 사용 안하기 (추천)</span>
           </button>
 
           {/* Option 2: Fully Unlock Lock */}
           <button
             onClick={handleFullyUnlock}
-            className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs rounded-2xl border border-white flex flex-col items-center justify-center gap-0.5 transition-all shadow-md"
+            className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs rounded-2xl border border-white flex items-center justify-center gap-2 transition-all shadow-md"
           >
-            <div className="flex items-center gap-2">
-              <Unlock className="w-4 h-4 text-black shrink-0 stroke-[2.5]" />
-              <span className="text-sm font-extrabold text-black break-keep">성공했으니 잠금 완전 해제하기</span>
-            </div>
-            <span className="text-[10px] text-neutral-600 font-medium break-keep">미션을 성공했으므로 제한 없이 앱/숏폼 잠금을 해제합니다</span>
+            <Unlock className="w-4 h-4 text-black shrink-0 stroke-[2.5]" />
+            <span className="text-sm font-extrabold text-black break-keep">성공했으니 잠금 완전 해제하기</span>
           </button>
         </div>
-
-        <p className="text-[10px] text-neutral-400 break-keep leading-snug">
-          * '성공했음에도 사용 안하기'를 선택하시면 자각 성공 성과가 일간 리포트에 저장되며 집중 보상을 받습니다.
-        </p>
       </div>
     </div>
   );

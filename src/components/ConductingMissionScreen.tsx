@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BeatType, ClassicalPiece, SessionData } from '../types';
 import { CLASSICAL_PIECES } from '../data/classicalPieces';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
@@ -777,31 +777,29 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               <Smartphone className="w-6 h-6 text-amber-400" aria-hidden="true" />
             </div>
 
-            {/* 통과 조건 요약 — 숫자를 먼저 읽히게 두고 설명은 아래에 붙인다. */}
-            <div className="rounded-xl border border-stone-800 bg-stone-900/80 text-left">
-              <div className="grid grid-cols-2 divide-x divide-stone-800">
-                <div className="px-4 py-3">
-                  <div className="flex items-center gap-1.5 text-[10px] font-semibold text-stone-400">
-                    <Target className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
-                    <span>통과 기준</span>
-                  </div>
-                  <p className="mt-1 font-mono text-lg font-bold text-stone-100 tabular-nums leading-none">80%</p>
-                  <p className="mt-1 text-[11px] text-stone-400">
-                    60초 동안 {requiredBeatsToPass}회 이상 정확히
-                  </p>
-                </div>
-                <div className="px-4 py-3">
-                  <div className="flex items-center gap-1.5 text-[10px] font-semibold text-stone-400">
-                    <Timer className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
-                    <span>허용 오차</span>
-                  </div>
-                  <p className="mt-1 font-mono text-lg font-bold text-stone-100 tabular-nums leading-none">0.25초</p>
-                  <p className="mt-1 text-[11px] text-stone-400">강박에서 0.15초까지 좁아짐</p>
+            {/* 통과 조건 요약 */}
+            <div className="rounded-xl border border-stone-800 bg-stone-900/80 p-3.5 text-left space-y-2.5">
+              <div className="flex items-start gap-2 text-xs text-stone-200">
+                <Target className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="leading-snug break-keep">
+                  <strong className="text-amber-400 font-bold">통과 기준: </strong>
+                  <span className="text-stone-300">60초 동안 {requiredBeatsToPass}회 이상 정확히 (80%)</span>
                 </div>
               </div>
-              <p className="border-t border-stone-800 px-4 py-2.5 text-[11px] leading-relaxed text-stone-400 break-keep">
-                살살 흔들면 인식되지 않습니다. 지휘봉을 내리치듯 크고 단호하게 움직여 주세요.
-              </p>
+              <div className="flex items-start gap-2 text-xs text-stone-200">
+                <Timer className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="leading-snug break-keep">
+                  <strong className="text-amber-400 font-bold">허용 오차: </strong>
+                  <span className="text-stone-300">0.25초 (강박에서 0.15초까지 좁아짐)</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2 text-xs text-stone-200 pt-0.5 border-t border-stone-800/80">
+                <Activity className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="leading-snug break-keep">
+                  <strong className="text-amber-400 font-bold">강한 모션 필수: </strong>
+                  <span className="text-stone-300">살살 흔들면 인식되지 않습니다. 지휘봉을 내리치듯 크고 단호하게 움직여 주세요.</span>
+                </div>
+              </div>
             </div>
 
             {/* Device Motion Permission Card for iOS/Mobile */}
@@ -849,18 +847,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         {gameState === 'TUTORIAL_PREVIEW' && (
           <div className="text-center space-y-4 max-w-md z-10 w-full animate-fade-in p-1">
             {/* Top Status Header */}
-            <div className="flex items-center justify-between gap-2 bg-stone-950/90 border border-stone-800 rounded-xl px-3 py-2">
+            <div className="flex items-center justify-between gap-2 bg-stone-950/90 border border-stone-800 rounded-xl px-3.5 py-2.5">
               <div className="flex items-center gap-2 text-left">
                 <Music className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-stone-100">{selectedBeat} 지휘 동작 가이드</div>
-                  <div className="text-[10px] text-stone-400 truncate max-w-[170px] sm:max-w-[220px]">{currentPiece.title}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="text-xs font-mono font-bold text-stone-950 bg-amber-400 px-2.5 py-1 rounded-lg tabular-nums">
-                  {tutorialTimeLeft}초 후 시작
-                </span>
+                <div className="text-xs font-bold text-stone-100">{selectedBeat} 지휘 동작 가이드</div>
               </div>
             </div>
 
@@ -956,15 +946,20 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               );
             })()}
 
-            {/* Skip Button to start 3, 2, 1 Countdown immediately */}
-            <button
-              onClick={start321Countdown}
-              type="button"
-              className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs rounded-xl transition-colors active:translate-y-px flex items-center justify-center gap-1.5"
-            >
-              <SkipForward className="w-4 h-4" aria-hidden="true" />
-              <span>건너뛰고 바로 시작</span>
-            </button>
+            {/* Bottom Buttons: Skip & Timer */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={start321Countdown}
+                type="button"
+                className="flex-1 py-2.5 bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs rounded-xl transition-colors active:translate-y-px flex items-center justify-center gap-1.5"
+              >
+                <SkipForward className="w-4 h-4" aria-hidden="true" />
+                <span>건너뛰고 바로 시작</span>
+              </button>
+              <div className="shrink-0 text-xs font-mono font-bold text-stone-950 bg-amber-400 px-3 py-2.5 rounded-xl tabular-nums">
+                {tutorialTimeLeft}초 후 시작
+              </div>
+            </div>
           </div>
         )}
 
