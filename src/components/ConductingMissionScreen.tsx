@@ -3,7 +3,6 @@ import { BeatType, ClassicalPiece, SessionData } from '../types';
 import { CLASSICAL_PIECES } from '../data/classicalPieces';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
 import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target } from 'lucide-react';
-import { showJudgementToast, dismissJudgementToast } from '../lib/conductingToast';
 
 const TUTORIAL_SVG_GUIDES: Record<BeatType, {
   title: string;
@@ -262,7 +261,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       if (judgementFlashTimerRef.current !== null) {
         window.clearTimeout(judgementFlashTimerRef.current);
       }
-      dismissJudgementToast();
     };
   }, []);
 
@@ -305,7 +303,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     setAccurateBeatCount(0);
     setTotalAttemptCount(0);
     setLastJudgement(null);
-    dismissJudgementToast();
     setTimeLeft(60);
     matchedBeatIndicesRef.current.clear();
 
@@ -400,12 +397,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     const closestBeatIndex = Math.round(elapsedMs / beatIntervalMs);
     const expectedBeatMs = closestBeatIndex * beatIntervalMs;
     const diffMs = Math.abs(elapsedMs - expectedBeatMs);
-    const diffSec = (diffMs / 1000).toFixed(2);
 
     // 마디 안 박자 위치. 곡의 박자표(3/4, 2/4 등)를 그대로 따른다.
-    // 이전에는 항상 4로 나누어 3/4 곡에서 '4/4박' 같은 잘못된 라벨이 나왔다.
     const beatInBarNum = (closestBeatIndex % beatsPerBar) + 1;
-    const beatFractionLabel = `${beatInBarNum}/${beatsPerBar}`;
 
     // 허용 오차: 강박(1박)은 정확도를 요구하고 뒤로 갈수록 넉넉해진다.
     // 마디 길이에 비례해 나누면 2/4 곡의 1박이 4/4 곡보다 더 좁아지는 역전이 생겨,
@@ -414,38 +408,19 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     const maxToleranceMs = 250;
     const beatSpread = beatsPerBar > 1 ? (beatInBarNum - 1) / (beatsPerBar - 1) : 1;
     const toleranceMs = minToleranceMs + (maxToleranceMs - minToleranceMs) * beatSpread;
-    const toleranceSec = (toleranceMs / 1000).toFixed(2);
 
     if (diffMs <= toleranceMs) {
       if (!matchedBeatIndicesRef.current.has(closestBeatIndex)) {
         matchedBeatIndicesRef.current.add(closestBeatIndex);
         setAccurateBeatCount(prev => prev + 1);
         flashJudgement('PERFECT');
-        showJudgementToast({
-          kind: 'PERFECT',
-          beatLabel: `${beatFractionLabel}박`,
-          diffSec,
-          toleranceSec,
-        });
       } else {
         // Repeated swing on an already cleared beat -> Penalty / Duplicate
         flashJudgement('DUPLICATE');
-        showJudgementToast({
-          kind: 'DUPLICATE',
-          beatLabel: `${beatFractionLabel}박`,
-          diffSec,
-          toleranceSec,
-        });
       }
     } else {
       // Off-beat / Random Shake Penalty
       flashJudgement('MISS');
-      showJudgementToast({
-        kind: 'MISS',
-        beatLabel: `${beatFractionLabel}박`,
-        diffSec,
-        toleranceSec,
-      });
     }
   };
 
@@ -661,9 +636,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
   const beatsPerBar = selectedBeat === '4/4' ? 4 : selectedBeat === '3/4' ? 3 : selectedBeat === '2/4' ? 2 : 1;
 
-  // 판정 순간에만 지휘 마커 색과 모션을 바꾼다. null이면 평상시 메트로놈 상태를 쓴다.
   // 판정 색은 마커 위에 덧씌우지 않는다. 마커는 항상 곡의 현재 박만 보여주고,
-  // 판정은 마커를 감싸는 얇은 링으로 스쳐 지나가게 해서 박자 추적을 가리지 않는다.
+  // 판정은 마커를 감싸는 링과 화면 전체 플래시로 스쳐 지나가게 해서 박자 추적을 가리지 않는다.
   const judgementAccent =
     lastJudgement === 'PERFECT'
       ? 'border-emerald-400'
@@ -673,10 +647,27 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
           ? 'border-amber-400'
           : null;
 
+  // 화면 전체 판정 플래시. 진한 색으로 한 번 깜빡이고 즉시 사라진다.
+  const judgementFlashTone =
+    lastJudgement === 'PERFECT'
+      ? 'bg-emerald-500/55'
+      : lastJudgement === 'MISS'
+        ? 'bg-rose-600/55'
+        : null;
+
   return (
     <div className="min-h-full w-full max-w-2xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 sm:gap-3 text-white relative select-none bg-[url('/bg_conductor.png')] bg-cover bg-center bg-fixed">
       {/* Background Dark Scrim */}
       <div className="fixed inset-0 bg-gradient-to-b from-black/85 via-neutral-950/75 to-black/90 pointer-events-none -z-10"></div>
+
+      {/* 판정 순간 화면 전체가 한 번 깜빡인다. 다음 박이 오기 전에 완전히 사라진다. */}
+      {judgementFlashTone && (
+        <div
+          key={`flash-${judgementSeq}`}
+          aria-hidden="true"
+          className={`cm-stage-flash pointer-events-none fixed inset-0 z-50 ${judgementFlashTone}`}
+        />
+      )}
 
       {/* 준비 화면은 곡 선택을 강조하고, 진행 중에는 무대 확보를 위해 압축한다. */}
       <div
@@ -997,19 +988,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             {/* 지휘 무대. 테두리는 고정해 두고 판정은 안쪽 플래시로만 스쳐 보낸다.
                 테두리까지 매 판정마다 색이 바뀌면 박자 표시가 묻힌다. */}
             <div className="relative w-full flex-1 min-h-0 rounded-xl border border-stone-800 bg-stone-900/70 overflow-hidden flex flex-col items-center justify-center p-3 sm:p-4">
-              {/* 판정 순간의 옅은 무대 톤. 마커를 보고 있지 않아도 결과가 느껴지게 한다. */}
-              {lastJudgement && lastJudgement !== 'DUPLICATE' && (
-                <div
-                  key={`stage-${judgementSeq}`}
-                  aria-hidden="true"
-                  className={`cm-stage-flash pointer-events-none absolute inset-0 z-0 ${
-                    lastJudgement === 'PERFECT'
-                      ? 'bg-emerald-400/12'
-                      : 'bg-rose-500/12'
-                  }`}
-                />
-              )}
-
               <canvas
                 ref={canvasRef}
                 width={500}
@@ -1042,7 +1020,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                     <span
                       key={`judge-${judgementSeq}`}
                       aria-hidden="true"
-                      className={`cm-hit-ring pointer-events-none absolute w-[4.5rem] h-[4.5rem] rounded-full border-2 ${judgementAccent}`}
+                      className={`cm-hit-ring pointer-events-none absolute w-[4.5rem] h-[4.5rem] rounded-full border-4 ${judgementAccent}`}
                     />
                   )}
                   <div
