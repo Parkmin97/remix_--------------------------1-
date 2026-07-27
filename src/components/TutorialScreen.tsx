@@ -240,25 +240,22 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
   };
 
   return (
-    <div className="min-h-full bg-[url('/bg_conductor.png')] bg-cover bg-center bg-fixed text-white px-3 sm:px-6 py-3 flex flex-col relative select-none">
-      {/* Background Dark Scrim */}
-      <div className="fixed inset-0 bg-gradient-to-b from-black/85 via-neutral-950/75 to-black/90 pointer-events-none -z-10"></div>
-
+    <div className="min-h-full text-neutral-900 px-3 sm:px-6 py-3 flex flex-col relative select-none">
       <div className="max-w-5xl w-full mx-auto flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 overflow-hidden relative z-10">
 
         {/* Header Title Banner */}
         <div className="shrink-0 space-y-2">
-          <div className="flex flex-row items-center justify-between gap-3 border-b border-neutral-800 pb-3 shrink-0">
+          <div className="flex flex-row items-center justify-between gap-3 border-b border-neutral-200 pb-3 shrink-0">
             <button
               onClick={onBack}
-              className="shrink-0 p-2 rounded-xl bg-neutral-800/90 hover:bg-neutral-700 text-white border border-neutral-700 transition-colors active:scale-95 shadow-sm"
+              className="shrink-0 p-2 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white transition-colors active:scale-95 shadow-sm"
               title="뒤로가기"
               aria-label="뒤로가기"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
 
-            <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white text-center">
+            <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-neutral-900 text-center">
               MY LIFE MAESTRO
             </h1>
 
@@ -267,10 +264,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
 
           {/* Sub Title Below Line */}
           <div className="space-y-0.5 pt-0.5 pb-1 shrink-0">
-            <h2 className="text-lg sm:text-xl font-sans font-extrabold text-amber-400 tracking-wide">
+            <h2 className="text-lg sm:text-xl font-sans font-extrabold text-amber-600 tracking-wide">
               지휘 동작 튜토리얼
             </h2>
-            <p className="text-xs text-white font-medium break-keep">
+            <p className="text-xs text-neutral-600 font-medium break-keep">
               올바른 지휘 궤적(Pattern)과 타점(Ictus)을 익히고, 메트로놈과 함께 손짓을 연습해보세요.
             </p>
           </div>
@@ -290,8 +287,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
                 }}
                 className={`px-3 py-2 rounded-xl border text-left transition-all shrink-0 min-w-[112px] ${
                   isSelected
-                    ? 'bg-white text-black border-white font-extrabold shadow-md'
-                    : 'bg-black/75 border-neutral-800 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
+                    ? 'bg-amber-500 text-stone-950 border-amber-500 font-extrabold shadow-md'
+                    : 'bg-neutral-950 border-neutral-900 text-neutral-400 hover:border-neutral-700 hover:text-neutral-200'
                 }`}
               >
                 <div className={`text-xs font-mono font-bold ${isSelected ? 'text-black' : 'text-white'}`}>{info.type}</div>
@@ -306,7 +303,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
 
           {/* Left Column: Pattern Diagram & Interactive Practice Canvas */}
           <div className="lg:col-span-7 space-y-3 lg:min-h-0 lg:flex lg:flex-col">
-            <div className="bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-xl relative overflow-hidden lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
+            <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-3 sm:p-4 shadow-xl relative overflow-hidden lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
               <div className="flex items-center justify-between mb-2 shrink-0 gap-2">
                 <h2 className="font-serif font-bold text-lg text-amber-400 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-400" />
@@ -413,7 +410,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
 
               {/* Controls Toolbar: BPM, Metronome, Camera */}
               <div className="mt-3 space-y-2 shrink-0">
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-black/80 p-2.5 rounded-xl border border-neutral-800">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-neutral-900 p-2.5 rounded-xl">
                   
                   {/* Play/Stop Button */}
                   <button
@@ -460,7 +457,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
           <div className="lg:col-span-5 space-y-3 lg:min-h-0">
 
             {/* Step-by-Step Beat Breakdown List */}
-            <div className="bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl p-3 sm:p-4 shadow-xl space-y-2">
+            <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-3 sm:p-4 shadow-xl space-y-2">
               <h3 className="text-xs sm:text-sm font-bold text-amber-400 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-amber-400" />
                 <span>박자별 동작 포인트</span>
@@ -475,7 +472,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
                       className={`p-2.5 rounded-xl border transition-all ${
                         isActive
                           ? 'bg-neutral-800 border-white text-white font-semibold shadow-md'
-                          : 'bg-neutral-950/60 border-neutral-800 text-neutral-300'
+                          : 'bg-neutral-900 border-neutral-800 text-neutral-300'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -497,7 +494,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
             </div>
 
             {/* General Conducting Pro Tips */}
-            <div className="bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl p-3">
+            <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-3">
               <div className="flex items-center gap-2 text-xs font-bold text-white mb-1.5 break-keep">
                 <HelpCircle className="w-4 h-4 text-white shrink-0" />
                 <span>지휘자 핵심 꿀팁 (Ictus & Preparatory Beat)</span>

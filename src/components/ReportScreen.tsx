@@ -71,28 +71,25 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-4 gap-3.5 text-white relative select-none">
-      {/* Background Dark Scrim */}
-      <div className="fixed inset-0 bg-gradient-to-b from-black/85 via-neutral-950/75 to-black/90 pointer-events-none -z-10"></div>
-
+    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-4 gap-3.5 text-neutral-900 relative select-none">
       {/* Title Header */}
-      <div className="flex flex-row items-center justify-between gap-3 border-b border-neutral-800 pb-3 shrink-0">
+      <div className="flex flex-row items-center justify-between gap-3 border-b border-neutral-200 pb-3 shrink-0">
         <button
           onClick={onBack}
-          className="shrink-0 p-2 rounded-xl bg-neutral-800/90 hover:bg-neutral-700 text-white border border-neutral-700 transition-colors active:scale-95 shadow-sm"
+          className="shrink-0 p-2 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white transition-colors active:scale-95 shadow-sm"
           title="뒤로가기"
           aria-label="뒤로가기"
         >
           <ArrowLeft className="w-4 h-4" />
         </button>
 
-        <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white text-center">
+        <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-neutral-900 text-center">
           MY LIFE MAESTRO
         </h1>
 
         <button
           onClick={handleClearData}
-          className="px-2.5 py-1.5 bg-neutral-900/90 hover:bg-neutral-800 text-neutral-300 hover:text-white text-xs rounded-xl border border-neutral-700 transition-colors flex items-center gap-1.5 shrink-0"
+          className="px-2.5 py-1.5 bg-white hover:bg-neutral-50 text-neutral-600 hover:text-neutral-900 text-xs rounded-xl border border-neutral-200 transition-colors flex items-center gap-1.5 shrink-0"
         >
           <Trash2 className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">기록 초기화</span>
@@ -101,11 +98,11 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
       {/* Sub Title (Below Header Line, Above Summary Cards) */}
       <div className="pt-1 pb-1 shrink-0 flex items-center justify-between">
-        <h2 className="text-base sm:text-lg font-sans font-extrabold text-amber-400 tracking-widest">
+        <h2 className="text-base sm:text-lg font-sans font-extrabold text-amber-600 tracking-widest">
           REPORT
         </h2>
         {/* 주간 이동 네비게이션 */}
-        <div className="flex items-center gap-2 bg-black/60 border border-neutral-800 rounded-xl px-2 py-1">
+        <div className="flex items-center gap-2 bg-neutral-950 rounded-xl px-2 py-1">
           <button
             onClick={goPrevWeek}
             className="p-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white transition-colors active:scale-95"
@@ -131,7 +128,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
       {/* Summary Highlight Cards */}
       <div className="grid grid-cols-2 gap-2.5 shrink-0">
-        <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1">
+        <div className="p-3.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-1">
           <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
             <span className="break-keep">지켜낸 시간</span>
             <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -141,7 +138,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
           </div>
         </div>
 
-        <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1">
+        <div className="p-3.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-1">
           <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
             <span className="break-keep">SNS 이용 시간</span>
             <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
@@ -153,7 +150,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Weekly Visual Chart Bar */}
-      <div className="p-4.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-3 shrink-0 flex flex-col">
+      <div className="p-4.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-3 shrink-0 flex flex-col">
         <h3 className="text-sm font-bold font-serif text-amber-400 flex items-center gap-2 shrink-0">
           <Sparkles className="w-4 h-4 text-amber-400" />
           <span>지휘 약속 달성 기록 (주간)</span>
@@ -176,9 +173,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
                   <span className="font-semibold text-white break-keep">{focusMins}분 완료</span>
                 </div>
 
-                <div className="w-full h-2.5 bg-neutral-950 rounded-full overflow-hidden border border-neutral-800">
+                <div className="w-full h-2.5 bg-neutral-900 rounded-full overflow-hidden border border-neutral-800">
                   <div
-                    className="h-full bg-gradient-to-r from-neutral-400 via-white to-neutral-200 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 rounded-full transition-all duration-500"
                     style={{ width: `${Math.max(focusMins > 0 ? 5 : 0, percentage)}%` }}
                   ></div>
                 </div>
@@ -189,7 +186,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Weekly Detox Grid (월화수목금토일) */}
-      <div className="p-3.5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-2 shrink-0 max-w-sm mx-auto w-full">
+      <div className="p-3.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-2 shrink-0 max-w-sm mx-auto w-full">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold font-serif text-amber-400 flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-amber-400" />

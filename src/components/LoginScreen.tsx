@@ -72,7 +72,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
   if (user) {
     return (
       <div className="min-h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
-        <div className="w-full rounded-3xl border border-amber-500/20 bg-stone-900/60 p-6 text-center">
+        <div className="w-full rounded-3xl bg-neutral-950 ring-1 ring-black/5 p-6 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/15">
             <CheckCircle2 className="h-7 w-7 text-emerald-400" />
           </div>
@@ -106,7 +106,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
   /* -------------------- 로그인 / 회원가입 폼 -------------------- */
   return (
     <div className="min-h-full flex items-center justify-center mx-auto w-full max-w-md px-4 py-4">
-      <div className="w-full rounded-3xl border border-amber-500/20 bg-stone-900/60 p-6">
+      <div className="w-full rounded-3xl bg-neutral-950 ring-1 ring-black/5 p-6">
         {/* 헤더 */}
         <div className="text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/15 font-serif text-xl text-amber-300">
@@ -121,7 +121,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
         </div>
 
         {/* 탭 */}
-        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-stone-950 p-1">
+        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-neutral-900 p-1">
           {(['login', 'signup'] as Mode[]).map((m) => (
             <button
               key={m}
@@ -147,7 +147,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="이메일"
-              className="w-full rounded-xl border border-stone-800 bg-stone-950 py-3 pl-10 pr-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition-colors focus:border-amber-500/60"
+              className="w-full rounded-xl border border-neutral-800 bg-neutral-900 py-3 pl-10 pr-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition-colors focus:border-amber-500/60"
             />
           </div>
           <div className="relative">
@@ -158,7 +158,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={mode === 'login' ? '비밀번호' : '비밀번호 (6자 이상)'}
-              className="w-full rounded-xl border border-stone-800 bg-stone-950 py-3 pl-10 pr-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition-colors focus:border-amber-500/60"
+              className="w-full rounded-xl border border-neutral-800 bg-neutral-900 py-3 pl-10 pr-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition-colors focus:border-amber-500/60"
             />
           </div>
 

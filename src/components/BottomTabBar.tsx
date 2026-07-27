@@ -23,13 +23,13 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
     },
     {
       id: 'mode-a' as TabType,
-      label: '앱 바로 잠금',
+      label: '지금 잠금',
       icon: Lock,
       disabled: Boolean(isModeBActive),
     },
     {
       id: 'mode-b' as TabType,
-      label: '활동 중 잠금',
+      label: '예약 잠금',
       icon: LockOpen,
       disabled: Boolean(isModeAActive),
     },
@@ -42,7 +42,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
   ];
 
   return (
-    <nav className="shrink-0 w-full z-50 bg-black/90 backdrop-blur-md border-t border-neutral-800 shadow-2xl">
+    <nav className="shrink-0 w-full z-50 bg-neutral-950 shadow-2xl">
       <div className="max-w-md mx-auto flex items-center justify-around h-16 px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;

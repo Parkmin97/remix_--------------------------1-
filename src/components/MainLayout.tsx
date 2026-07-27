@@ -31,12 +31,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
   };
 
   return (
-    <div className="h-full bg-[url('/bg_conductor.png')] bg-cover bg-center bg-fixed text-white flex flex-col font-sans relative select-none">
-      {/* Background Dark Scrim */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-neutral-950/75 to-black/90 pointer-events-none"></div>
-
-      {/* Top Header Banner */}
-      <header className="shrink-0 z-40 bg-black/80 backdrop-blur-md border-b border-neutral-800 px-4 py-3 shadow-lg relative">
+    <div className="h-full app-bg-light text-neutral-900 flex flex-col font-sans relative select-none">
+      {/* Top Header Banner — 랜딩과 동일한 블랙 블록 */}
+      <header className="shrink-0 z-40 bg-neutral-950 px-4 py-3 shadow-lg relative">
         <div className="max-w-2xl mx-auto flex items-center justify-center relative">
           <div className="flex items-center justify-center">
             <span className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.3)] text-center">

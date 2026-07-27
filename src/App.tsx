@@ -119,7 +119,7 @@ export default function App() {
   const SHOW_TOP_NAV = false;
 
   return (
-    <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-white selection:text-black ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'bg-[url("/bg_conductor.png")] bg-cover bg-center bg-fixed text-neutral-100'}`}>
+    <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-amber-400 selection:text-neutral-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'app-bg-light text-neutral-900'}`}>
       {/* Mobile-optimized status badge */}
       <div className="hidden sm:flex shrink-0 bg-neutral-950/80 backdrop-blur-md border-b border-neutral-800 py-1 px-4 text-center text-[11px] text-neutral-300 items-center justify-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>

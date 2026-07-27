@@ -55,7 +55,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     }
   };
 
-  // 앱 바로 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
+  // 지금 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
   const handleStart = () => {
     // 이미 세션이 실행 중인 경우: 앱 선택 수정 사항을 기존 세션에 반영 후 폰 홈으로 이동
     if (activeSession) {
@@ -68,7 +68,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
       return;
     }
 
-    // 신규 앱 바로 잠금 세션 생성
+    // 신규 지금 잠금 세션 생성
     const now = new Date();
     const focusEndsAt = new Date(now.getTime() + focusDuration * 60 * 1000);
     const session: SessionData = {
@@ -92,13 +92,13 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
   };
 
   return (
-    <div className="min-h-full flex flex-col max-w-2xl mx-auto w-full px-4 py-4 gap-3.5 text-white">
+    <div className="min-h-full flex flex-col max-w-2xl mx-auto w-full px-4 py-4 gap-3.5 text-neutral-900">
       {/* Banner */}
-      <div className="p-4 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl space-y-1.5 shrink-0">
+      <div className="p-4 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-1.5 shrink-0">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-serif font-bold flex items-center gap-2 break-keep">
             <Lock className="w-5 h-5 text-amber-400" />
-            <span className="text-amber-400">앱 바로 잠금 모드</span>
+            <span className="text-amber-400">지금 잠금 모드</span>
             {isLocked && (
               <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/40 font-mono">
                 실행 중 (일부 설정 비활성화)
@@ -112,7 +112,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
       </div>
 
       {/* Main Settings Form Card */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-2xl space-y-4 flex-1">
+      <div className="p-4 sm:p-5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-2xl space-y-4 flex-1">
           {/* App Selector Slot Widget (항상 활성화) */}
           <AppSelector
             selectedServices={selectedServices}
@@ -149,7 +149,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
                 value={focusTask}
                 onChange={e => setFocusTask(e.target.value)}
                 placeholder="예: 자기소개서 작성, 포트폴리오, 자격증 공부"
-                className="w-full bg-neutral-950/90 border border-neutral-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition-colors disabled:bg-neutral-900 disabled:text-neutral-500"
+                className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition-colors disabled:bg-neutral-900 disabled:text-neutral-500"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
             className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
             <Play className="w-4 h-4 fill-current text-stone-950" />
-            <span>앱 바로 잠금 모드 실행</span>
+            <span>지금 잠금 모드 실행</span>
           </button>
       </div>
     </div>

@@ -82,9 +82,9 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
   const avatarUrl = user?.user_metadata?.avatar_url;
 
   return (
-    <div className="min-h-full flex flex-col justify-start max-w-2xl mx-auto w-full px-4 pt-4 pb-20 gap-4 text-white">
+    <div className="min-h-full flex flex-col justify-start max-w-2xl mx-auto w-full px-4 pt-4 pb-20 gap-4 text-neutral-900">
       {/* 프로필 정보 배너 */}
-      <div className="p-4 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 shadow-xl flex items-center gap-3 shrink-0">
+      <div className="p-4 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl flex items-center gap-3 shrink-0">
         {/* 프로필 사진 영역 (왼쪽) */}
         <div className="relative w-12 h-12 rounded-full bg-neutral-800 border-2 border-amber-400 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner group">
           {avatarUrl ? (
@@ -130,10 +130,10 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
       <div className="space-y-3">
         {menuSections.map((section, idx) => (
           <div key={idx} className="space-y-1.5">
-            <h2 className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider px-2">
+            <h2 className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider px-2">
               {section.title}
             </h2>
-            <div className="bg-black/75 backdrop-blur-md border border-neutral-800 rounded-2xl overflow-hidden divide-y divide-neutral-800 shadow-lg">
+            <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl overflow-hidden divide-y divide-neutral-800 shadow-lg">
               {section.items.map((item, itemIdx) => {
                 const Icon = item.icon;
                 return (

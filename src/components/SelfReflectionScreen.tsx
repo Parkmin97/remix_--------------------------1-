@@ -47,11 +47,8 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
   };
 
   return (
-    <div className="min-h-full flex items-start sm:items-center justify-center max-w-lg mx-auto px-4 pt-8 sm:pt-12 pb-6 text-white relative select-none bg-[url('/bg_conductor.png')] bg-cover bg-center bg-fixed">
-      {/* Background Dark Scrim */}
-      <div className="fixed inset-0 bg-gradient-to-b from-black/85 via-neutral-950/75 to-black/90 pointer-events-none -z-10"></div>
-
-      <div className="w-full bg-black/90 backdrop-blur-md border border-neutral-800 rounded-3xl p-5 text-center space-y-4 shadow-2xl relative overflow-hidden">
+    <div className="min-h-full flex items-start sm:items-center justify-center max-w-lg mx-auto px-4 pt-8 sm:pt-12 pb-6 text-neutral-900 relative select-none">
+      <div className="w-full bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-5 text-center space-y-4 shadow-2xl relative overflow-hidden">
         {/* Background Light Glow */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
 

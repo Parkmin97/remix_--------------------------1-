@@ -30,20 +30,20 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
         </label>
       </div>
 
-      {/* Selected Apps Container (iOS widget style card) */}
-      <div className="p-3.5 rounded-2xl bg-white/95 text-stone-900 shadow-xl border border-white/20">
+      {/* Selected Apps Container (iOS widget style card — 블랙 블록) */}
+      <div className="p-3.5 rounded-2xl bg-neutral-900 text-neutral-100 shadow-xl border border-neutral-800">
         <div className="grid grid-cols-4 gap-3 sm:gap-4">
           {/* Add Button Slot */}
           <div className="flex flex-col items-center gap-1">
             <button
               type="button"
               onClick={() => setIsModalOpen(true)}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-neutral-100 border-2 border-dashed border-neutral-300 hover:border-amber-500 hover:bg-neutral-50 flex items-center justify-center text-neutral-500 hover:text-amber-600 transition-all group active:scale-95 shadow-sm"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-neutral-800 border-2 border-dashed border-neutral-700 hover:border-amber-500 hover:bg-neutral-800/70 flex items-center justify-center text-neutral-400 hover:text-amber-400 transition-all group active:scale-95 shadow-sm"
               title="앱 추가"
             >
               <Plus className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5] transition-transform group-hover:scale-110" />
             </button>
-            <span className="text-[11px] font-semibold text-neutral-600">추가</span>
+            <span className="text-[11px] font-semibold text-neutral-400">추가</span>
           </div>
 
           {/* Selected App Slots */}
@@ -54,7 +54,7 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
                 <button
                   type="button"
                   onClick={() => onToggleService(service.id)}
-                  className="absolute -top-1.5 -left-1.5 z-10 w-5 h-5 rounded-full bg-white border border-neutral-300 text-neutral-500 hover:text-red-500 hover:border-red-400 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-90"
+                  className="absolute -top-1.5 -left-1.5 z-10 w-5 h-5 rounded-full bg-neutral-800 border border-neutral-600 text-neutral-300 hover:text-rose-400 hover:border-rose-500 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-90"
                   title={`${service.name} 제거`}
                 >
                   <Minus className="w-3.5 h-3.5 stroke-[3]" />
@@ -69,7 +69,7 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
               </div>
 
               {/* App Label */}
-              <span className="text-[11px] font-medium text-neutral-700 truncate max-w-[64px] text-center">
+              <span className="text-[11px] font-medium text-neutral-300 truncate max-w-[64px] text-center">
                 {service.name}
               </span>
             </div>

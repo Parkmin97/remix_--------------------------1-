@@ -33,17 +33,17 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <div className="min-h-full flex flex-col max-w-3xl mx-auto px-4 py-4 gap-4 text-stone-100">
-      <div className="flex items-center gap-2 border-b border-amber-900/40 pb-3 shrink-0">
-        <Settings className="w-5 h-5 text-amber-400" />
-        <h2 className="text-lg font-bold font-serif text-amber-200 break-keep">
+    <div className="min-h-full flex flex-col max-w-3xl mx-auto px-4 py-4 gap-4 text-neutral-900">
+      <div className="flex items-center gap-2 border-b border-neutral-200 pb-3 shrink-0">
+        <Settings className="w-5 h-5 text-amber-500" />
+        <h2 className="text-lg font-bold font-serif text-neutral-900 break-keep">
           설정 및 지휘 감도 보정
         </h2>
       </div>
 
-      <div className="bg-stone-900 border border-amber-900/40 rounded-2xl p-4 space-y-3.5 shadow-xl">
+      <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-4 space-y-3.5 shadow-xl">
         {/* Sound Settings */}
-        <div className="flex items-center justify-between gap-3 p-3 bg-stone-950/80 rounded-2xl border border-stone-800">
+        <div className="flex items-center justify-between gap-3 p-3 bg-neutral-900 rounded-2xl border border-neutral-800">
           <div className="space-y-0.5 min-w-0">
             <div className="text-sm font-bold text-amber-200 flex items-center gap-2">
               {isMuted ? <VolumeX className="w-4 h-4 text-rose-400 shrink-0" /> : <Volume2 className="w-4 h-4 text-amber-400 shrink-0" />}
@@ -75,7 +75,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* Motion Sensor Calibration */}
-        <div className="p-3 bg-stone-950/80 rounded-2xl border border-stone-800 space-y-2.5">
+        <div className="p-3 bg-neutral-900 rounded-2xl border border-neutral-800 space-y-2.5">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-0.5 min-w-0">
               <div className="text-sm font-bold text-amber-200 flex items-center gap-2">
@@ -104,7 +104,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* Onboarding Restart */}
-        <div className="flex items-center justify-between gap-3 p-3 bg-stone-950/80 rounded-2xl border border-stone-800">
+        <div className="flex items-center justify-between gap-3 p-3 bg-neutral-900 rounded-2xl border border-neutral-800">
           <div className="space-y-0.5 min-w-0">
             <div className="text-sm font-bold text-amber-200 flex items-center gap-2">
               <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" />
