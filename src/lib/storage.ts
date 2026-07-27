@@ -53,51 +53,56 @@ export const setSoundMuted = (muted: boolean): void => {
 };
 
 export const getDailyReports = (): DailyReport[] => {
+  const defaultReports: DailyReport[] = [
+    // Week 1: 2026.06.29 ~ 2026.07.05
+    { date: '2026-06-29', completedFocusMinutes: 60, confirmedCount: 1, totalSnsMinutes: 15, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-06-30', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-01', completedFocusMinutes: 90, confirmedCount: 2, totalSnsMinutes: 30, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-02', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-03', completedFocusMinutes: 45, confirmedCount: 1, totalSnsMinutes: 15, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-04', completedFocusMinutes: 120, confirmedCount: 2, totalSnsMinutes: 30, cancelledCount: 0, missionSuccessCount: 2, missionFailCount: 0, extensionCount: 1, conductorRank: '수석 지휘자' },
+    { date: '2026-07-05', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+
+    // Week 2: 2026.07.06 ~ 2026.07.12
+    { date: '2026-07-06', completedFocusMinutes: 90, confirmedCount: 2, totalSnsMinutes: 30, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-07', completedFocusMinutes: 150, confirmedCount: 3, totalSnsMinutes: 45, cancelledCount: 0, missionSuccessCount: 2, missionFailCount: 0, extensionCount: 1, conductorRank: '수석 지휘자' },
+    { date: '2026-07-08', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-09', completedFocusMinutes: 60, confirmedCount: 1, totalSnsMinutes: 15, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-10', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-11', completedFocusMinutes: 90, confirmedCount: 2, totalSnsMinutes: 30, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-12', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+
+    // Week 3: 2026.07.13 ~ 2026.07.19
+    { date: '2026-07-13', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-14', completedFocusMinutes: 60, confirmedCount: 1, totalSnsMinutes: 15, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-15', completedFocusMinutes: 120, confirmedCount: 2, totalSnsMinutes: 30, cancelledCount: 0, missionSuccessCount: 2, missionFailCount: 0, extensionCount: 0, conductorRank: '수석 지휘자' },
+    { date: '2026-07-16', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-17', completedFocusMinutes: 45, confirmedCount: 1, totalSnsMinutes: 15, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-18', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-19', completedFocusMinutes: 90, confirmedCount: 2, totalSnsMinutes: 30, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+
+    // Week 4: 2026.07.20 ~ 2026.07.26
+    { date: '2026-07-20', completedFocusMinutes: 60, confirmedCount: 1, totalSnsMinutes: 15, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-21', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-22', completedFocusMinutes: 120, confirmedCount: 2, totalSnsMinutes: 30, cancelledCount: 0, missionSuccessCount: 2, missionFailCount: 0, extensionCount: 1, conductorRank: '수석 지휘자' },
+    { date: '2026-07-23', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-24', completedFocusMinutes: 90, confirmedCount: 2, totalSnsMinutes: 20, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+    { date: '2026-07-25', completedFocusMinutes: 0, confirmedCount: 0, totalSnsMinutes: 0, cancelledCount: 0, missionSuccessCount: 0, missionFailCount: 0, extensionCount: 0, conductorRank: '신예 지휘자' },
+    { date: '2026-07-26', completedFocusMinutes: 60, confirmedCount: 1, totalSnsMinutes: 15, cancelledCount: 0, missionSuccessCount: 1, missionFailCount: 0, extensionCount: 0, conductorRank: '지휘자' },
+  ];
+
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.REPORTS);
-    if (!raw) {
-      // Default sample report data for demonstration
-      const defaultReports: DailyReport[] = [
-        {
-          date: '2026-07-21',
-          completedFocusMinutes: 120,
-          confirmedCount: 3,
-          totalSnsMinutes: 45,
-          cancelledCount: 0,
-          missionSuccessCount: 2,
-          missionFailCount: 0,
-          extensionCount: 1,
-          conductorRank: '수석 지휘자'
-        },
-        {
-          date: '2026-07-22',
-          completedFocusMinutes: 180,
-          confirmedCount: 4,
-          totalSnsMinutes: 60,
-          cancelledCount: 1,
-          missionSuccessCount: 3,
-          missionFailCount: 1,
-          extensionCount: 1,
-          conductorRank: '마에스트로'
-        },
-        {
-          date: new Date().toISOString().split('T')[0],
-          completedFocusMinutes: 60,
-          confirmedCount: 1,
-          totalSnsMinutes: 15,
-          cancelledCount: 0,
-          missionSuccessCount: 1,
-          missionFailCount: 0,
-          extensionCount: 0,
-          conductorRank: '지휘자'
-        }
-      ];
-      localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(defaultReports));
-      return defaultReports;
-    }
-    return JSON.parse(raw);
+    const stored: DailyReport[] = raw ? JSON.parse(raw) : [];
+
+    // 병합: 저장된 리포트를 우선하고, 없는 날짜는 기본 샘플 데이터로 채워줌
+    const map = new Map<string, DailyReport>();
+    defaultReports.forEach(r => map.set(r.date, r));
+    stored.forEach(r => map.set(r.date, { ...map.get(r.date), ...r }));
+
+    return Array.from(map.values());
   } catch {
-    return [];
+    return defaultReports;
   }
 };
 

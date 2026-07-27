@@ -71,7 +71,7 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
       {
         title: '서비스 기능',
         items: [
-          { icon: BarChart3, label: '디톡스 일간/주간 리포트', target: 'report' },
+          { icon: BarChart3, label: '디톡스 주간 리포트', target: 'report' },
           { icon: HelpCircle, label: '지휘 동작 연습 튜토리얼', target: 'tutorial' },
         ],
       },
