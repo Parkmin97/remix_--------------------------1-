@@ -105,7 +105,7 @@ body {
    피크에 바로 도달한 뒤 빠르게 걷힌다. */
 @keyframes cm-stage-flash {
   0% { opacity: 1; }
-  55% { opacity: 0.5; }
+  60% { opacity: 0.85; }
   100% { opacity: 0; }
 }
 .cm-stage-flash { animation: cm-stage-flash 0.19s ease-out both; }

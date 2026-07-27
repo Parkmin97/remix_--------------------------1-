@@ -10,26 +10,63 @@ class AudioSynthesizer {
   private initCtx() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) return;
       this.ctx = new AudioCtx();
     }
+    // 컨텍스트가 잠겨 있으면 재개를 시도한다. 여기서는 결과를 기다리지 않는다.
+    // (타이머에서 호출되는 경로는 동기 실행이어야 하므로)
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      void this.ctx.resume().catch(() => { /* 제스처 밖 호출은 실패할 수 있다 */ });
     }
   }
 
-  public async ensureAudioContext(): Promise<void> {
+  /**
+   * 사용자 제스처 안에서 호출해 오디오 잠금을 확실히 해제한다.
+   *
+   * iOS 사파리와 일부 모바일 브라우저는 제스처 밖에서 만든 AudioContext를
+   * suspended로 유지한다. 이 상태에서 setInterval로 클릭음을 내면 소리가
+   * 전혀 나지 않는다. 그래서 resume 완료를 기다리고, 무음 버퍼를 한 번
+   * 재생해 컨텍스트를 실제로 깨운 뒤 성공 여부를 돌려준다.
+   */
+  public async ensureAudioContext(): Promise<boolean> {
     this.initCtx();
-    if (this.ctx && this.ctx.state === 'suspended') {
+    if (!this.ctx) return false;
+
+    if (this.ctx.state === 'suspended') {
       try {
         await this.ctx.resume();
       } catch (e) {
         console.warn('AudioContext resume error:', e);
       }
     }
+
+    // 무음 버퍼 재생으로 잠금을 확실히 푼다. iOS는 resume만으로는
+    // 첫 소리가 나오지 않는 경우가 있다.
+    try {
+      const buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.ctx.destination);
+      source.start(0);
+    } catch {
+      // 무음 워밍업 실패는 치명적이지 않다.
+    }
+
+    return this.ctx.state === 'running';
+  }
+
+  /** 오디오가 실제로 재생 가능한 상태인지. UI 경고 표시에 쓴다. */
+  public isAudioReady(): boolean {
+    return this.ctx !== null && this.ctx.state === 'running';
   }
 
   public setMuted(muted: boolean) {
     this.isMuted = muted;
+  }
+
+  /** 앱 내 음소거 설정 상태. 소리가 안 들리는 원인 구분에 쓴다. */
+  public getMuted(): boolean {
+    return this.isMuted;
   }
 
   public playCountdownBeep(highPitch = false) {

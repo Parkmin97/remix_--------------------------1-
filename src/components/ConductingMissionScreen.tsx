@@ -2,7 +2,7 @@
 import { BeatType, ClassicalPiece, SessionData } from '../types';
 import { CLASSICAL_PIECES } from '../data/classicalPieces';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
-import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target } from 'lucide-react';
+import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target, VolumeX } from 'lucide-react';
 
 const TUTORIAL_SVG_GUIDES: Record<BeatType, {
   title: string;
@@ -121,6 +121,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   const [currentAccValue, setCurrentAccValue] = useState<number>(0);
 
   const [isAudioPreviewPlaying, setIsAudioPreviewPlaying] = useState<boolean>(false);
+  // 브라우저 정책으로 오디오가 잠긴 상태. 튜토리얼에서 박자 소리가 안 들릴 때 알린다.
+  const [isAudioBlocked, setIsAudioBlocked] = useState<boolean>(false);
+  // 앱 내 음소거 설정. 이 경우 잠금 해제로는 소리가 나지 않아 안내를 다르게 해야 한다.
+  const [isAppMuted, setIsAppMuted] = useState<boolean>(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pointerTrailRef = useRef<Array<{ x: number; y: number; time: number }>>([]);
@@ -160,6 +164,17 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       setIsGuidePulsing(false);
       guidePulseTimerRef.current = null;
     }, 200);
+  };
+
+  // 오디오가 잠긴 기기에서 사용자가 직접 해제할 수 있는 경로.
+  // 이 호출 자체가 사용자 제스처 안에 있으므로 iOS에서도 잠금이 풀린다.
+  const handleUnlockAudio = async () => {
+    const ready = await audioSynthesizer.ensureAudioContext();
+    setIsAudioBlocked(!ready);
+    if (ready) {
+      // 실제로 소리가 나는지 사용자가 바로 확인할 수 있게 한 번 울린다.
+      audioSynthesizer.playMetronomeClick(true, 0.38);
+    }
   };
 
   // Toggle & play preview classical orchestra audio with guaranteed Web Audio Orchestral Ensemble fallback
@@ -329,6 +344,12 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     stopAudioPreview();
     clearTutorialTimers();
 
+    // 오디오 잠금 해제는 사용자 제스처 직후 가장 먼저 끝낸다.
+    // 권한 요청(await) 뒤로 밀리면 제스처 컨텍스트가 끊겨 iOS에서 잠금이 풀리지 않는다.
+    const audioReady = await audioSynthesizer.ensureAudioContext();
+    setIsAudioBlocked(!audioReady);
+    setIsAppMuted(audioSynthesizer.getMuted());
+
     // 자동재생 정책 대응: 사용자 제스처 안에서 즉시 mp3를 '무음'으로 재생 시작해 오디오 잠금을 해제한다.
     // (튜토리얼/카운트다운 동안 무음으로 계속 재생되다가, CONDUCTING에서 음소거만 해제하면 확실히 소리가 난다.)
     if (currentPiece.audioUrl) {
@@ -340,9 +361,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       bgAudioRef.current = audio;
       audio.play().catch(() => { /* 무음 재생 실패 시 CONDUCTING 진입 때 재시도 */ });
     }
-
-    // Ensure Web Audio API context is fully awake on user gesture
-    await audioSynthesizer.ensureAudioContext();
 
     if (permissionState === 'UNKNOWN') {
       await handleRequestPermission();
@@ -363,6 +381,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       setActiveTutorialBeat(beatIdx);
       const isAccent = beatIdx === 1;
       audioSynthesizer.playMetronomeClick(isAccent, isAccent ? 0.38 : 0.22);
+      // 잠금이 뒤늦게 풀리는 기기가 있어, 튜토리얼 중 상태를 계속 반영한다.
+      setIsAudioBlocked(!audioSynthesizer.isAudioReady());
+      setIsAppMuted(audioSynthesizer.getMuted());
     }, metronomeInterval);
 
     // 10-second countdown timer
@@ -640,9 +661,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   // 판정은 마커를 감싸는 링과 화면 전체 플래시로 스쳐 지나가게 해서 박자 추적을 가리지 않는다.
   const judgementAccent =
     lastJudgement === 'PERFECT'
-      ? 'border-emerald-400'
+      ? 'border-emerald-300'
       : lastJudgement === 'MISS'
-        ? 'border-rose-500'
+        ? 'border-rose-400'
         : lastJudgement === 'DUPLICATE'
           ? 'border-amber-400'
           : null;
@@ -650,9 +671,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   // 화면 전체 판정 플래시. 진한 색으로 한 번 깜빡이고 즉시 사라진다.
   const judgementFlashTone =
     lastJudgement === 'PERFECT'
-      ? 'bg-emerald-500/55'
+      ? 'bg-emerald-500/80'
       : lastJudgement === 'MISS'
-        ? 'bg-rose-600/55'
+        ? 'bg-rose-600/80'
         : null;
 
   return (
@@ -842,6 +863,27 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 </span>
               </div>
             </div>
+
+            {/* 소리가 안 들리는 두 가지 원인(앱 음소거, 브라우저 오디오 잠금)을 구분해 알린다. */}
+            {isAppMuted ? (
+              <div className="flex w-full items-center gap-2 rounded-xl border border-amber-500/60 bg-amber-500/10 px-3 py-2.5 text-left">
+                <VolumeX className="w-4 h-4 shrink-0 text-amber-400" aria-hidden="true" />
+                <span className="min-w-0 text-[11px] leading-snug text-amber-200 break-keep">
+                  앱 음소거가 켜져 있어 박자 소리가 나지 않습니다. 상단 스피커 버튼으로 해제해 주세요.
+                </span>
+              </div>
+            ) : isAudioBlocked ? (
+              <button
+                type="button"
+                onClick={handleUnlockAudio}
+                className="flex w-full items-center gap-2 rounded-xl border border-amber-500/60 bg-amber-500/10 px-3 py-2.5 text-left transition-colors hover:bg-amber-500/20 active:translate-y-px"
+              >
+                <VolumeX className="w-4 h-4 shrink-0 text-amber-400" aria-hidden="true" />
+                <span className="min-w-0 text-[11px] leading-snug text-amber-200 break-keep">
+                  박자 소리가 차단되어 있습니다. 여기를 눌러 소리를 켜고, 기기의 무음 스위치도 확인해 주세요.
+                </span>
+              </button>
+            ) : null}
 
             {/* Pattern Visualizer Diagram */}
             {(() => {
