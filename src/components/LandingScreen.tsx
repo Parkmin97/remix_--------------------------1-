@@ -241,17 +241,17 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
             <span className="font-mono tracking-tight">Digital Dopamine Care · 지휘형 디톡스</span>
           </div>
 
-          <h1 className="lp-reveal mt-6 font-serif text-[2.4rem] font-black leading-[1.14] tracking-tight text-balance sm:text-6xl" style={{ transitionDelay: '60ms' }}>
-            <span className="text-neutral-900">무의식적인 숏폼 스크롤,</span>
-            <br />
-            <span className="bg-gradient-to-r from-amber-500 to-amber-600 bg-clip-text text-transparent">
+          <h1 className="lp-reveal mt-6 font-serif text-[2rem] font-black leading-tight tracking-tight sm:text-5xl" style={{ transitionDelay: '60ms' }}>
+            <span className="block whitespace-nowrap text-neutral-900">무의식적인 숏폼 스크롤,</span>
+            <span className="block whitespace-nowrap bg-gradient-to-r from-amber-500 to-amber-600 bg-clip-text text-transparent mt-1 sm:mt-2">
               1분의 지휘로 멈춥니다
             </span>
           </h1>
 
-          <p className="lp-reveal mx-auto mt-5 max-w-xl text-pretty text-[15px] leading-relaxed text-neutral-600 sm:mt-6 sm:text-lg" style={{ transitionDelay: '120ms' }}>
-            강제로 앱을 막지 않습니다. 클래식 <strong className="font-semibold text-amber-600">오케스트라 지휘 미션</strong>으로
-            뇌의 감각을 리셋하고, 스마트폰의 주도권을 스스로 되찾게 합니다.
+          <p className="lp-reveal mx-auto mt-5 max-w-xl text-[14px] leading-relaxed text-neutral-600 sm:mt-6 sm:text-base" style={{ transitionDelay: '120ms' }}>
+            <span className="block whitespace-nowrap">강제로 앱을 막지 않습니다.</span>
+            <span className="block whitespace-nowrap mt-1">클래식 <strong className="font-semibold text-amber-600">오케스트라 지휘미션</strong>으로 뇌의 감각을 리셋하고,</span>
+            <span className="block whitespace-nowrap mt-1">스마트폰의 주도권을 스스로 되찾게 합니다.</span>
           </p>
 
           <div className="lp-reveal mt-8 flex justify-center" style={{ transitionDelay: '180ms' }}>
