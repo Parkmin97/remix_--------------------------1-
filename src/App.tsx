@@ -75,6 +75,12 @@ export default function App() {
   };
 
   const handleMissionFail = () => {
+    // 미션 실패를 세션에 기록 → 이번 잠금에서는 더 이상 미션을 시도할 수 없다.
+    if (activeSession) {
+      const updated: SessionData = { ...activeSession, missionAttempted: true, missionSucceeded: false };
+      saveActiveSession(updated);
+      setActiveSession(updated);
+    }
     setCurrentTab('phone-home');
   };
 

@@ -64,12 +64,22 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
   const [currentTime, setCurrentTime] = useState<string>('');
   const [isLaunchingApp, setIsLaunchingApp] = useState<boolean>(false);
   const [showLockedNotice, setShowLockedNotice] = useState<boolean>(false);
+  const [lockedNoticeType, setLockedNoticeType] = useState<'locked' | 'mission-failed'>('locked');
   const lockedNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 알림 타이머 정리
   useEffect(() => () => {
     if (lockedNoticeTimer.current) clearTimeout(lockedNoticeTimer.current);
   }, []);
+
+  // 잠금/미션실패 안내 알림을 3초간 띄운다.
+  const triggerLockedNotice = (type: 'locked' | 'mission-failed' = 'locked') => {
+    setLockedNoticeType(type);
+    audioSynthesizer.playBatonSwingSound();
+    setShowLockedNotice(true);
+    if (lockedNoticeTimer.current) clearTimeout(lockedNoticeTimer.current);
+    lockedNoticeTimer.current = setTimeout(() => setShowLockedNotice(false), 3000);
+  };
 
   const isGuidedReady = Boolean(activeSession && activeSession.state === 'GUIDED_READY');
   const isUsageActive = Boolean(activeSession && (activeSession.state === 'USAGE_ACTIVE' || activeSession.state === 'EXTENSION_ACTIVE'));
@@ -145,6 +155,12 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
 
   // Launch Conductor App with Splash Screen Transition
   const handleLaunchConductorApp = () => {
+    // 잠금(디톡스) 상태에서는 서비스 앱 진입 불가 — 안내만 표시
+    if (isLocked || isModeBActive) {
+      triggerLockedNotice('locked');
+      return;
+    }
+
     setIsLaunchingApp(true);
     audioSynthesizer.playBatonSwingSound();
 
@@ -157,13 +173,18 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
       } else {
         onNavigateToScreen('home');
       }
-    }, 800);
+    }, 2500);
   };
 
   const handleAppIconClick = (serviceId: string) => {
     // 모드 A/B 잠금 기간 중: '잠금할 앱 선택'에서 선택했던 대상 앱일 때만 개입/미션으로 진입
     if (isLocked) {
       if (sessionServiceIds.has(serviceId)) {
+        // 이미 지휘 미션에 실패했다면 이번 잠금에서는 더 이상 시도 불가.
+        if (activeSession?.missionAttempted && !activeSession?.missionSucceeded) {
+          triggerLockedNotice('mission-failed');
+          return;
+        }
         audioSynthesizer.playBatonSwingSound();
         onOpenIntervention();
         return;
@@ -357,16 +378,24 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
         {showLockedNotice && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in select-none touch-none px-6">
             <div className="w-full max-w-[15rem] rounded-3xl border border-neutral-700 bg-neutral-900/95 p-6 text-center shadow-2xl">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/40 bg-neutral-800 text-white animate-pulse">
-                <ShieldCheck className="h-8 w-8" />
+              <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full border animate-pulse ${
+                lockedNoticeType === 'mission-failed'
+                  ? 'border-rose-500/50 bg-rose-500/15 text-rose-400'
+                  : 'border-white/40 bg-neutral-800 text-white'
+              }`}>
+                {lockedNoticeType === 'mission-failed' ? <Lock className="h-8 w-8" /> : <ShieldCheck className="h-8 w-8" />}
               </div>
               <h2 className="mt-4 font-serif text-lg font-bold text-white break-keep">
-                {activeSession?.mode === 'FOCUS_NOW'
-                  ? '바로 잠금 모드 실행 중'
-                  : '잠금 모드 실행 중'}
+                {lockedNoticeType === 'mission-failed'
+                  ? '지휘 미션 실패'
+                  : activeSession?.mode === 'FOCUS_NOW'
+                    ? '바로 잠금 모드 실행 중'
+                    : '잠금 모드 실행 중'}
               </h2>
               <p className="mt-1.5 text-xs leading-snug text-neutral-300 break-keep">
-                지금은 집중 약속 시간이에요.<br />잠금이 끝난 뒤 앱을 실행할 수 있어요.
+                {lockedNoticeType === 'mission-failed'
+                  ? <>이번 잠금에서는 미션을 다시 시도할 수 없어요.<br />잠금이 끝날 때까지 기다려주세요.</>
+                  : <>지금은 집중 약속 시간이에요.<br />잠금이 끝난 뒤 앱을 실행할 수 있어요.</>}
               </p>
               {timeRemaining !== '00:00:00' && (
                 <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-neutral-700 bg-black/80 px-3 py-1 text-xs font-mono font-bold text-white">
