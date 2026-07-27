@@ -23,7 +23,7 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
     },
     {
       id: 'mode-a' as TabType,
-      label: '바로 잠금',
+      label: '앱 바로 잠금',
       icon: Lock,
       disabled: Boolean(isModeBActive),
     },

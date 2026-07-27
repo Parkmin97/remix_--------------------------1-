@@ -55,7 +55,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     }
   };
 
-  // 바로 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
+  // 앱 바로 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
   const handleStart = () => {
     // 이미 세션이 실행 중인 경우: 앱 선택 수정 사항을 기존 세션에 반영 후 폰 홈으로 이동
     if (activeSession) {
@@ -68,7 +68,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
       return;
     }
 
-    // 신규 바로 잠금 세션 생성
+    // 신규 앱 바로 잠금 세션 생성
     const now = new Date();
     const focusEndsAt = new Date(now.getTime() + focusDuration * 60 * 1000);
     const session: SessionData = {
@@ -98,7 +98,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-serif font-bold flex items-center gap-2 break-keep">
             <Lock className="w-5 h-5 text-amber-400" />
-            <span className="text-amber-400">바로 잠금 모드</span>
+            <span className="text-amber-400">앱 바로 잠금 모드</span>
             {isLocked && (
               <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/40 font-mono">
                 실행 중 (일부 설정 비활성화)
@@ -160,7 +160,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
             className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
             <Play className="w-4 h-4 fill-current text-stone-950" />
-            <span>바로 잠금 모드 실행</span>
+            <span>앱 바로 잠금 모드 실행</span>
           </button>
       </div>
     </div>

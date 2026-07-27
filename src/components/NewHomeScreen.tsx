@@ -24,7 +24,7 @@ export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab }) => 
 
       {/* Detox Mode Selection Cards (Mode A vs Mode B only) */}
       <div className="grid grid-cols-1 gap-4">
-        {/* Mode A Box (바로 잠금) */}
+        {/* Mode A Box (앱 바로 잠금) */}
         <div
           onClick={() => onSelectTab('mode-a')}
           className="p-5 rounded-2xl bg-black/75 backdrop-blur-md border border-neutral-800 hover:border-white hover:scale-[1.01] transition-all cursor-pointer shadow-2xl relative overflow-hidden group"
@@ -32,7 +32,7 @@ export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab }) => 
           <div className="space-y-2">
             <h2 className="text-lg font-bold font-serif flex items-center gap-2 break-keep">
               <Lock className="w-5 h-5 text-amber-400" />
-              <span className="text-amber-400">바로 잠금 모드</span>
+              <span className="text-amber-400">앱 바로 잠금 모드</span>
             </h2>
             <p className="text-xs text-neutral-300 leading-snug break-keep">
               지금부터 즉시 소셜미디어를 멀리하고 집중을 시작합니다. 설정한 시간 동안 몰입 환경을 조성해 드립니다.
@@ -42,7 +42,7 @@ export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab }) => 
           <div className="mt-4 pt-3 border-t border-neutral-800/80 flex items-center justify-between text-[11px] text-amber-400 font-bold">
             <span className="flex items-center gap-1.5 break-keep">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
-              바로 잠금 상세 설정으로 이동
+              앱 바로 잠금 상세 설정으로 이동
             </span>
             <div className="w-7 h-7 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-stone-950 transition-all">
               <ArrowRight className="w-4 h-4 text-amber-400 group-hover:text-stone-950 group-hover:translate-x-0.5 transition-all" />

@@ -164,7 +164,7 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
             `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
           );
         } else if (focusEndsMs > 0 && nowMs < focusEndsMs) {
-          // 활동 시간이 끝났거나 바로 잠금 모드인 경우 -> 잠금 시간 타이머 진행
+          // 활동 시간이 끝났거나 앱 바로 잠금 모드인 경우 -> 잠금 시간 타이머 진행
           // 활동 시간 종료 시 자동으로 state를 FOCUS_ACTIVE로 업데이트
           if (activeSession.mode === 'GUIDED_USE' && activeSession.state !== 'FOCUS_ACTIVE' && activeSession.state !== 'MISSION_ACTIVE') {
             const updatedSession: SessionData = {
@@ -298,7 +298,7 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                   <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                   <span>
                     {activeSession.mode === 'FOCUS_NOW'
-                      ? '바로 잠금 모드 실행 중'
+                      ? '앱 바로 잠금 모드 실행 중'
                       : isLocked
                       ? '잠금 모드 실행 중'
                       : '활동 모드 실행 중'}
@@ -426,7 +426,7 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                 {lockedNoticeType === 'mission-failed'
                   ? '지휘 미션 실패'
                   : activeSession?.mode === 'FOCUS_NOW'
-                    ? '바로 잠금 모드 실행 중'
+                    ? '앱 바로 잠금 모드 실행 중'
                     : '잠금 모드 실행 중'}
               </h2>
               <p className="mt-1.5 text-xs leading-snug text-neutral-300 break-keep">
