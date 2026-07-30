@@ -71,6 +71,7 @@ const PhoneShell: React.FC<{ children: React.ReactNode; className?: string }> = 
 
 const MockLockHome: React.FC = () => {
   const apps = [
+    { isAppIcon: true },
     { Icon: Instagram, c: 'from-fuchsia-600 to-amber-500' },
     { Icon: Youtube, c: 'from-red-600 to-red-700' },
     { Icon: Video, c: 'from-cyan-500 to-stone-900' },
@@ -78,16 +79,21 @@ const MockLockHome: React.FC = () => {
     { Icon: Music, c: 'from-amber-500 to-amber-700' },
     { Icon: HeartPulse, c: 'from-emerald-500 to-teal-700' },
     { Icon: Star, c: 'from-indigo-500 to-purple-700' },
-    { Icon: Feather, c: 'from-sky-500 to-blue-700' },
   ];
   return (
     <div className="relative h-full px-4 pt-4">
       <div className="grid grid-cols-4 gap-x-3 gap-y-4">
-        {apps.map(({ Icon, c }, i) => (
+        {apps.map((app, i) => (
           <div key={i} className="flex flex-col items-center gap-1">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-[0.9rem] bg-gradient-to-br ${c}`}>
-              <Icon className="h-4 w-4 text-white/95" strokeWidth={2} />
-            </div>
+            {app.isAppIcon ? (
+              <div className="flex h-9 w-9 items-center justify-center rounded-[0.9rem] overflow-hidden bg-white shadow-md border border-amber-400/40">
+                <img src="/app_icon.png" alt="내인생지휘자 앱" className="h-full w-full object-cover" />
+              </div>
+            ) : (
+              <div className={`flex h-9 w-9 items-center justify-center rounded-[0.9rem] bg-gradient-to-br ${app.c}`}>
+                {app.Icon && <app.Icon className="h-4 w-4 text-white/95" strokeWidth={2} />}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -577,8 +583,8 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
         <div className={`lp-reveal relative mx-auto max-w-3xl overflow-hidden ${block} px-6 py-14 text-center sm:px-12 sm:py-16`}>
           <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-96 -translate-x-1/2 rounded-full bg-amber-500/20 blur-[100px]" />
           <div className="relative z-10">
-            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/40 bg-amber-500/15 font-serif text-2xl text-amber-300">
-              𝄞
+            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden bg-white border border-amber-500/40 shadow-lg">
+              <img src="/app_icon.png" alt="내인생지휘자 앱 아이콘" className="h-full w-full object-cover" />
             </div>
             <h2 className="font-serif text-[1.8rem] font-black leading-tight text-white text-balance sm:text-5xl">
               오늘 하루, 직접 지휘해보세요
@@ -605,8 +611,8 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
       <footer className="border-t border-neutral-200 px-4 py-10">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-950 font-serif text-amber-400">
-              𝄞
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl overflow-hidden bg-white border border-neutral-200 shadow-sm">
+              <img src="/app_icon.png" alt="내인생지휘자 앱 아이콘" className="h-full w-full object-cover" />
             </div>
             <span className="font-serif text-sm font-bold text-neutral-900">내인생 지휘자</span>
             <span className="rounded-full border border-amber-300 bg-amber-50 px-1.5 py-0.5 font-mono text-[10px] text-amber-700">PWA</span>
