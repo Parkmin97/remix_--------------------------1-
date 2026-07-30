@@ -143,10 +143,10 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
                     className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black hover:text-white transition-all text-xs group active:bg-black active:text-white"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0 group-hover:bg-[#FE9A00] group-hover:text-black transition-all">
-                        <Icon className="w-4 h-4 text-[#FE9A00] group-hover:text-black transition-colors" />
+                      <div className="w-8 h-8 rounded-xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0 group-hover:bg-[#FE9A00] group-hover:text-black group-active:bg-[#FE9A00] group-active:text-black transition-all">
+                        <Icon className="w-4 h-4 text-[#FE9A00] group-hover:text-black group-active:text-black transition-colors" />
                       </div>
-                      <span className="font-bold text-black group-hover:text-white text-sm break-keep transition-colors">{item.label}</span>
+                      <span className="font-bold text-black group-hover:text-white group-active:text-white text-sm break-keep transition-colors">{item.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {item.badge && (
@@ -154,7 +154,7 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
                           {item.badge}
                         </span>
                       )}
-                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-white group-active:text-white group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </button>
                 );

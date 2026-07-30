@@ -740,8 +740,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   type="button"
                   title={isAudioPreviewPlaying ? '미리듣기 정지' : '미리듣기 재생'}
                   className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-sm ${isAudioPreviewPlaying
-                      ? 'bg-black text-white border-black ring-2 ring-[#FE9A00]'
-                      : 'bg-black hover:bg-neutral-800 text-white border-black'
+                    ? 'bg-black text-white border-black ring-2 ring-[#FE9A00]'
+                    : 'bg-black hover:bg-neutral-800 text-white border-black'
                     }`}
                 >
                   {isAudioPreviewPlaying ? (
@@ -900,8 +900,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   {/* SVG Diagram Guide */}
                   <div
                     className={`relative w-full aspect-[16/9] rounded-xl border overflow-hidden flex items-center justify-center ${isSuccessDemo
-                        ? 'bg-emerald-50 border-emerald-300'
-                        : 'bg-rose-50 border-rose-300'
+                      ? 'bg-emerald-50 border-emerald-300'
+                      : 'bg-rose-50 border-rose-300'
                       }`}
                   >
                     <svg viewBox="0 0 200 150" className="w-full h-full p-2">
@@ -975,8 +975,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
                     <div
                       className={`absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-bold tracking-wide border ${isSuccessDemo
-                          ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
-                          : 'bg-rose-100 border-rose-300 text-rose-700'
+                        ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
+                        : 'bg-rose-100 border-rose-300 text-rose-700'
                         }`}
                     >
                       {isSuccessDemo ? '성공 예시 (정확한 타점)' : '실패 예시 (벗어난 궤적)'}
@@ -990,8 +990,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                         <div
                           key={s.beat}
                           className={`p-2 rounded-xl border text-[11px] transition-colors ${isActive
-                              ? 'bg-black text-white border-black font-bold shadow-sm'
-                              : 'bg-white text-black/80 border-slate-200'
+                            ? 'bg-black text-white border-black font-bold shadow-sm'
+                            : 'bg-white text-black/80 border-slate-200'
                             }`}
                         >
                           <div className="flex items-center justify-between font-bold">
@@ -1095,10 +1095,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   <span
                     key={beat}
                     className={`h-1.5 rounded-full transition-all duration-150 ${guideBeat === beat
-                        ? 'w-7 bg-[#FE9A00]'
-                        : beat === 1
-                          ? 'w-3 bg-slate-400'
-                          : 'w-3 bg-slate-300'
+                      ? 'w-7 bg-[#FE9A00]'
+                      : beat === 1
+                        ? 'w-3 bg-slate-400'
+                        : 'w-3 bg-slate-300'
                       }`}
                   />
                 ))}
@@ -1116,8 +1116,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   )}
                   <div
                     className={`relative w-[4.5rem] h-[4.5rem] rounded-full border-2 flex items-center justify-center transition-[background-color,border-color,box-shadow,transform] duration-100 ease-out ${isGuidePulsing
-                        ? 'bg-[#FE9A00] border-[#e08800] text-black scale-110 shadow-[0_0_20px_rgba(254,154,0,0.6)]'
-                        : 'bg-white border-slate-300 text-[#FE9A00] scale-100 shadow-sm'
+                      ? 'bg-[#FE9A00] border-[#e08800] text-black scale-110 shadow-[0_0_20px_rgba(254,154,0,0.6)]'
+                      : 'bg-white border-slate-300 text-[#FE9A00] scale-100 shadow-sm'
                       }`}
                     role="img"
                     aria-label={`${guideBeat}박 시각 안내`}
