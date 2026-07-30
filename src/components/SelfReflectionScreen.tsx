@@ -32,18 +32,11 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
     onNavigateToScreen('phone-home');
   };
 
-  // Option 2: Fully Unlock Lock and use app/shorts freely
+  // Option 2: Fully Unlock Lock and return to phone home with session cleared
   const handleFullyUnlock = () => {
-    if (activeSession) {
-      const updated: SessionData = {
-        ...activeSession,
-        state: 'USAGE_ACTIVE',
-        missionSucceeded: true
-      };
-      saveActiveSession(updated);
-      setActiveSession(updated);
-    }
-    onNavigateToScreen('shorts');
+    saveActiveSession(null);
+    setActiveSession(null);
+    onNavigateToScreen('phone-home');
   };
 
   return (

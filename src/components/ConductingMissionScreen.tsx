@@ -113,7 +113,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   const [tutorialDemoMode, setTutorialDemoMode] = useState<'SUCCESS' | 'FAIL'>('SUCCESS');
   const tutorialTimerRef = useRef<number | null>(null);
   const tutorialMetronomeTimerRef = useRef<number | null>(null);
-  
+
   // Rhythm Beat Tracking States (±0.25s Rule & 70% Threshold)
   const [accurateBeatCount, setAccurateBeatCount] = useState<number>(0);
   const [totalAttemptCount, setTotalAttemptCount] = useState<number>(0);
@@ -123,7 +123,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   // seq는 같은 판정이 연속으로 나와도 CSS 애니메이션을 다시 재생시키기 위한 키다.
   const [lastJudgement, setLastJudgement] = useState<'PERFECT' | 'MISS' | 'DUPLICATE' | null>(null);
   const [judgementSeq, setJudgementSeq] = useState<number>(0);
-  
+
   // Device Motion & Permission States
   const [permissionState, setPermissionState] = useState<'UNKNOWN' | 'GRANTED' | 'DENIED' | 'NOT_SUPPORTED'>('UNKNOWN');
   const [currentAccValue, setCurrentAccValue] = useState<number>(0);
@@ -493,7 +493,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timerInterval);
-          
+
           // Evaluate Final 70% Success Criteria
           const currentAccurate = matchedBeatIndicesRef.current.size;
           if (currentAccurate >= requiredBeatsToPass) {
@@ -703,9 +703,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
       {/* 준비 화면은 곡 선택을 강조하고, 진행 중에는 무대 확보를 위해 압축한다. */}
       <div
-        className={`shrink-0 rounded-2xl bg-white border border-slate-200 shadow-xl relative overflow-hidden ${
-          gameState === 'READY' ? 'p-4 sm:p-5 text-center space-y-3' : 'px-3.5 py-2.5'
-        }`}
+        className={`shrink-0 rounded-2xl bg-white border border-slate-200 shadow-xl relative overflow-hidden ${gameState === 'READY' ? 'p-4 sm:p-5 text-center space-y-3' : 'px-3.5 py-2.5'
+          }`}
       >
         {gameState === 'READY' ? (
           <>
@@ -726,34 +725,33 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   {currentPiece.composer} · {currentPiece.bpm} BPM
                 </span>
               </div>
-             <div className="mt-3 flex items-center justify-center gap-2.5">
-              <button
-                onClick={handlePickRandomPiece}
-                type="button"
-                title="다른 곡으로 바꾸기"
-                className="px-4 py-2.5 bg-black hover:bg-neutral-800 text-white rounded-xl border border-black text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-sm"
-              >
-                <Shuffle className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
-                <span>곡 변경</span>
-              </button>
-              <button
-                onClick={toggleAudioPreview}
-                type="button"
-                title={isAudioPreviewPlaying ? '미리듣기 정지' : '미리듣기 재생'}
-                className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-sm ${
-                  isAudioPreviewPlaying
-                    ? 'bg-black text-white border-black ring-2 ring-[#FE9A00]'
-                    : 'bg-black hover:bg-neutral-800 text-white border-black'
-                }`}
-              >
-                {isAudioPreviewPlaying ? (
-                  <Pause className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
-                ) : (
-                  <Headphones className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
-                )}
-                <span>{isAudioPreviewPlaying ? '정지' : '미리듣기'}</span>
-              </button>
-            </div>
+              <div className="mt-3 flex items-center justify-center gap-2.5">
+                <button
+                  onClick={handlePickRandomPiece}
+                  type="button"
+                  title="다른 곡으로 바꾸기"
+                  className="px-4 py-2.5 bg-black hover:bg-neutral-800 text-white rounded-xl border border-black text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+                >
+                  <Shuffle className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
+                  <span>곡 변경</span>
+                </button>
+                <button
+                  onClick={toggleAudioPreview}
+                  type="button"
+                  title={isAudioPreviewPlaying ? '미리듣기 정지' : '미리듣기 재생'}
+                  className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-sm ${isAudioPreviewPlaying
+                      ? 'bg-black text-white border-black ring-2 ring-[#FE9A00]'
+                      : 'bg-black hover:bg-neutral-800 text-white border-black'
+                    }`}
+                >
+                  {isAudioPreviewPlaying ? (
+                    <Pause className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
+                  ) : (
+                    <Headphones className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
+                  )}
+                  <span>{isAudioPreviewPlaying ? '정지' : '미리듣기'}</span>
+                </button>
+              </div>
             </div>
           </>
         ) : (
@@ -858,11 +856,11 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         {/* TUTORIAL PREVIEW STATE (10s BEFORE 3, 2, 1 COUNTDOWN) */}
         {gameState === 'TUTORIAL_PREVIEW' && (
           <div className="text-center space-y-4 max-w-md z-10 w-full animate-fade-in p-1">
-            {/* Top Status Header */}
-            <div className="flex items-center justify-between gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5">
+            {/* Top Status Header (검은색 배경) */}
+            <div className="flex items-center justify-between gap-2 bg-black border border-black rounded-xl px-3.5 py-2.5 shadow-md">
               <div className="flex items-center gap-2 text-left">
                 <Music className="w-4 h-4 text-[#FE9A00] shrink-0" aria-hidden="true" />
-                <div className="text-xs font-bold text-black">{selectedBeat} 지휘 동작 가이드</div>
+                <div className="text-xs font-bold text-white">{selectedBeat} 지휘 동작 가이드</div>
               </div>
             </div>
 
@@ -901,11 +899,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
                   {/* SVG Diagram Guide */}
                   <div
-                    className={`relative w-full aspect-[16/9] rounded-xl border overflow-hidden flex items-center justify-center ${
-                      isSuccessDemo
+                    className={`relative w-full aspect-[16/9] rounded-xl border overflow-hidden flex items-center justify-center ${isSuccessDemo
                         ? 'bg-emerald-50 border-emerald-300'
                         : 'bg-rose-50 border-rose-300'
-                    }`}
+                      }`}
                   >
                     <svg viewBox="0 0 200 150" className="w-full h-full p-2">
                       <path d={guide.svgPath} fill="none" stroke="#94a3b8" strokeWidth="3" strokeDasharray="4 4" />
@@ -977,11 +974,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                     </div>
 
                     <div
-                      className={`absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-bold tracking-wide border ${
-                        isSuccessDemo
+                      className={`absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-bold tracking-wide border ${isSuccessDemo
                           ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
                           : 'bg-rose-100 border-rose-300 text-rose-700'
-                      }`}
+                        }`}
                     >
                       {isSuccessDemo ? '성공 예시 (정확한 타점)' : '실패 예시 (벗어난 궤적)'}
                     </div>
@@ -993,11 +989,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                       return (
                         <div
                           key={s.beat}
-                          className={`p-2 rounded-xl border text-[11px] transition-colors ${
-                            isActive
+                          className={`p-2 rounded-xl border text-[11px] transition-colors ${isActive
                               ? 'bg-black text-white border-black font-bold shadow-sm'
                               : 'bg-white text-black/80 border-slate-200'
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center justify-between font-bold">
                             <span className={isActive ? 'text-white' : 'text-black'}>{s.name}</span>
@@ -1061,9 +1056,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                     <span className="text-black/40">/{requiredBeatsToPass}</span>
                   </span>
                   <span
-                    className={`font-mono text-xs font-bold tabular-nums ${
-                      currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'text-emerald-600' : 'text-[#FE9A00]'
-                    }`}
+                    className={`font-mono text-xs font-bold tabular-nums ${currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'text-emerald-600' : 'text-[#FE9A00]'
+                      }`}
                   >
                     {currentMatchPercent}%
                   </span>
@@ -1078,9 +1072,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   aria-label="박자 일치율"
                 >
                   <div
-                    className={`h-full rounded-full transition-[width] duration-150 ${
-                      currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'bg-emerald-500' : 'bg-[#FE9A00]'
-                    }`}
+                    className={`h-full rounded-full transition-[width] duration-150 ${currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'bg-emerald-500' : 'bg-[#FE9A00]'
+                      }`}
                     style={{ width: `${Math.min(100, currentMatchPercent)}%` }}
                   />
                 </div>
@@ -1101,13 +1094,12 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 {Array.from({ length: beatsPerBar }, (_, i) => i + 1).map(beat => (
                   <span
                     key={beat}
-                    className={`h-1.5 rounded-full transition-all duration-150 ${
-                      guideBeat === beat
+                    className={`h-1.5 rounded-full transition-all duration-150 ${guideBeat === beat
                         ? 'w-7 bg-[#FE9A00]'
                         : beat === 1
                           ? 'w-3 bg-slate-400'
                           : 'w-3 bg-slate-300'
-                    }`}
+                      }`}
                   />
                 ))}
               </div>
@@ -1123,15 +1115,20 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                     />
                   )}
                   <div
-                    className={`relative w-[4.5rem] h-[4.5rem] rounded-full border-2 flex items-center justify-center transition-[background-color,border-color,box-shadow,transform] duration-100 ease-out ${
-                      isGuidePulsing
+                    className={`relative w-[4.5rem] h-[4.5rem] rounded-full border-2 flex items-center justify-center transition-[background-color,border-color,box-shadow,transform] duration-100 ease-out ${isGuidePulsing
                         ? 'bg-[#FE9A00] border-[#e08800] text-black scale-110 shadow-[0_0_20px_rgba(254,154,0,0.6)]'
                         : 'bg-white border-slate-300 text-[#FE9A00] scale-100 shadow-sm'
-                    }`}
+                      }`}
                     role="img"
                     aria-label={`${guideBeat}박 시각 안내`}
                   >
-                    <Hand className="w-7 h-7" aria-hidden="true" />
+                    <img
+                      src={isGuidePulsing ? '/baton_icon_black.png' : '/baton_icon.png'}
+                      alt="지휘봉 아이콘"
+                      className="w-8 h-8 object-contain"
+                      draggable={false}
+                      aria-hidden="true"
+                    />
                     <span className="absolute -right-1.5 -top-1.5 min-w-6 h-6 px-1 rounded-full bg-black text-white text-[11px] font-mono font-bold flex items-center justify-center tabular-nums shadow-sm">
                       {guideBeat}
                     </span>
@@ -1142,9 +1139,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 <div className="w-44">
                   <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
                     <div
-                      className={`h-full rounded-full transition-[width] duration-75 ${
-                        currentAccValue >= 66 ? 'bg-emerald-500' : 'bg-[#FE9A00]'
-                      }`}
+                      className={`h-full rounded-full transition-[width] duration-75 ${currentAccValue >= 66 ? 'bg-emerald-500' : 'bg-[#FE9A00]'
+                        }`}
                       style={{ width: `${Math.min(100, currentAccValue)}%` }}
                     />
                   </div>
@@ -1182,7 +1178,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             </h3>
             <p className="text-xs text-black/70 break-keep leading-relaxed">
               달성률 <strong className="text-emerald-600 font-mono text-sm tabular-nums">{currentMatchPercent}%</strong>로 {PASS_THRESHOLD_PERCENT}% 기준을 넘겼습니다.
-              <br />잠시 후 자각 질문 화면으로 넘어갑니다.
             </p>
           </div>
         )}
