@@ -63,12 +63,12 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChan
               }`}
             >
               <div className={`relative p-1.5 rounded-xl transition-all ${
-                isActive ? 'bg-amber-400 text-stone-950 shadow-md' : 'text-neutral-400'
+                isActive ? 'bg-[#FE9A00] text-black shadow-md' : 'text-neutral-400'
               }`}>
-                <Icon className={`w-5 h-5 ${isActive ? 'text-stone-950' : 'text-neutral-400'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-black' : 'text-neutral-400'}`} />
               </div>
               <span className={`text-[11px] mt-1 tracking-tight leading-none whitespace-nowrap ${
-                isActive ? 'text-amber-400 font-extrabold' : 'text-neutral-400'
+                isActive ? 'text-[#FE9A00] font-extrabold' : 'text-neutral-400'
               }`}>
                 {tab.label} {isDisabled && '(비활성)'}
               </span>

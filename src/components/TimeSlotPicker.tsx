@@ -61,13 +61,13 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   };
 
   return (
-    <div className="relative w-full bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none" style={{ height: heightPx }}>
+    <div className="relative w-full bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none" style={{ height: heightPx }}>
       {/* Top & Bottom Gradient Overlay for Slot Machine Wheel Blur Effect */}
-      <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-neutral-900 via-neutral-900/70 to-transparent z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-neutral-900 via-neutral-900/70 to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
 
-      {/* Center Highlight Slot (앰버 하이라이트 — 랜딩 액센트와 동일) */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-amber-500 border border-amber-400 rounded-xl pointer-events-none z-0 shadow-lg" />
+      {/* Center Highlight Slot (검은색 하이라이트) */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-black border border-black rounded-xl pointer-events-none z-0 shadow-md" />
 
       {/* Scrollable Container */}
       <div
@@ -92,8 +92,8 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
                 }
               }}
               className={`h-[40px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 relative z-10 ${isSelected
-                  ? 'text-stone-950 font-extrabold text-base scale-105 drop-shadow-sm'
-                  : 'text-neutral-500 text-xs hover:text-neutral-300'
+                  ? 'text-white font-extrabold text-base scale-105 drop-shadow-sm'
+                  : 'text-slate-500 text-xs hover:text-black'
                 }`}
             >
               <span>{formatLabel(mins)}</span>

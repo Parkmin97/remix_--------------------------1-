@@ -17,29 +17,26 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="bg-black/90 backdrop-blur-md border border-neutral-800 rounded-3xl max-w-md w-full p-6 text-white shadow-2xl relative overflow-hidden text-center space-y-5">
-        {/* Background Light Ray */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 text-black shadow-2xl relative overflow-hidden text-center space-y-5">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition-colors"
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-black rounded-lg hover:bg-slate-100 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Lock Icon Emblem */}
-        <div className="w-20 h-20 mx-auto rounded-3xl bg-white text-black border-2 border-white flex items-center justify-center shadow-xl">
-          <Lock className="w-10 h-10 animate-pulse text-black stroke-[2.5]" />
+        <div className="w-20 h-20 mx-auto rounded-3xl bg-[#FE9A00]/15 border-2 border-[#FE9A00]/40 flex items-center justify-center shadow-lg">
+          <Lock className="w-10 h-10 animate-pulse text-[#FE9A00] stroke-[2.5]" />
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-xl font-bold font-serif text-white leading-snug">
+          <h3 className="text-xl font-bold font-serif text-black leading-snug">
             잠금 모드 실행 중이에요.<br />남이 아닌 내 인생을 지휘해보세요.
           </h3>
-          <p className="text-xs text-neutral-300 bg-neutral-900/90 p-2.5 rounded-xl border border-neutral-800">
-            목표: <strong className="text-amber-400">{focusTask}</strong>
+          <p className="text-xs text-black/80 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+            목표: <strong className="text-[#FE9A00] font-bold">{focusTask}</strong>
           </p>
         </div>
 
@@ -47,24 +44,24 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
           {/* Primary Action: Exit App & Conduct My Life */}
           <button
             onClick={onClose}
-            className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+            className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-extrabold rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
-            <Sparkles className="w-4 h-4 text-stone-950" />
+            <Sparkles className="w-4 h-4 text-[#FE9A00]" />
             <span>내 인생 지휘하기 (앱 종료)</span>
           </button>
 
           {/* Secondary Action: Start 1-Minute Conducting Mission */}
           <button
             onClick={onStartMission}
-            className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-extrabold rounded-2xl text-xs border border-white flex items-center justify-center gap-2 transition-all shadow-md"
+            className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-black font-extrabold rounded-2xl text-xs border border-slate-200 flex items-center justify-center gap-2 transition-all shadow-sm"
           >
             <Music className="w-4 h-4 text-black" />
             <span>잠금 해제하기 (미션 도전)</span>
           </button>
         </div>
 
-        <p className="text-[11px] text-neutral-400">
-          * 1분 지휘 미션(박자 70% 이상 일치) 성공 시 '성공했음에도 사용 안하기' 또는 '잠금 완전 해제'를 선택할 수 있습니다.
+        <p className="text-[11px] text-black/60 break-keep">
+          * 미션 기회는 1번입니다. 1분 지휘 미션(박자 70% 이상 일치) 성공 시 '성공했음에도 사용 안하기' 또는 '잠금 완전 해제'를 선택할 수 있습니다.
         </p>
       </div>
     </div>

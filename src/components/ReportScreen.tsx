@@ -71,25 +71,25 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-4 gap-3.5 text-neutral-900 relative select-none">
+    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-4 gap-3.5 text-black relative select-none">
       {/* Title Header */}
-      <div className="flex flex-row items-center justify-between gap-3 border-b border-neutral-200 pb-3 shrink-0">
+      <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200 pb-3 shrink-0">
         <button
           onClick={onBack}
-          className="shrink-0 p-2 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white transition-colors active:scale-95 shadow-sm"
+          className="shrink-0 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-black transition-colors active:scale-95 shadow-sm"
           title="뒤로가기"
           aria-label="뒤로가기"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-4 h-4 text-black" />
         </button>
 
-        <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-neutral-900 text-center">
+        <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-black text-center">
           MY LIFE MAESTRO
         </h1>
 
         <button
           onClick={handleClearData}
-          className="px-2.5 py-1.5 bg-white hover:bg-neutral-50 text-neutral-600 hover:text-neutral-900 text-xs rounded-xl border border-neutral-200 transition-colors flex items-center gap-1.5 shrink-0"
+          className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-600 hover:text-black text-xs rounded-xl border border-slate-200 transition-colors flex items-center gap-1.5 shrink-0"
         >
           <Trash2 className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">기록 초기화</span>
@@ -98,26 +98,26 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
       {/* Sub Title (Below Header Line, Above Summary Cards) */}
       <div className="pt-1 pb-1 shrink-0 flex items-center justify-between">
-        <h2 className="text-base sm:text-lg font-sans font-extrabold text-amber-600 tracking-widest">
+        <h2 className="text-base sm:text-lg font-sans font-extrabold text-black tracking-widest">
           REPORT
         </h2>
         {/* 주간 이동 네비게이션 */}
-        <div className="flex items-center gap-2 bg-neutral-950 rounded-xl px-2 py-1">
+        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-2 py-1">
           <button
             onClick={goPrevWeek}
-            className="p-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white transition-colors active:scale-95"
+            className="p-1 rounded-lg bg-white hover:bg-slate-200 text-black transition-colors active:scale-95 shadow-sm"
             title="이전 주"
             aria-label="이전 주"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-xs font-mono font-bold text-neutral-200">
+          <span className="text-xs font-mono font-bold text-black">
             {startDateStr} ~ {endDateStr}
           </span>
           <button
             onClick={goNextWeek}
             disabled={weekOffset >= 0}
-            className="p-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white transition-colors active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+            className="p-1 rounded-lg bg-white hover:bg-slate-200 text-black transition-colors active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-sm"
             title="다음 주"
             aria-label="다음 주"
           >
@@ -128,31 +128,31 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
       {/* Summary Highlight Cards */}
       <div className="grid grid-cols-2 gap-2.5 shrink-0">
-        <div className="p-3.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
+        <div className="p-3.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-1">
+          <div className="flex items-center justify-between text-[11px] text-black font-bold">
             <span className="break-keep">지켜낸 시간</span>
-            <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Clock className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
           </div>
-          <div className="text-2xl font-serif font-extrabold text-white">
+          <div className="text-2xl font-serif font-extrabold text-black">
             {totalFocusMinutes}분
           </div>
         </div>
 
-        <div className="p-3.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-amber-400 font-bold">
+        <div className="p-3.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-1">
+          <div className="flex items-center justify-between text-[11px] text-black font-bold">
             <span className="break-keep">SNS 이용 시간</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
           </div>
-          <div className="text-2xl font-serif font-extrabold text-white">
+          <div className="text-2xl font-serif font-extrabold text-black">
             {totalSnsMinutes}분
           </div>
         </div>
       </div>
 
       {/* Weekly Visual Chart Bar */}
-      <div className="p-4.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-3 shrink-0 flex flex-col">
-        <h3 className="text-sm font-bold font-serif text-amber-400 flex items-center gap-2 shrink-0">
-          <Sparkles className="w-4 h-4 text-amber-400" />
+      <div className="p-4.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3 shrink-0 flex flex-col">
+        <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2 shrink-0">
+          <Sparkles className="w-4 h-4 text-[#FE9A00]" />
           <span>지휘 약속 달성 기록 (주간)</span>
         </h3>
 
@@ -166,16 +166,16 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
             return (
               <div key={idx} className="space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-mono text-neutral-300 flex items-center gap-1">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${w.dayName === '일' ? 'bg-rose-950 text-rose-300 border border-rose-800' : w.dayName === '토' ? 'bg-sky-950 text-sky-300 border border-sky-800' : 'bg-neutral-800 text-neutral-300'}`}>{w.dayName}</span>
+                  <span className="font-mono text-black/70 flex items-center gap-1">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${w.dayName === '일' ? 'bg-rose-100 text-rose-600 border border-rose-200' : w.dayName === '토' ? 'bg-sky-100 text-sky-600 border border-sky-200' : 'bg-slate-100 text-slate-700'}`}>{w.dayName}</span>
                     <span>{w.dateStr}</span>
                   </span>
-                  <span className="font-semibold text-white break-keep">{focusMins}분 완료</span>
+                  <span className="font-semibold text-black break-keep">{focusMins}분 완료</span>
                 </div>
 
-                <div className="w-full h-2.5 bg-neutral-900 rounded-full overflow-hidden border border-neutral-800">
+                <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                   <div
-                    className="h-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 rounded-full transition-all duration-500"
+                    className="h-full bg-black rounded-full transition-all duration-500"
                     style={{ width: `${Math.max(focusMins > 0 ? 5 : 0, percentage)}%` }}
                   ></div>
                 </div>
@@ -186,10 +186,10 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
       </div>
 
       {/* Weekly Detox Grid (월화수목금토일) */}
-      <div className="p-3.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-2 shrink-0 max-w-sm mx-auto w-full">
+      <div className="p-3.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-2 shrink-0 max-w-sm mx-auto w-full">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold font-serif text-amber-400 flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-amber-400" />
+          <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-[#FE9A00]" />
             <span>주간 잠금 달성 현황</span>
           </h3>
         </div>
@@ -202,15 +202,15 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
             return (
               <div key={idx} className="flex flex-col items-center gap-1">
-                <span className={`text-[11px] font-bold ${w.dayName === '일' ? 'text-rose-400' : w.dayName === '토' ? 'text-sky-400' : 'text-neutral-400'}`}>
+                <span className={`text-[11px] font-bold ${w.dayName === '일' ? 'text-rose-500' : w.dayName === '토' ? 'text-sky-500' : 'text-slate-600'}`}>
                   {w.dayName}
                 </span>
                 <div
                   className={`w-full h-9 rounded-xl flex items-center justify-center text-xs font-semibold border transition-all ${
                     used
-                      ? 'bg-amber-500 text-stone-950 border-amber-400 font-extrabold shadow-md scale-105'
-                      : 'bg-neutral-900/80 text-neutral-500 border-neutral-800'
-                  } ${w.isToday ? 'ring-2 ring-white' : ''}`}
+                      ? 'bg-black text-white border-black font-extrabold shadow-md scale-105'
+                      : 'bg-slate-100 text-slate-400 border-slate-200'
+                  } ${w.isToday ? 'ring-2 ring-black' : ''}`}
                   title={used ? `${w.dateStr} · 잠금 사용` : `${w.dateStr} · 미사용`}
                 >
                   {w.dayNum}
@@ -221,13 +221,13 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-center gap-4 text-[11px] text-neutral-400 pt-1.5">
+        <div className="flex items-center justify-center gap-4 text-[11px] text-slate-600 pt-1.5">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-amber-500 border border-amber-400"></span>
+            <span className="w-3 h-3 rounded bg-black border border-black"></span>
             <span className="break-keep">잠금 사용한 날</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded bg-neutral-900 border border-neutral-800"></span>
+            <span className="w-3 h-3 rounded bg-slate-100 border border-slate-200"></span>
             <span className="break-keep">미사용 날</span>
           </div>
         </div>

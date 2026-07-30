@@ -100,15 +100,15 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
   };
 
   return (
-    <div className="min-h-full flex flex-col max-w-2xl mx-auto w-full px-4 py-4 gap-3 text-neutral-900">
-      {/* Banner */}
-      <div className="p-3.5 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl space-y-1 shrink-0">
+    <div className="min-h-full flex flex-col max-w-2xl mx-auto w-full px-4 py-4 gap-3 text-black">
+      {/* Banner (검은색 배경, 흰색 텍스트, #FE9A00 아이콘) */}
+      <div className="p-3.5 rounded-3xl bg-black text-white border border-black shadow-xl space-y-1 shrink-0">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-serif font-bold flex items-center gap-2 break-keep">
-            <LockOpen className="w-5 h-5 text-amber-400" />
-            <span className="text-amber-400">예약 잠금 모드</span>
+            <LockOpen className="w-5 h-5 text-[#FE9A00]" />
+            <span className="text-white">예약 잠금 모드</span>
             {isModeBActive && (
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/40 font-mono">
+              <span className="text-[10px] bg-[#FE9A00] text-black px-2 py-0.5 rounded-full font-mono font-extrabold">
                 실행 중 (일부 설정 비활성화)
               </span>
             )}
@@ -119,7 +119,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
         </p>
       </div>
 
-      <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-4 space-y-3 shadow-xl">
+      <div className="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 shadow-xl">
         {/* App Selector Slot Widget (항상 활성화) */}
         <AppSelector
           selectedServices={selectedServices}
@@ -129,11 +129,11 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
         {/* Form Inputs (예약 잠금 모드 실행 중에는 비활성화) */}
         <div className="space-y-3">
           <div className={isModeBActive ? 'opacity-40 pointer-events-none select-none relative' : ''}>
-            <label className="text-xs font-semibold text-neutral-200 mb-1.5 flex items-center gap-1.5 break-keep">
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <label className="text-xs font-semibold text-black mb-1.5 flex items-center gap-1.5 break-keep">
+              <Clock className="w-3.5 h-3.5 text-[#FE9A00]" />
               <span>예약 시간 설정</span>
-              <span className="text-[10px] text-neutral-400 font-normal">(최대 2시간)</span>
-              {isModeBActive && <span className="text-[10px] text-rose-400 ml-auto font-normal">비활성화됨</span>}
+              <span className="text-[10px] text-black/60 font-normal">(최대 2시간)</span>
+              {isModeBActive && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
             </label>
             <TimeSlotPicker
               value={usageLimit}
@@ -145,11 +145,11 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
           </div>
 
           <div className={isModeBActive ? 'opacity-40 pointer-events-none select-none relative' : ''}>
-            <label className="text-xs font-semibold text-neutral-200 mb-1.5 flex items-center gap-1.5 break-keep">
-              <Target className="w-3.5 h-3.5 text-amber-400" />
+            <label className="text-xs font-semibold text-black mb-1.5 flex items-center gap-1.5 break-keep">
+              <Target className="w-3.5 h-3.5 text-[#FE9A00]" />
               <span>잠금 시간 설정</span>
-              <span className="text-[10px] text-neutral-400 font-normal">(최소 15분)</span>
-              {isModeBActive && <span className="text-[10px] text-rose-400 ml-auto font-normal">비활성화됨</span>}
+              <span className="text-[10px] text-black/60 font-normal">(최소 15분)</span>
+              {isModeBActive && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
             </label>
             <TimeSlotPicker
               value={focusDuration}
@@ -161,10 +161,10 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
           </div>
 
           <div className={isModeBActive ? 'opacity-40 pointer-events-none select-none relative' : ''}>
-            <label className="text-xs font-semibold text-neutral-200 mb-1.5 flex items-center gap-1.5 break-keep">
-              <CheckSquare className="w-3.5 h-3.5 text-amber-400" />
+            <label className="text-xs font-semibold text-black mb-1.5 flex items-center gap-1.5 break-keep">
+              <CheckSquare className="w-3.5 h-3.5 text-[#FE9A00]" />
               <span>오늘의 목표 할 일</span>
-              {isModeBActive && <span className="text-[10px] text-rose-400 ml-auto font-normal">비활성화됨</span>}
+              {isModeBActive && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
             </label>
             <input
               type="text"
@@ -172,17 +172,17 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
               value={focusTask}
               onChange={e => setFocusTask(e.target.value)}
               placeholder="예: 자기소개서 작성, 포트폴리오, 자격증 공부"
-              className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-amber-500 transition-colors disabled:bg-neutral-900 disabled:text-neutral-500"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs text-black placeholder-slate-400 focus:outline-none focus:border-[#FE9A00] transition-colors disabled:bg-slate-100 disabled:text-slate-400"
             />
           </div>
         </div>
 
-        {/* Start Button */}
+        {/* Start Button (검은색 배경, 흰색 텍스트, #FE9A00 아이콘) */}
         <button
           onClick={handleStart}
-          className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+          className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
         >
-          <Play className="w-4 h-4 fill-current text-stone-950" />
+          <Play className="w-4 h-4 fill-[#FE9A00] text-[#FE9A00]" />
           <span>예약 잠금 모드 실행</span>
         </button>
       </div>

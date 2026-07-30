@@ -47,18 +47,15 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
   };
 
   return (
-    <div className="min-h-full flex items-start sm:items-center justify-center max-w-lg mx-auto px-4 pt-8 sm:pt-12 pb-6 text-neutral-900 relative select-none">
-      <div className="w-full bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-5 text-center space-y-4 shadow-2xl relative overflow-hidden">
-        {/* Background Light Glow */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
-
+    <div className="min-h-full flex items-start sm:items-center justify-center max-w-lg mx-auto px-4 pt-8 sm:pt-12 pb-6 text-black relative select-none">
+      <div className="w-full bg-white border border-slate-200 rounded-3xl p-5 text-center space-y-4 shadow-2xl relative overflow-hidden">
         <div className="space-y-3">
-          <h2 className="text-xl font-extrabold font-serif text-white leading-snug break-keep">
+          <h2 className="text-xl font-extrabold font-serif text-black leading-snug break-keep">
             지휘 미션을 훌륭히 통과했습니다!<br />이제 어떻게 하시겠어요?
           </h2>
 
-          <div className="p-2.5 bg-neutral-900/90 rounded-2xl border border-neutral-800 text-xs text-neutral-300 break-keep">
-            원래 목표: <strong className="text-amber-400 font-bold">{focusTask}</strong>
+          <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-black/80 break-keep">
+            원래 목표: <strong className="text-[#FE9A00] font-bold">{focusTask}</strong>
           </div>
         </div>
 
@@ -66,16 +63,16 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
           {/* Option 1: Choose NOT to use (Return to phone home) */}
           <button
             onClick={handleChooseNotToUse}
-            className="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+            className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-extrabold text-sm rounded-2xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
-            <ShieldCheck className="w-5 h-5 shrink-0 text-stone-950" />
-            <span className="text-sm font-extrabold text-stone-950 break-keep">성공했음에도 사용 안하기 (추천)</span>
+            <ShieldCheck className="w-5 h-5 shrink-0 text-[#FE9A00]" />
+            <span className="text-sm font-extrabold text-white break-keep">성공했음에도 사용 안하기 (추천)</span>
           </button>
 
           {/* Option 2: Fully Unlock Lock */}
           <button
             onClick={handleFullyUnlock}
-            className="w-full py-3.5 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs rounded-2xl border border-white flex items-center justify-center gap-2 transition-all shadow-md"
+            className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-black font-extrabold text-xs rounded-2xl border border-slate-200 flex items-center justify-center gap-2 transition-all shadow-sm"
           >
             <Unlock className="w-4 h-4 text-black shrink-0 stroke-[2.5]" />
             <span className="text-sm font-extrabold text-black break-keep">성공했으니 잠금 완전 해제하기</span>

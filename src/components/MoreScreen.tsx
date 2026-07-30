@@ -82,18 +82,18 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
   const avatarUrl = user?.user_metadata?.avatar_url;
 
   return (
-    <div className="min-h-full flex flex-col justify-start max-w-2xl mx-auto w-full px-4 pt-4 pb-20 gap-4 text-neutral-900">
-      {/* 프로필 정보 배너 */}
-      <div className="p-4 rounded-3xl bg-neutral-950 ring-1 ring-black/5 shadow-xl flex items-center gap-3 shrink-0">
+    <div className="min-h-full flex flex-col justify-start max-w-2xl mx-auto w-full px-4 pt-4 pb-20 gap-4 text-black">
+      {/* 프로필 정보 배너 (검은색 배경, 흰색 텍스트) */}
+      <div className="p-4 rounded-3xl bg-black text-white border border-black shadow-xl flex items-center gap-3 shrink-0">
         {/* 프로필 사진 영역 (왼쪽) */}
-        <div className="relative w-12 h-12 rounded-full bg-neutral-800 border-2 border-amber-400 flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner group">
+        <div className="relative w-12 h-12 rounded-full bg-neutral-900 border-2 border-[#FE9A00] flex items-center justify-center flex-shrink-0 overflow-hidden shadow-inner group">
           {avatarUrl ? (
             <img src={avatarUrl} alt="프로필 사진" className="w-full h-full object-cover" />
           ) : (
-            <UserIcon className="w-6 h-6 text-amber-400" />
+            <UserIcon className="w-6 h-6 text-[#FE9A00]" />
           )}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-            <Camera className="w-4 h-4 text-amber-400" />
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+            <Camera className="w-4 h-4 text-[#FE9A00]" />
           </div>
         </div>
 
@@ -105,11 +105,11 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
             </h1>
             <button
               onClick={openNicknameEdit}
-              className="p-1.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-amber-400 border border-amber-400/80 transition-colors shrink-0"
+              className="p-1.5 rounded-full bg-neutral-800 hover:bg-neutral-700 text-[#FE9A00] border border-neutral-700 transition-colors shrink-0"
               title="닉네임 수정"
               aria-label="닉네임 수정"
             >
-              <Pencil className="w-3.5 h-3.5 text-amber-400" />
+              <Pencil className="w-3.5 h-3.5 text-[#FE9A00]" />
             </button>
           </div>
           <p className="text-xs text-neutral-400 font-mono truncate mt-0.5">
@@ -120,9 +120,9 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
         {/* 로그아웃 버튼 */}
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-neutral-200 text-black font-extrabold text-xs border border-white transition-colors active:scale-95 shadow-md"
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-extrabold text-xs border border-neutral-800 transition-colors active:scale-95 shadow-sm"
         >
-          <LogOut className="w-3.5 h-3.5 text-black stroke-[2.5]" />
+          <LogOut className="w-3.5 h-3.5 text-[#FE9A00] stroke-[2.5]" />
           <span>로그아웃</span>
         </button>
       </div>
@@ -130,31 +130,31 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
       <div className="space-y-3">
         {menuSections.map((section, idx) => (
           <div key={idx} className="space-y-1.5">
-            <h2 className="text-[11px] font-bold text-neutral-600 uppercase tracking-wider px-2">
+            <h2 className="text-[11px] font-bold text-black/60 uppercase tracking-wider px-2">
               {section.title}
             </h2>
-            <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl overflow-hidden divide-y divide-neutral-800 shadow-lg">
+            <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden divide-y divide-slate-100 shadow-lg">
               {section.items.map((item, itemIdx) => {
                 const Icon = item.icon;
                 return (
                   <button
                     key={itemIdx}
                     onClick={() => { if (item.target) onNavigateToScreen(item.target); }}
-                    className="w-full px-3.5 py-3 flex items-center justify-between text-left hover:bg-neutral-800/60 transition-all text-xs group"
+                    className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-black hover:text-white transition-all text-xs group active:bg-black active:text-white"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-neutral-800/80 border border-amber-400 flex items-center justify-center text-amber-400 shrink-0">
-                        <Icon className="w-4 h-4 text-amber-400" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0 group-hover:bg-[#FE9A00] group-hover:text-black transition-all">
+                        <Icon className="w-4 h-4 text-[#FE9A00] group-hover:text-black transition-colors" />
                       </div>
-                      <span className="font-bold text-amber-400 group-hover:text-amber-300 text-sm break-keep">{item.label}</span>
+                      <span className="font-bold text-black group-hover:text-white text-sm break-keep transition-colors">{item.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {item.badge && (
-                        <span className="px-2.5 py-1 rounded-md bg-white text-black text-[10px] font-extrabold border border-white shadow-sm">
+                        <span className="px-2.5 py-1 rounded-md bg-[#FE9A00] text-black text-[10px] font-extrabold border border-[#e08800] shadow-sm">
                           {item.badge}
                         </span>
                       )}
-                      <ChevronRight className="w-4 h-4 text-neutral-500 group-hover:text-white group-hover:translate-x-0.5 transition-transform" />
+                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </button>
                 );
