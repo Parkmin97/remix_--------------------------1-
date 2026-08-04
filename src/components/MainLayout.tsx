@@ -18,7 +18,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <NewHomeScreen onSelectTab={onTabChange} />;
+        return <NewHomeScreen onSelectTab={onTabChange} activeSession={activeSession} />;
       case 'mode-a':
         return <ModeAScreen onStartSession={onStartSession} activeSession={activeSession} />;
       case 'mode-b':

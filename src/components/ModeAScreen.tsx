@@ -99,24 +99,22 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
           <h1 className="text-lg font-serif font-bold flex items-center gap-2 break-keep">
             <Lock className="w-5 h-5 text-[#FE9A00]" />
             <span className="text-white">지금 잠금 모드</span>
-            {isLocked && (
-              <span className="text-[10px] bg-[#FE9A00] text-black px-2 py-0.5 rounded-full font-mono font-extrabold">
-                실행 중 (일부 설정 비활성화)
-              </span>
-            )}
           </h1>
         </div>
         <p className="text-xs text-neutral-300 leading-relaxed break-keep">
-          지금부터 즉시 소셜미디어를 멀리하고 집중을 시작합니다. 설정한 시간 동안 몰입 환경을 조성해 드립니다.
+          {isLocked
+            ? '시간 설정 및 오늘의 목표 할 일은 변경 불가하며 잠금할 앱 추가 선택만 가능합니다.'
+            : '지금부터 즉시 소셜미디어를 멀리하고 집중을 시작합니다. 설정한 시간 동안 몰입 환경을 조성해 드립니다.'}
         </p>
       </div>
 
       {/* Main Settings Form Card */}
       <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-2xl space-y-4 flex-1">
-          {/* App Selector Slot Widget (항상 활성화) */}
+          {/* 잠금 대상 앱 선택 컴포넌트 */}
           <AppSelector
             selectedServices={selectedServices}
             onToggleService={handleToggleService}
+            lockedServices={isLocked ? activeSession?.targetServices?.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id)) : []}
           />
 
           {/* Form Inputs (잠금 모드 실행 중에는 비활성화) */}

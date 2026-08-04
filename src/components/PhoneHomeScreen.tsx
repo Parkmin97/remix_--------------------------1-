@@ -608,7 +608,11 @@ export const PhoneHomeScreen: React.FC<PhoneHomeScreenProps> = ({
                   <div className="bg-[#FE9A00] h-full w-full animate-pulse rounded-full"></div>
                 </div>
                 <div className="flex items-center justify-center gap-1 text-[11px] text-white font-medium">
-                  <span>잠금 모드 상세 설정 진입 중...</span>
+                  <span>
+                    {activeSession
+                      ? '잠금 모드 상세 설정 진입 중...'
+                      : '내인생 지휘자 어플 진입 중...'}
+                  </span>
                   <ArrowRight className="w-3.5 h-3.5 text-[#FE9A00] animate-pulse" />
                 </div>
               </div>

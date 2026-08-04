@@ -6,11 +6,13 @@ import { TargetService } from '../types';
 interface AppSelectorProps {
   selectedServices: string[];
   onToggleService: (id: string) => void;
+  lockedServices?: string[];
 }
 
 export const AppSelector: React.FC<AppSelectorProps> = ({
   selectedServices,
   onToggleService,
+  lockedServices = [],
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -47,33 +49,40 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
           </div>
 
           {/* Selected App Slots */}
-          {selectedList.map((service) => (
-            <div key={service.id} className="relative flex flex-col items-center gap-1 group">
-              <div className="relative">
-                {/* Delete (-) Badge */}
-                <button
-                  type="button"
-                  onClick={() => onToggleService(service.id)}
-                  className="absolute -top-1.5 -left-1.5 z-10 w-5 h-5 rounded-full bg-white border border-slate-300 text-slate-600 hover:text-rose-500 hover:border-rose-500 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-90"
-                  title={`${service.name} 제거`}
-                >
-                  <Minus className="w-3.5 h-3.5 stroke-[3]" />
-                </button>
+          {selectedList.map((service) => {
+            const isLocked = lockedServices.includes(service.id);
+            return (
+              <div key={service.id} className="relative flex flex-col items-center gap-1 group">
+                <div className="relative">
+                  {/* Delete (-) Badge: 기존 잠금된 앱은 해제/제거 불가 */}
+                  {!isLocked && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleService(service.id)}
+                      className="absolute -top-1.5 -left-1.5 z-10 w-5 h-5 rounded-full bg-white border border-slate-300 text-slate-600 hover:text-rose-500 hover:border-rose-500 shadow-md flex items-center justify-center transition-all hover:scale-110 active:scale-90"
+                      title={`${service.name} 제거`}
+                    >
+                      <Minus className="w-3.5 h-3.5 stroke-[3]" />
+                    </button>
+                  )}
 
-                {/* App Icon */}
-                <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-xl font-bold shadow-md transition-transform group-hover:scale-105`}
-                >
-                  {service.name[0]}
+                  {/* App Icon */}
+                  <div
+                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-xl font-bold shadow-md transition-transform group-hover:scale-105 ${
+                      isLocked ? 'ring-2 ring-black' : ''
+                    }`}
+                  >
+                    {service.name[0]}
+                  </div>
                 </div>
-              </div>
 
-              {/* App Label */}
-              <span className="text-[11px] font-medium text-black truncate max-w-[64px] text-center">
-                {service.name}
-              </span>
-            </div>
-          ))}
+                {/* App Label */}
+                <span className="text-[11px] font-medium text-black truncate max-w-[64px] text-center">
+                  {service.name}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -85,7 +94,11 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div>
                 <h3 className="text-base font-bold font-serif text-black">잠금할 앱 선택</h3>
-                <p className="text-[11px] text-black/60">통제할 소셜 앱을 체크하세요</p>
+                <p className="text-[11px] text-black/60">
+                  {lockedServices.length > 0
+                    ? '기존 잠금 앱은 해제할 수 없으며 추가 선택만 가능합니다'
+                    : '통제할 소셜 앱을 체크하세요'}
+                </p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -99,14 +112,21 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
               {TARGET_SERVICES.map((service: TargetService) => {
                 const isChecked = selectedServices.includes(service.id);
+                const isLocked = lockedServices.includes(service.id);
                 return (
                   <div
                     key={service.id}
-                    onClick={() => onToggleService(service.id)}
-                    className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                      isChecked
-                        ? 'bg-slate-100 border-black text-black font-semibold'
-                        : 'bg-slate-50 border-slate-200 text-black/70 hover:bg-slate-100'
+                    onClick={() => {
+                      if (!isLocked) {
+                        onToggleService(service.id);
+                      }
+                    }}
+                    className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+                      isLocked
+                        ? 'bg-slate-100 border-slate-200 text-black/50 cursor-not-allowed opacity-50'
+                        : isChecked
+                        ? 'bg-slate-100 border-2 border-black text-black font-semibold cursor-pointer shadow-sm'
+                        : 'bg-white border-2 border-slate-300 hover:border-slate-400 text-black cursor-pointer shadow-sm hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -117,18 +137,19 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
                       </div>
                       <div>
                         <div className="text-xs font-bold text-black">{service.name}</div>
-                        <div className="text-[10px] text-black/60">{service.category}</div>
                       </div>
                     </div>
 
                     <div
-                      className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
-                        isChecked
+                      className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                        isLocked
+                          ? 'bg-slate-400 border-slate-400 text-white'
+                          : isChecked
                           ? 'bg-black border-black text-white'
-                          : 'border-slate-300 bg-white'
+                          : 'border-slate-400 bg-white'
                       }`}
                     >
-                      {isChecked && <Check className="w-3.5 h-3.5 stroke-[3] text-white" />}
+                      {(isChecked || isLocked) && <Check className="w-3.5 h-3.5 stroke-[3] text-white" />}
                     </div>
                   </div>
                 );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { getDailyReports, clearAllData } from '../lib/storage';
-import { CheckCircle2, Sparkles, Clock, Trash2, ArrowLeft, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { ShieldCheck, Smartphone, Sparkles, Trash2, ArrowLeft, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 
 interface ReportScreenProps {
   onBack: () => void;
@@ -70,6 +70,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
     }
   };
 
+  // 선택된 카드 state: 'focus' (지켜낸 시간) | 'sns' (SNS 이용 시간)
+  const [activeTab, setActiveTab] = useState<'focus' | 'sns'>('focus');
+
   return (
     <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-4 gap-3.5 text-black relative select-none">
       {/* Title Header */}
@@ -128,40 +131,62 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
 
       {/* Summary Highlight Cards */}
       <div className="grid grid-cols-2 gap-2.5 shrink-0">
-        <div className="p-3.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-black font-bold">
+        <button
+          type="button"
+          onClick={() => setActiveTab('focus')}
+          className={`p-3.5 rounded-3xl border shadow-xl space-y-1 text-left transition-all cursor-pointer ${
+            activeTab === 'focus'
+              ? 'bg-black text-white border-black ring-2 ring-black'
+              : 'bg-white text-black border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <div className="flex items-center justify-between text-[11px] font-bold">
             <span className="break-keep">지켜낸 시간</span>
-            <Clock className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
+            <ShieldCheck className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
           </div>
-          <div className="text-2xl font-serif font-extrabold text-black">
+          <div className="text-2xl font-serif font-extrabold">
             {totalFocusMinutes}분
           </div>
-        </div>
+        </button>
 
-        <div className="p-3.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-black font-bold">
+        <button
+          type="button"
+          onClick={() => setActiveTab('sns')}
+          className={`p-3.5 rounded-3xl border shadow-xl space-y-1 text-left transition-all cursor-pointer ${
+            activeTab === 'sns'
+              ? 'bg-black text-white border-black ring-2 ring-black'
+              : 'bg-white text-black border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          <div className="flex items-center justify-between text-[11px] font-bold">
             <span className="break-keep">SNS 이용 시간</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
+            <Smartphone className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
           </div>
-          <div className="text-2xl font-serif font-extrabold text-black">
+          <div className="text-2xl font-serif font-extrabold">
             {totalSnsMinutes}분
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Weekly Visual Chart Bar */}
       <div className="p-4.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3 shrink-0 flex flex-col">
         <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2 shrink-0">
-          <Sparkles className="w-4 h-4 text-[#FE9A00]" />
-          <span>지휘 약속 달성 기록 (주간)</span>
+          {activeTab === 'focus' ? (
+            <ShieldCheck className="w-4 h-4 text-[#FE9A00]" />
+          ) : (
+            <Smartphone className="w-4 h-4 text-[#FE9A00]" />
+          )}
+          <span>
+            {activeTab === 'focus' ? '지켜낸 시간 주간 기록' : 'SNS 이용시간 주간 기록'}
+          </span>
         </h3>
 
         <div className="space-y-2.5 pt-1">
           {weekDays.map((w, idx) => {
             const r = reportByDateMap.get(w.dateStr);
-            const focusMins = r?.completedFocusMinutes ?? 0;
+            const minutes = activeTab === 'focus' ? (r?.completedFocusMinutes ?? 0) : (r?.totalSnsMinutes ?? 0);
             const maxVal = 240;
-            const percentage = Math.min(100, Math.round((focusMins / maxVal) * 100));
+            const percentage = Math.min(100, Math.round((minutes / maxVal) * 100));
 
             return (
               <div key={idx} className="space-y-1">
@@ -170,13 +195,13 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${w.dayName === '일' ? 'bg-rose-100 text-rose-600 border border-rose-200' : w.dayName === '토' ? 'bg-sky-100 text-sky-600 border border-sky-200' : 'bg-slate-100 text-slate-700'}`}>{w.dayName}</span>
                     <span>{w.dateStr}</span>
                   </span>
-                  <span className="font-semibold text-black break-keep">{focusMins}분 완료</span>
+                  <span className="font-semibold text-black break-keep">{minutes}분</span>
                 </div>
 
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                   <div
                     className="h-full bg-black rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(focusMins > 0 ? 5 : 0, percentage)}%` }}
+                    style={{ width: `${Math.max(minutes > 0 ? 5 : 0, percentage)}%` }}
                   ></div>
                 </div>
               </div>

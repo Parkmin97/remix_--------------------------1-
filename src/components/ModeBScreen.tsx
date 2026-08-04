@@ -107,15 +107,12 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
           <h1 className="text-lg font-serif font-bold flex items-center gap-2 break-keep">
             <LockOpen className="w-5 h-5 text-[#FE9A00]" />
             <span className="text-white">예약 잠금 모드</span>
-            {isModeBActive && (
-              <span className="text-[10px] bg-[#FE9A00] text-black px-2 py-0.5 rounded-full font-mono font-extrabold">
-                실행 중 (일부 설정 비활성화)
-              </span>
-            )}
           </h1>
         </div>
         <p className="text-xs text-neutral-300 leading-snug break-keep">
-          SNS 이용 목적과 시간을 먼저 설정해 무의식적 스크롤을 방지하고, 이용 종료 후 집중 모드로 자동 연결됩니다.
+          {isModeBActive
+            ? '시간 설정 및 오늘의 목표 할 일은 변경 불가하며 잠금할 앱 추가 선택만 가능합니다.'
+            : 'SNS 이용 목적과 시간을 먼저 설정해 무의식적 스크롤을 방지하고, 이용 종료 후 집중 모드로 자동 연결됩니다.'}
         </p>
       </div>
 
@@ -124,6 +121,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
         <AppSelector
           selectedServices={selectedServices}
           onToggleService={handleToggleService}
+          lockedServices={isModeBActive ? activeSession?.targetServices?.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id)) : []}
         />
 
         {/* Form Inputs (예약 잠금 모드 실행 중에는 비활성화) */}
