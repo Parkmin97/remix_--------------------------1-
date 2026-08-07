@@ -105,6 +105,7 @@ export type AppCategoryId =
   | 'SHOPPING'
   | 'MUSIC'
   | 'FINANCE'
+  | 'BROWSER'
   | 'ETC';
 
 export interface AppCategory {
@@ -128,10 +129,46 @@ export interface InstalledApp {
   label: string;
   /** 우리 매핑표 기준으로 확정된 카테고리 */
   categoryId: AppCategoryId;
-  /** 안드로이드 ApplicationInfo.category 원본값 (미설정이면 -1) */
+  /**
+   * 안드로이드 ApplicationInfo.category 원본값 (미설정이면 -1).
+   * ⚠️ 분류에는 쓰지 않는다 — 실측에서 신뢰할 수 없다는 결론(appCategories.ts 상단 주석).
+   * 디버깅·진단 표시 용도로만 보관한다.
+   */
   systemCategory?: number;
   /** 앱 아이콘 (data URI 또는 base64) */
   iconBase64?: string;
+}
+
+/**
+ * 패키지명 → 카테고리 매핑표 1벌.
+ * 앱에 내장된 기본값과 원격에서 받은 갱신본이 같은 모양을 쓴다.
+ */
+export interface AppCategoryMapping {
+  /** 클수록 최신. 내장본보다 큰 버전만 병합한다 */
+  version: number;
+  /** 매핑표 생성 시각 (ISO 문자열) */
+  updatedAt: string;
+  packages: Record<string, AppCategoryId>;
+}
+
+/** 원격 매핑표 공급자 계약 — 서버가 생기면 이 인터페이스만 구현하면 된다 */
+export interface RemoteMappingSource {
+  /**
+   * 원격 매핑표를 가져온다.
+   * 갱신할 것이 없거나 실패하면 null 을 반환한다(내장 기본값 유지).
+   */
+  fetchMapping(currentVersion: number): Promise<AppCategoryMapping | null>;
+}
+
+/** 원격 매핑표 반영 결과 */
+export interface MappingApplyResult {
+  applied: boolean;
+  /** 반영 후 실제로 사용 중인 매핑표 버전 */
+  version: number;
+  /** 등록된 패키지 총 개수 */
+  packageCount: number;
+  /** 반영하지 않았다면 그 사유 */
+  reason?: string;
 }
 
 export interface DailyReport {

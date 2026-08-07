@@ -15,4 +15,21 @@ public class MainActivity extends BridgeActivity {
         // 확인 방법: adb logcat | grep AppListHelper
         AppListHelper.INSTANCE.logInstalledApps(this);
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // [스파이크 2026-08-07] 권한 상태 확인용.
+        // onResume 에 두는 이유: 사용자가 설정 화면에서 권한을 켜고 돌아왔을 때
+        // 바로 반영되는지 확인해야 하기 때문이다. 실제 구현에서도 이 시점에 다시 확인한다.
+        // 확인 방법: adb logcat | grep PermissionHelper
+        PermissionHelper.INSTANCE.logPermissionStatus(this);
+
+        // [스파이크 2026-08-07] 권한이 다 있으면 감시 서비스를 켠다.
+        // 정식 구현에서는 사용자가 "차단 시작"을 눌렀을 때만 켜야 한다.
+        if (PermissionHelper.INSTANCE.canBlock(this)) {
+            BlockerService.Companion.start(this);
+        }
+    }
 }

@@ -56,8 +56,29 @@ object AppListHelper {
         val packageName: String,
         val appName: String,
         /** 제조사/OS 선탑재 앱인지. **거르는 기준이 아니라 참고용 정보다.** */
-        val isPreinstalled: Boolean
+        val isPreinstalled: Boolean,
+        /**
+         * 안드로이드가 알려주는 앱 카테고리 (ApplicationInfo.category).
+         *
+         * ⚠️ 앱 개발자가 매니페스트에 **선택적으로** 넣는 값이라 미설정(-1)이 흔하다.
+         *    이 값만 믿고 카테고리 분류를 하면 안 된다.
+         *    실제 미설정 비율은 [logInstalledApps] 로 측정한다.
+         */
+        val systemCategory: Int
     )
+
+    /** 안드로이드 카테고리 상수를 사람이 읽을 수 있게 변환한다. */
+    private fun categoryName(category: Int): String = when (category) {
+        ApplicationInfo.CATEGORY_GAME -> "게임"
+        ApplicationInfo.CATEGORY_AUDIO -> "오디오"
+        ApplicationInfo.CATEGORY_VIDEO -> "동영상"
+        ApplicationInfo.CATEGORY_IMAGE -> "이미지"
+        ApplicationInfo.CATEGORY_SOCIAL -> "소셜"
+        ApplicationInfo.CATEGORY_NEWS -> "뉴스"
+        ApplicationInfo.CATEGORY_MAPS -> "지도"
+        ApplicationInfo.CATEGORY_PRODUCTIVITY -> "생산성"
+        else -> "미분류"
+    }
 
     /**
      * 홈 화면에 아이콘이 있는 앱을 모두 반환한다.
@@ -102,7 +123,13 @@ object AppListHelper {
                 InstalledApp(
                     packageName = pkg,
                     appName = appInfo.loadLabel(pm).toString(),
-                    isPreinstalled = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+                    isPreinstalled = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0,
+                    // category 는 API 26부터. minSdk 24라 하위 버전은 미분류로 처리한다.
+                    systemCategory = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        appInfo.category
+                    } else {
+                        ApplicationInfo.CATEGORY_UNDEFINED
+                    }
                 )
             }
             // 같은 앱이 여러 진입점(액티비티)을 가질 수 있어 패키지 기준으로 중복 제거
@@ -124,8 +151,30 @@ object AppListHelper {
         Log.i(TAG, "-----------------------------")
         apps.forEach { app ->
             val mark = if (app.isPreinstalled) "[선탑재]" else "        "
-            Log.i(TAG, "  $mark ${app.appName}  |  ${app.packageName}")
+            Log.i(TAG, "  $mark ${categoryName(app.systemCategory).padEnd(5)} | ${app.appName}  |  ${app.packageName}")
         }
+
+        // ── 카테고리 신뢰도 측정 ──
+        // 안드로이드가 주는 category 값이 실제로 얼마나 비어 있는지 숫자로 확인한다.
+        // 이 비율이 우리 자체 매핑표를 얼마나 크게 만들어야 하는지를 결정한다.
+        val undefined = apps.count { it.systemCategory == ApplicationInfo.CATEGORY_UNDEFINED }
+        val ratio = if (apps.isEmpty()) 0 else undefined * 100 / apps.size
+
+        Log.i(TAG, "===== 카테고리 신뢰도 =====")
+        Log.i(TAG, "전체 ${apps.size}개 중 미분류 ${undefined}개 → ${ratio}%")
+        Log.i(TAG, "----- 분포 -----")
+        apps.groupingBy { categoryName(it.systemCategory) }
+            .eachCount()
+            .toList()
+            .sortedByDescending { it.second }
+            .forEach { (name, count) -> Log.i(TAG, "  $name: ${count}개") }
+
+        Log.i(TAG, "----- 판정 -----")
+        Log.i(TAG, when {
+            ratio >= 70 -> "미분류 ${ratio}% → 안드로이드 값은 사실상 못 쓴다. 자체 매핑표에 100% 의존해야 함"
+            ratio >= 40 -> "미분류 ${ratio}% → 절반가량 못 쓴다. 매핑표를 크게 키워야 함"
+            else -> "미분류 ${ratio}% → 안드로이드 값이 쓸 만하다. 매핑표는 주요 앱만으로 충분"
+        })
         Log.i(TAG, "=============================")
     }
 }
