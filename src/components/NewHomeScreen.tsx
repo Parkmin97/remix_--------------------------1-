@@ -1,6 +1,7 @@
 import React from 'react';
 import { Shield, Lock, LockOpen, ArrowRight } from 'lucide-react';
 import { TabType } from './BottomTabBar';
+import { SessionData } from '../types';
 
 interface NewHomeScreenProps {
   onSelectTab: (tab: TabType) => void;

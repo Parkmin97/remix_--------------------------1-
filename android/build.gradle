@@ -9,6 +9,9 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'com.google.gms:google-services:4.4.4'
+        // 차단 엔진을 Kotlin으로 작성하기 위해 추가 (2026-08-07)
+        // buildscript 블록은 variables.gradle 로드 전에 실행되므로 버전을 직접 명시한다
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
