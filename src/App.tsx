@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
+import { Capacitor } from '@capacitor/core';
 import { SessionData } from './types';
 import { getStoredActiveSession, saveActiveSession, getOnboardingCompleted, getSoundMuted } from './lib/storage';
 import { audioSynthesizer } from './lib/audioSynthesizer';
@@ -27,8 +28,16 @@ import { Blocker, goToRealHomeScreen } from './lib/blocker';
 import { loadAppCatalog } from './lib/appCatalog';
 
 export default function App() {
-  // 차단 화면(네이티브)에서 열리면 URL 로 시작 화면이 지정된다. 일반 실행이면 기존대로 랜딩부터.
-  const [currentTab, setCurrentTab] = useState<string>(() => getInitialScreen() || 'landing');
+  const [currentTab, setCurrentTab] = useState<string>(() => {
+    // 차단 화면(네이티브)에서 열리면 URL 로 시작 화면이 지정된다.
+    const fromUrl = getInitialScreen();
+    if (fromUrl) return fromUrl;
+
+    // 설치된 앱에서는 랜딩 페이지가 필요 없다. 이미 설치를 마친 사용자에게
+    // "무료로 시작하기"를 다시 보여줄 이유가 없다. 바로 로그인/홈으로 보낸다.
+    // 랜딩은 웹으로 배포할 때의 홍보 페이지로만 남긴다.
+    return Capacitor.isNativePlatform() ? 'home' : 'landing';
+  });
   const [activeSession, setActiveSession] = useState<SessionData | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);
