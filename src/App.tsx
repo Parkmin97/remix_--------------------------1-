@@ -26,6 +26,8 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
 import { BlockChoiceScreen } from './components/BlockChoiceScreen';
 import { getBlockInfo, getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
+import { Blocker } from './lib/blocker';
+import { loadAppCatalog } from './lib/appCatalog';
 
 export default function App() {
   // 차단 화면(네이티브)에서 열리면 URL 로 시작 화면이 지정된다. 일반 실행이면 기존대로 랜딩부터.
@@ -37,6 +39,8 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
   const [mainTab, setMainTab] = useState<TabType>('home');
+  // 앱 목록은 비동기로 도착한다. 도착하면 이 값을 올려 화면을 다시 그린다.
+  const [, setCatalogVersion] = useState(0);
 
   // Initialize on Mount
   useEffect(() => {
@@ -55,6 +59,17 @@ export default function App() {
     const muted = getSoundMuted();
     setIsMuted(muted);
     audioSynthesizer.setMuted(muted);
+
+    // 기기에 설치된 앱 목록을 읽어온다. 잠글 앱 선택 화면이 이걸 쓴다.
+    // 차단 화면에서는 필요 없으므로 건너뛴다(로딩만 느려진다).
+    if (!isBlockMode()) {
+      loadAppCatalog()
+        .then(apps => {
+          setCatalogVersion(v => v + 1); // 목록이 도착했으니 다시 그린다
+          console.info(`[App] 설치된 앱 ${apps.length}개 로드됨`);
+        })
+        .catch(err => console.warn('[App] 앱 목록 로드 실패', err));
+    }
   }, []);
 
   // Supabase 인증 상태 구독
@@ -99,6 +114,20 @@ export default function App() {
   const handleStartSession = (session: SessionData) => {
     saveActiveSession(session);
     setActiveSession(session);
+
+    // 네이티브 차단 엔진에 세션을 넘긴다. 실제 앱 차단은 여기서부터 시작된다.
+    // 웹 브라우저에서 실행 중이면 조용히 넘어간다(개발 편의).
+    const packages = session.targetServices.map(s => s.id).filter(Boolean);
+    if (packages.length > 0) {
+      Blocker.startSession({
+        sessionId: session.id,
+        lockEndsAt: new Date(session.focusEndsAt).getTime(),
+        // 모드 B는 "먼저 M분 사용" 구간이 있다. 그 시간까지는 차단하지 않는다.
+        usageEndsAt: session.usageEndsAt ? new Date(session.usageEndsAt).getTime() : 0,
+        blockedPackages: packages,
+      }).catch(err => console.warn('[App] 네이티브 차단 시작 실패(웹 환경일 수 있음)', err));
+    }
+
     setCurrentTab('phone-home');
   };
 

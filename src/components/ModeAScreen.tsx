@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Lock, Clock, Play, ArrowRight, CheckSquare } from 'lucide-react';
-import { TARGET_SERVICES } from '../data/targetServices';
+import { getAppCatalog } from '../lib/appCatalog';
 import { SessionData } from '../types';
 import { saveActiveSession } from '../lib/storage';
 import { TimeSlotPicker } from './TimeSlotPicker';
@@ -61,7 +61,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     if (activeSession) {
       const updatedSession: SessionData = {
         ...activeSession,
-        targetServices: TARGET_SERVICES.filter(s => selectedServices.includes(s.id)),
+        targetServices: getAppCatalog().filter(s => selectedServices.includes(s.id)),
       };
       saveActiveSession(updatedSession);
       onStartSession(updatedSession);
@@ -75,7 +75,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
       id: `session-${Date.now()}`,
       mode: 'FOCUS_NOW',
       state: 'FOCUS_ACTIVE',
-      targetServices: TARGET_SERVICES.filter(s => selectedServices.includes(s.id)),
+      targetServices: getAppCatalog().filter(s => selectedServices.includes(s.id)),
       focusDurationMinutes: focusDuration,
       focusTask,
       missionBeatType: '4/4',

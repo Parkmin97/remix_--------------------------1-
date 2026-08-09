@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Minus, X, Check, LayoutGrid } from 'lucide-react';
-import { TARGET_SERVICES } from '../data/targetServices';
+import { getAppCatalog } from '../lib/appCatalog';
 import { TargetService } from '../types';
 
 interface AppSelectorProps {
@@ -16,7 +16,7 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const selectedList = TARGET_SERVICES.filter((s) =>
+  const selectedList = getAppCatalog().filter((s) =>
     selectedServices.includes(s.id)
   );
 
@@ -110,7 +110,7 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
 
             {/* App Checkbox List */}
             <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {TARGET_SERVICES.map((service: TargetService) => {
+              {getAppCatalog().map((service: TargetService) => {
                 const isChecked = selectedServices.includes(service.id);
                 const isLocked = lockedServices.includes(service.id);
                 return (
