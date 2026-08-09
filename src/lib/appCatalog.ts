@@ -71,6 +71,35 @@ export function getAppCatalog(): TargetService[] {
   return cached ?? TARGET_SERVICES;
 }
 
+/** 마지막으로 실제 조회한 시각. 화면을 열 때마다 네이티브를 부르지 않도록 막는다. */
+let lastLoadedAt = 0;
+
+/**
+ * 목록을 다시 읽어야 하는지 확인하고, 필요하면 읽는다.
+ *
+ * ■ 왜 필요한가
+ *   사용자가 앱을 **새로 설치한 직후** 우리 앱에서 잠그려 할 수 있다.
+ *   목록을 앱 시작 시 한 번만 읽으면 방금 깐 앱이 안 보여서
+ *   "왜 없지?" 하게 된다.
+ *   잠글 앱을 고르는 화면에 들어올 때마다 확인하면 자연스럽게 해결된다.
+ *
+ * @returns 목록이 실제로 바뀌었으면 true (화면을 다시 그려야 한다)
+ */
+export async function refreshAppCatalogIfStale(): Promise<boolean> {
+  // 앱 설치는 자주 일어나는 일이 아니다. 화면을 들락날락할 때마다
+  // 수십 개 앱 정보를 다시 읽을 이유는 없다.
+  const now = Date.now();
+  if (now - lastLoadedAt < 10_000) return false;
+  lastLoadedAt = now;
+
+  // 개수만 비교하면 "하나 지우고 하나 깐" 경우를 놓친다. 패키지명까지 본다.
+  const before = new Set((cached ?? []).map(a => a.id));
+  const after = await loadAppCatalog();
+
+  if (before.size !== after.length) return true;
+  return after.some(a => !before.has(a.id));
+}
+
 /** 목록을 다 읽었는지. 로딩 표시에 쓴다. */
 export function isAppCatalogLoaded(): boolean {
   return cached !== null;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Minus, X, Check, LayoutGrid } from 'lucide-react';
-import { getAppCatalog } from '../lib/appCatalog';
+import { getAppCatalog, refreshAppCatalogIfStale } from '../lib/appCatalog';
 import { APP_CATEGORIES } from '../data/appCategories';
 import { TargetService } from '../types';
 
@@ -16,6 +16,25 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
   lockedServices = [],
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // 목록이 갱신되면 이 값을 올려 화면을 다시 그린다.
+  const [, setCatalogVersion] = useState(0);
+
+  /**
+   * 앱 선택 모달을 연다.
+   *
+   * 열 때마다 설치된 앱 목록을 다시 확인한다.
+   * 사용자가 방금 인스타를 깔고 잠그러 왔는데 목록에 없으면 고장으로 보인다.
+   */
+  const openModal = () => {
+    setIsModalOpen(true);
+    refreshAppCatalogIfStale()
+      .then(changed => {
+        if (changed) setCatalogVersion(v => v + 1);
+      })
+      .catch(() => {
+        /* 조회 실패해도 기존 목록으로 계속 쓴다 */
+      });
+  };
 
   const catalog = getAppCatalog();
 
@@ -67,7 +86,7 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
           <div className="flex flex-col items-center gap-1">
             <button
               type="button"
-              onClick={() => setIsModalOpen(true)}
+              onClick={openModal}
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border-2 border-dashed border-slate-300 hover:border-[#FE9A00] hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-[#FE9A00] transition-all group active:scale-95 shadow-sm"
               title="앱 추가"
             >
