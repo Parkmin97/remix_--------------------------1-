@@ -23,6 +23,8 @@ object BlockSessionStore {
     private const val PREFS = "block_session"
 
     private const val KEY_SESSION_ID = "session_id"
+    /** 잠금이 실제로 시작된 시각. '지켜낸 시간'을 재려면 반드시 필요하다. */
+    private const val KEY_STARTED_AT = "started_at"
     private const val KEY_LOCK_ENDS_AT = "lock_ends_at"
     private const val KEY_USAGE_ENDS_AT = "usage_ends_at"
     private const val KEY_BLOCKED_PACKAGES = "blocked_packages"
@@ -65,6 +67,7 @@ object BlockSessionStore {
     ) {
         prefs(context).edit()
             .putString(KEY_SESSION_ID, sessionId)
+            .putLong(KEY_STARTED_AT, System.currentTimeMillis())
             .putLong(KEY_LOCK_ENDS_AT, lockEndsAt)
             .putLong(KEY_USAGE_ENDS_AT, usageEndsAt)
             .putStringSet(KEY_BLOCKED_PACKAGES, blockedPackages)
@@ -76,12 +79,31 @@ object BlockSessionStore {
     }
 
     /**
-     * 세션을 완전히 끝낸다. **미션 성공 시 호출된다.**
+     * 세션을 완전히 끝낸다.
      *
      * 사용자 플로우상 미션 성공은 "N분 해제"가 아니라 **잠금 자체의 종료**다.
+     *
+     * ⚠️ 지우기 전에 **실제 유지 시간을 이력에 남긴다.**
+     *    리포트의 '지켜낸 시간'이 이 기록에서 나온다.
+     *    설정한 시간이 아니라 실제로 버틴 시간이어야 하기 때문이다.
      */
-    fun endSession(context: Context, reason: String) {
-        prefs(context).edit().clear().apply()
+    fun endSession(context: Context, reason: String, endReason: LockHistoryStore.EndReason) {
+        val p = prefs(context)
+        val sessionId = p.getString(KEY_SESSION_ID, null)
+
+        if (sessionId != null) {
+            LockHistoryStore.record(
+                context = context,
+                sessionId = sessionId,
+                startedAt = p.getLong(KEY_STARTED_AT, 0L),
+                plannedEndsAt = p.getLong(KEY_LOCK_ENDS_AT, 0L),
+                endReason = endReason,
+                blockedAppCount = (p.getStringSet(KEY_BLOCKED_PACKAGES, emptySet()) ?: emptySet()).size,
+                launchAttempts = p.getInt(KEY_LAUNCH_ATTEMPTS, 0)
+            )
+        }
+
+        p.edit().clear().apply()
         Log.i(TAG, "세션 종료 — 사유: $reason")
     }
 
@@ -140,7 +162,7 @@ object BlockSessionStore {
 
         if (System.currentTimeMillis() < lockEndsAt) return false
 
-        endSession(context, "잠금 시간 종료")
+        endSession(context, "잠금 시간 종료", LockHistoryStore.EndReason.EXPIRED)
         onExpired?.invoke()
         return true
     }

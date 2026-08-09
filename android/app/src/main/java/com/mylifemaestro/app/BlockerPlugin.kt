@@ -136,16 +136,20 @@ class BlockerPlugin : Plugin() {
         call.resolve()
     }
 
-    /**
-     * 세션을 끝낸다. 미션 성공 시 호출된다.
-     * 우리 플로우에서 미션 성공은 "N분 해제"가 아니라 잠금 자체의 종료다.
+    /*
+     * ⚠️ endSession 을 웹에 노출하지 않는다. (2026-08-10 제거)
+     *
+     * 제품 플로우상 잠금을 푸는 길은 **지휘 미션 성공** 하나뿐이다.
+     * 웹에서 임의로 부를 수 있게 두면 `Blocker.endSession()` 한 줄로 잠금이 풀리는
+     * 뒷문이 된다. 실제로 호출하는 코드가 하나도 없으면서 구멍만 열려 있었다.
+     *
+     * 잠금 종료는 네이티브 안에서만 일어난다.
+     *   - 시간 만료      → BlockSessionStore.expireIfDue()
+     *   - 미션 성공      → BlockOverlayActivity 의 결과 처리
+     *
+     * 나중에 '비상 탈출구'(심사 요건)를 넣게 되면 그때 별도 메서드로 만들되,
+     * 대기 시간이나 횟수 제한 같은 마찰을 반드시 함께 설계할 것.
      */
-    @PluginMethod
-    fun endSession(call: PluginCall) {
-        val reason = call.getString("reason") ?: "웹에서 종료 요청"
-        BlockSessionStore.endSession(context, reason)
-        call.resolve()
-    }
 
     /** 미션을 시도했음을 기록한다. 실패해도 이번 세션에서는 재도전할 수 없다. */
     @PluginMethod
@@ -173,6 +177,78 @@ class BlockerPlugin : Plugin() {
         } catch (e: Exception) {
             call.reject("홈 화면으로 이동할 수 없습니다", e)
         }
+    }
+
+    // ─────────────────────────────────────────────
+    // 스크린타임
+    // ─────────────────────────────────────────────
+
+    /**
+     * 폰이 기록한 실제 사용 시간을 돌려준다.
+     *
+     * 우리가 앱 안에서 센 값이 아니라 안드로이드가 시스템 차원에서 집계한 값이다.
+     * 차단 감지에 쓰는 "사용 정보 접근" 권한을 그대로 쓰므로 추가 권한이 필요 없다.
+     */
+    @PluginMethod
+    fun getScreenTime(call: PluginCall) {
+        val days = call.getInt("days") ?: 7
+
+        if (!PermissionHelper.hasUsageStatsPermission(context)) {
+            call.reject("사용 정보 접근 권한이 없습니다")
+            return
+        }
+
+        val usage = ScreenTimeHelper.getDailyUsage(context, days)
+        val daysArray = JSArray()
+
+        usage.forEach { day ->
+            val appsArray = JSArray()
+            day.apps.forEach { app ->
+                appsArray.put(
+                    JSObject()
+                        .put("packageName", app.packageName)
+                        .put("appName", app.appName)
+                        .put("minutes", app.minutes)
+                )
+            }
+
+            daysArray.put(
+                JSObject()
+                    .put("date", day.date)
+                    .put("totalMinutes", day.totalMinutes)
+                    .put("apps", appsArray)
+            )
+        }
+
+        call.resolve(JSObject().put("days", daysArray))
+    }
+
+    /**
+     * 끝난 잠금들의 기록을 돌려준다. 리포트의 '지켜낸 시간'이 여기서 나온다.
+     *
+     * `heldMinutes` 는 설정한 시간이 아니라 **실제로 잠금이 유지된 시간**이다.
+     */
+    @PluginMethod
+    fun getLockHistory(call: PluginCall) {
+        val days = call.getInt("days") ?: 30
+        val entries = JSArray()
+
+        LockHistoryStore.getRecent(context, days).forEach { e ->
+            entries.put(
+                JSObject()
+                    .put("sessionId", e.sessionId)
+                    .put("date", e.date)
+                    .put("startedAt", e.startedAt)
+                    .put("endedAt", e.endedAt)
+                    .put("heldMinutes", e.heldMinutes)
+                    .put("plannedMinutes", e.plannedMinutes)
+                    .put("endReason", e.endReason)
+                    .put("blockedAppCount", e.blockedAppCount)
+                    .put("launchAttempts", e.launchAttempts)
+            )
+        }
+
+        call.resolve(JSObject().put("entries", entries))
     }
 
     /** 현재 잠금 상태를 조회한다. */

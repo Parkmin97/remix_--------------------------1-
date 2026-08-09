@@ -140,7 +140,11 @@ class BlockOverlayActivity : Activity() {
                 when (result) {
                     "success" -> {
                         // 우리 플로우에서 미션 성공은 "N분 해제"가 아니라 잠금 자체의 종료다.
-                        BlockSessionStore.endSession(this@BlockOverlayActivity, "미션 성공")
+                        BlockSessionStore.endSession(
+                            this@BlockOverlayActivity,
+                            "미션 성공",
+                            LockHistoryStore.EndReason.MISSION_SUCCESS
+                        )
                         Log.i(TAG, "✅ 미션 성공 — 잠금 완전 해제")
                         returnToBlockedApp()
                     }
