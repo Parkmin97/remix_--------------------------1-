@@ -98,8 +98,8 @@ class BlockOverlayActivity : Activity() {
             addJavascriptInterface(MissionResultBridge(), "BlockBridge")
         }
 
-        // 웹 앱에 "차단 화면 모드로, 미션부터 시작"이라고 알린다.
-        val url = "https://$ASSET_HOST/index.html?screen=mission&mode=block&pkg=$blockedPackage"
+        // 차단 화면은 선택지부터 보여준다. 미션은 사용자가 "잠금 풀기"를 골랐을 때 시작된다.
+        val url = "https://$ASSET_HOST/index.html?screen=block-choice&mode=block&pkg=$blockedPackage"
         Log.i(TAG, "로드: $url")
         view.loadUrl(url)
 
@@ -113,6 +113,25 @@ class BlockOverlayActivity : Activity() {
      * ⚠️ 자바스크립트에서 호출되므로 UI 스레드가 아니다. UI 조작은 runOnUiThread 로 감싼다.
      */
     private inner class MissionResultBridge {
+
+        /**
+         * 차단 화면이 판단에 필요한 정보를 JSON 으로 돌려준다.
+         *
+         * 특히 `missionAttempted` 가 중요하다. 이미 미션을 시도했다면
+         * "잠금 풀기" 선택지를 보여주면 안 된다. 우리 플로우상 재도전이 없기 때문이다.
+         */
+        @JavascriptInterface
+        fun getBlockInfo(): String {
+            val status = BlockSessionStore.getStatus(this@BlockOverlayActivity)
+            val pkg = intent?.getStringExtra(EXTRA_BLOCKED_PACKAGE) ?: ""
+            return """
+                {"blockedPackage":"$pkg",
+                 "missionAttempted":${status.missionAttempted},
+                 "lockEndsAt":${status.lockEndsAt},
+                 "launchAttempts":${status.launchAttempts}}
+            """.trimIndent().replace("\n", "")
+        }
+
         @JavascriptInterface
         fun onMissionResult(result: String) {
             Log.i(TAG, "미션 결과 수신: $result")
@@ -120,14 +139,26 @@ class BlockOverlayActivity : Activity() {
             runOnUiThread {
                 when (result) {
                     "success" -> {
-                        // TODO(Week 3): 여기서 N분 해제하고 원래 앱으로 복귀시킨다.
-                        Log.i(TAG, "✅ 미션 성공 — 차단 화면 종료 (해제 로직은 Week 3)")
-                        finish()
+                        // 우리 플로우에서 미션 성공은 "N분 해제"가 아니라 잠금 자체의 종료다.
+                        BlockSessionStore.endSession(this@BlockOverlayActivity, "미션 성공")
+                        Log.i(TAG, "✅ 미션 성공 — 잠금 완전 해제")
+                        returnToBlockedApp()
+                    }
+                    "fail" -> {
+                        // 실패하면 설정 시간이 끝날 때까지 잠금이 유지되고, 재도전도 불가능하다.
+                        BlockSessionStore.markMissionAttempted(this@BlockOverlayActivity)
+                        Log.i(TAG, "미션 실패 — 설정 시간까지 잠금 유지, 재도전 불가")
+                        goHome()
+                    }
+                    "keep" -> {
+                        // 사용자가 "잠금 유지하기"를 고른 경우. 미션을 시작조차 하지 않았다.
+                        Log.i(TAG, "잠금 유지 선택 — 재도전 가능")
+                        goHome()
                     }
                     else -> {
-                        // 실패·포기는 차단을 유지한 채 홈으로 보낸다.
-                        Log.i(TAG, "미션 $result — 차단 유지")
-                        finish()
+                        // 사용자가 미션을 포기한 경우. 시도로 치지 않으므로 나중에 다시 할 수 있다.
+                        Log.i(TAG, "미션 취소 — 잠금 유지 (재도전 가능)")
+                        goHome()
                     }
                 }
             }
@@ -140,6 +171,31 @@ class BlockOverlayActivity : Activity() {
 
         override fun handle(path: String): WebResourceResponse? =
             inner.handle("public/$path")
+    }
+
+    /** 미션 성공 후 원래 열려던 앱으로 돌려보낸다. */
+    private fun returnToBlockedApp() {
+        val pkg = intent?.getStringExtra(EXTRA_BLOCKED_PACKAGE)
+        val launch = pkg?.let { packageManager.getLaunchIntentForPackage(it) }
+
+        if (launch != null) {
+            Log.i(TAG, "원래 앱으로 복귀: $pkg")
+            startActivity(launch)
+        } else {
+            Log.w(TAG, "원래 앱을 열 수 없어 홈으로 보냄")
+            goHome()
+        }
+        finish()
+    }
+
+    /** 잠금을 유지한 채 홈 화면으로 보낸다. */
+    private fun goHome() {
+        val home = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
+            addCategory(android.content.Intent.CATEGORY_HOME)
+            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(home)
+        finish()
     }
 
     @Suppress("DEPRECATION", "MissingSuperCall")

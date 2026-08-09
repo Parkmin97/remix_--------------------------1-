@@ -46,11 +46,6 @@ class BlockerService : Service() {
          */
         private const val REBLOCK_COOLDOWN_MS = 3000L
 
-        /** [스파이크] 차단 대상. Week 3에서 사용자 설정으로 교체된다. */
-        private val BLOCKED_PACKAGES = setOf(
-            "com.google.android.youtube"
-        )
-
         fun start(context: Context) {
             val intent = Intent(context, BlockerService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -90,7 +85,8 @@ class BlockerService : Service() {
         startForeground(NOTIFICATION_ID, buildNotification())
         handler.removeCallbacks(pollTask)
         handler.post(pollTask)
-        Log.i(TAG, "감시 시작 — 주기 ${POLL_INTERVAL_MS}ms, 대상 $BLOCKED_PACKAGES")
+        val status = BlockSessionStore.getStatus(this)
+        Log.i(TAG, "감시 시작 — 주기 ${POLL_INTERVAL_MS}ms, 세션 ${if (status.hasSession) "있음(대상 ${status.blockedPackages.size}개)" else "없음"}")
 
         // Week 2 생존성 측정. 서비스가 며칠 뒤에 죽는지 추적한다.
         SurvivalTracker.onServiceStart(this)
@@ -138,9 +134,11 @@ class BlockerService : Service() {
             lastForeground = foreground
         }
 
-        if (foreground in BLOCKED_PACKAGES) {
+        // 차단 여부는 세션 상태가 결정한다. 잠금 시간이 끝났으면 자동으로 풀린다.
+        if (BlockSessionStore.shouldBlock(this, foreground)) {
             if (now - lastBlockAt < REBLOCK_COOLDOWN_MS) return
             lastBlockAt = now
+            BlockSessionStore.countLaunchAttempt(this)
             showBlockScreen(foreground)
         }
     }

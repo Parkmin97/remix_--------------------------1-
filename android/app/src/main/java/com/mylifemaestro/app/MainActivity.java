@@ -8,6 +8,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // 웹에서 차단 엔진을 호출할 수 있도록 플러그인을 등록한다.
+        // super.onCreate 보다 먼저 등록해야 브리지에 잡힌다.
+        registerPlugin(BlockerPlugin.class);
+
         super.onCreate(savedInstanceState);
 
         // [스파이크 2026-08-07] 앱 목록 조회가 위험 권한 없이 되는지 검증용.

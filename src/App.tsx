@@ -24,7 +24,8 @@ import { SelfReflectionScreen } from './components/SelfReflectionScreen';
 import { ReportScreen } from './components/ReportScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
-import { getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
+import { BlockChoiceScreen } from './components/BlockChoiceScreen';
+import { getBlockInfo, getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
 
 export default function App() {
   // 차단 화면(네이티브)에서 열리면 URL 로 시작 화면이 지정된다. 일반 실행이면 기존대로 랜딩부터.
@@ -206,12 +207,25 @@ export default function App() {
           />
         )}
 
+        {/* 차단 화면: 잠근 앱을 열었을 때 뜨는 선택지. 네이티브 웹뷰에서만 열린다. */}
+        {currentTab === 'block-choice' && (
+          <BlockChoiceScreen
+            blockInfo={getBlockInfo()}
+            onStartMission={() => setCurrentTab('mission')}
+            onKeepLocked={() => reportMissionResult('keep')}
+          />
+        )}
+
         {currentTab === 'mission' && (
           <ConductingMissionScreen
             activeSession={activeSession}
             onMissionSuccess={handleMissionSuccess}
             onMissionFail={handleMissionFail}
-            onCancel={() => setCurrentTab('phone-home')}
+            onCancel={() => {
+              // 차단 화면에서 미션을 포기한 경우: 시도로 치지 않아 나중에 다시 할 수 있다.
+              if (reportMissionResult('cancel')) return;
+              setCurrentTab('phone-home');
+            }}
           />
         )}
 
