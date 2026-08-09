@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
 import android.util.Log
@@ -90,10 +91,50 @@ object PermissionHelper {
     }
 
     // ─────────────────────────────────────────────
-    // 3. 종합
+    // 3. 배터리 최적화 예외 (서비스 생존의 핵심)
     // ─────────────────────────────────────────────
 
-    /** 차단 기능이 실제로 동작할 수 있는 상태인지. 둘 다 있어야 한다. */
+    /**
+     * 배터리 최적화에서 제외되어 있는지 확인한다.
+     *
+     * 제외되지 않으면 안드로이드가 절전을 이유로 우리 서비스를 죽인다.
+     * 특히 삼성은 자체 절전 정책이 더 공격적이라 이것만으로 충분하지 않을 수 있다.
+     */
+    fun isIgnoringBatteryOptimizations(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+
+        val pm = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            ?: return false
+        return pm.isIgnoringBatteryOptimizations(context.packageName)
+    }
+
+    /**
+     * 배터리 최적화 예외 설정 화면을 연다.
+     *
+     * ⚠️ `ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`(다이얼로그 즉시 표시)는
+     *    구글 정책상 용도가 제한되어 있어 심사에서 문제가 될 수 있다.
+     *    대신 설정 목록 화면으로 보내고 사용자가 직접 고르게 한다. 안전한 쪽을 택했다.
+     */
+    fun openBatteryOptimizationSettings(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+
+        val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        runCatching { context.startActivity(intent) }
+            .onFailure { Log.e(TAG, "배터리 최적화 설정 화면을 열 수 없음", it) }
+    }
+
+    // ─────────────────────────────────────────────
+    // 4. 종합
+    // ─────────────────────────────────────────────
+
+    /**
+     * 차단 기능이 동작할 수 있는 최소 조건.
+     *
+     * 배터리 최적화 예외는 여기 포함하지 않는다.
+     * 없어도 당장은 동작하기 때문이다. 다만 며칠 뒤 죽을 확률이 크게 올라간다.
+     */
     fun canBlock(context: Context): Boolean =
         hasUsageStatsPermission(context) && hasOverlayPermission(context)
 
@@ -102,9 +143,12 @@ object PermissionHelper {
         val usage = hasUsageStatsPermission(context)
         val overlay = hasOverlayPermission(context)
 
+        val battery = isIgnoringBatteryOptimizations(context)
+
         Log.i(TAG, "===== 권한 상태 =====")
         Log.i(TAG, "사용 정보 접근: ${if (usage) "✅ 허용됨" else "❌ 없음"}")
         Log.i(TAG, "다른 앱 위에 표시: ${if (overlay) "✅ 허용됨" else "❌ 없음"}")
+        Log.i(TAG, "배터리 최적화 예외: ${if (battery) "✅ 제외됨" else "⚠️ 미적용 (며칠 뒤 서비스가 죽을 수 있음)"}")
         Log.i(TAG, "차단 가능 상태: ${if (canBlock(context)) "✅ 가능" else "❌ 불가"}")
         Log.i(TAG, "=====================")
     }

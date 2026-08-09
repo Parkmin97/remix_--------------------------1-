@@ -51,6 +51,25 @@
                 android:value="사용자가 스스로 설정한 앱 차단을 유지하기 위해 포그라운드 앱을 감시합니다" />
         </service>
 
+        <!--
+            재부팅 후 감시 서비스 복구 — 2026-08-09 추가
+            제조사별 자체 부팅 신호와 앱 업데이트 후 재시작까지 함께 처리한다.
+        -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -82,6 +101,11 @@
     <!-- 다른 앱 위에 차단 화면을 띄우기 위해 필요.
          안드로이드 10부터 백그라운드에서 화면을 띄울 수 없는데, 이 권한이 예외다. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- 재부팅 후 감시 서비스 자동 복구용.
+         ⚠️ 이 권한이 없으면 BootReceiver 를 매니페스트에 등록해도
+            안드로이드가 부팅 신호를 아예 보내주지 않는다. (8/9 실기기에서 확인) -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- 백그라운드 감시 서비스 실행용 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

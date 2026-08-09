@@ -73,6 +73,8 @@ class BlockerService : Service() {
     private val pollTask = object : Runnable {
         override fun run() {
             checkForegroundApp()
+            // 살아있다는 흔적을 남긴다. 내부적으로 1분에 한 번만 저장한다.
+            SurvivalTracker.heartbeat(this@BlockerService)
             handler.postDelayed(this, POLL_INTERVAL_MS)
         }
     }
@@ -89,6 +91,10 @@ class BlockerService : Service() {
         handler.removeCallbacks(pollTask)
         handler.post(pollTask)
         Log.i(TAG, "감시 시작 — 주기 ${POLL_INTERVAL_MS}ms, 대상 $BLOCKED_PACKAGES")
+
+        // Week 2 생존성 측정. 서비스가 며칠 뒤에 죽는지 추적한다.
+        SurvivalTracker.onServiceStart(this)
+        SurvivalTracker.logStatus(this)
 
         // 죽어도 시스템이 다시 살리도록 요청한다 (보장되지는 않는다)
         return START_STICKY
