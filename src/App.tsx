@@ -24,9 +24,11 @@ import { SelfReflectionScreen } from './components/SelfReflectionScreen';
 import { ReportScreen } from './components/ReportScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
+import { getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<string>('landing');
+  // 차단 화면(네이티브)에서 열리면 URL 로 시작 화면이 지정된다. 일반 실행이면 기존대로 랜딩부터.
+  const [currentTab, setCurrentTab] = useState<string>(() => getInitialScreen() || 'landing');
   const [activeSession, setActiveSession] = useState<SessionData | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);
@@ -40,8 +42,12 @@ export default function App() {
     const session = getStoredActiveSession();
     setActiveSession(session);
 
+    // 차단 화면에서 열린 경우엔 온보딩을 띄우지 않는다.
+    // 차단 화면 웹뷰는 메인 앱과 origin 이 달라 localStorage 가 분리되므로,
+    // 이미 온보딩을 마친 사용자에게도 "처음 실행"으로 보인다.
+    // 인스타를 막아놓고 안내문부터 띄우면 미션에 닿기도 전에 이탈한다.
     const onboardingDone = getOnboardingCompleted();
-    if (!onboardingDone) {
+    if (!onboardingDone && !isBlockMode()) {
       setIsOnboardingOpen(true);
     }
 
@@ -71,10 +77,14 @@ export default function App() {
   };
 
   const handleMissionSuccess = () => {
+    // 차단 화면에서 실행 중이면 네이티브가 차단을 풀어야 하므로 결과를 넘기고 끝낸다.
+    if (reportMissionResult('success')) return;
     setCurrentTab('self-reflection');
   };
 
   const handleMissionFail = () => {
+    if (reportMissionResult('fail')) return;
+
     // 미션 실패를 세션에 기록 → 이번 잠금에서는 더 이상 미션을 시도할 수 없다.
     if (activeSession) {
       const updated: SessionData = { ...activeSession, missionAttempted: true, missionSucceeded: false };
