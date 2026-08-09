@@ -37,6 +37,11 @@ export interface TargetService {
   color: string;
   url: string;
   category: string;
+  /**
+   * 실제 앱 아이콘 (data URI). 기기에서 읽어온 경우에만 있다.
+   * 없으면 기존처럼 첫 글자 + 그라데이션으로 대체한다.
+   */
+  iconUri?: string;
 }
 
 export interface ShortVideo {

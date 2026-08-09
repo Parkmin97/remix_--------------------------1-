@@ -31,6 +31,11 @@ export interface InstalledAppInfo {
   systemCategory: number;
   /** 우리 매핑표로 붙인 카테고리. 호출부에서 채운다. */
   categoryId?: AppCategoryId;
+  /**
+   * 실제 앱 아이콘 (PNG base64, 96px). 읽기 실패 시 없다.
+   * 목록에서 사용자가 앱을 알아보려면 자기 폰에서 늘 보던 아이콘이 나와야 한다.
+   */
+  iconBase64?: string;
 }
 
 export interface BlockStatus {
@@ -52,7 +57,27 @@ export interface StartSessionOptions {
   lockEndsAt: number;
   /** 모드 B에서 먼저 쓰기로 한 시간의 종료 시각. 모드 A면 0 또는 생략. */
   usageEndsAt?: number;
+  /** 사용자가 고른 앱들. 세션 시작 시점에 설치되어 있던 것. */
   blockedPackages: string[];
+
+  /**
+   * 통째로 잠근 카테고리 (예: 숏폼 전체 잠금).
+   *
+   * ⚠️ 이게 있으면 **잠금 중에 새로 설치한 앱도 막힌다.**
+   *    "숏폼을 막겠다"는 의도를 걸어둔 것이므로, 잠금 도중에 새 숏폼 앱을 깔아
+   *    빠져나가는 길을 열어두지 않는다.
+   */
+  blockedCategories?: string[];
+
+  /**
+   * 패키지 → 카테고리 대응표. 잠근 카테고리에 속한 것만 넘긴다.
+   *
+   * 카테고리 지식은 웹의 매핑표에만 있고 네이티브는 모른다.
+   * 새로 설치된 앱이 잠근 카테고리에 속하는지 네이티브가 판단하려면 이 표가 필요하다.
+   *
+   * 매핑표에 없는 앱은 여기에도 없어서 막히지 않는다(분류 자체가 '기타'이므로 일관적이다).
+   */
+  packageCategories?: Record<string, string>;
 }
 
 /** 하루치 스크린타임. 폰이 직접 기록한 실제 사용 시간이다. */

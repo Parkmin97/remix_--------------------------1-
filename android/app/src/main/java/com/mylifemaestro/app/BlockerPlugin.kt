@@ -82,6 +82,8 @@ class BlockerPlugin : Plugin() {
                     .put("isPreinstalled", app.isPreinstalled)
                     // 안드로이드가 주는 분류값. 미분류가 57%라 분류에 쓰지 않고 진단용으로만 넘긴다.
                     .put("systemCategory", app.systemCategory)
+                    // 실제 앱 아이콘(PNG base64). 사용자가 목록에서 앱을 알아보려면 필요하다.
+                    .put("iconBase64", app.iconBase64)
             )
         }
 
@@ -126,7 +128,26 @@ class BlockerPlugin : Plugin() {
             return
         }
 
-        BlockSessionStore.startSession(context, sessionId, lockEndsAt, usageEndsAt, packages)
+        // 통째로 잠근 카테고리. 잠금 중 새로 설치한 앱도 여기 속하면 막는다.
+        val categories = mutableSetOf<String>()
+        call.getArray("blockedCategories")?.let { arr ->
+            for (i in 0 until arr.length()) {
+                arr.optString(i)?.takeIf { it.isNotBlank() }?.let { categories.add(it) }
+            }
+        }
+
+        // 카테고리 지식은 웹에만 있으므로 대응표를 함께 받아둔다.
+        val packageCategories = mutableMapOf<String, String>()
+        call.getObject("packageCategories")?.let { obj ->
+            obj.keys().forEach { key ->
+                obj.optString(key)?.takeIf { it.isNotBlank() }?.let { packageCategories[key] = it }
+            }
+        }
+
+        BlockSessionStore.startSession(
+            context, sessionId, lockEndsAt, usageEndsAt,
+            packages, categories, packageCategories
+        )
 
         // 세션이 생겼으니 감시를 시작한다. 이미 돌고 있으면 무시된다.
         if (PermissionHelper.canBlock(context)) {

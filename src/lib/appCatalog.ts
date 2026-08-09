@@ -1,6 +1,11 @@
 import { TargetService } from '../types';
 import { TARGET_SERVICES } from '../data/targetServices';
-import { getCategoryForPackage } from '../data/appCategories';
+import {
+  APP_CATEGORIES,
+  BUILTIN_PACKAGE_CATEGORIES,
+  FALLBACK_CATEGORY,
+  getCategoryForPackage,
+} from '../data/appCategories';
 import { Blocker } from './blocker';
 
 /**
@@ -52,6 +57,8 @@ export async function loadAppCatalog(): Promise<TargetService[]> {
         color: CATEGORY_COLORS[category.id] ?? CATEGORY_COLORS.ETC,
         url: '',
         category: category.label,
+        // 기기에서 읽어온 실제 아이콘. 없으면 화면이 첫 글자로 대체한다.
+        iconUri: app.iconBase64 ? `data:image/png;base64,${app.iconBase64}` : undefined,
       };
     });
 
@@ -103,4 +110,49 @@ export async function refreshAppCatalogIfStale(): Promise<boolean> {
 /** 목록을 다 읽었는지. 로딩 표시에 쓴다. */
 export function isAppCatalogLoaded(): boolean {
   return cached !== null;
+}
+
+/**
+ * 선택된 앱들로부터 **통째로 잠근 카테고리**를 알아낸다.
+ *
+ * 별도의 UI 상태를 두지 않고, "그 카테고리의 앱을 하나도 빠짐없이 골랐다"는 사실로
+ * 사용자 의도를 읽는다. 사용자가 '숏폼 전체 선택'을 눌렀다면 자연스럽게 여기 걸린다.
+ * 반대로 하나라도 빼면 "전체를 막겠다"는 의도가 아니므로 제외된다.
+ *
+ * 이 카테고리들은 네이티브에 함께 넘겨져, **잠금 중에 새로 설치한 앱까지 막는 데** 쓰인다.
+ */
+export function resolveLockedCategories(selectedIds: string[]): {
+  categoryIds: string[];
+  /** 잠근 카테고리에 속한 패키지 → 카테고리 대응표 (네이티브가 새 앱을 판정할 때 쓴다) */
+  packageCategories: Record<string, string>;
+} {
+  const selected = new Set(selectedIds);
+  const catalog = getAppCatalog();
+  const categoryIds: string[] = [];
+
+  APP_CATEGORIES.forEach((category) => {
+    // '기타'는 성격이 모호해 통째로 잠그는 의미가 없다.
+    if (category.id === FALLBACK_CATEGORY.id) return;
+
+    const apps = catalog.filter((a) => a.category === category.label);
+    if (apps.length === 0) return;
+    if (!apps.every((a) => selected.has(a.id))) return;
+
+    categoryIds.push(category.id);
+  });
+
+  // 대응표는 잠근 카테고리에 속한 것만 넘긴다. 전부 넘길 이유가 없다.
+  const lockedLabels = new Set(
+    APP_CATEGORIES.filter((c) => categoryIds.includes(c.id)).map((c) => c.label)
+  );
+  const packageCategories: Record<string, string> = {};
+
+  Object.entries(BUILTIN_PACKAGE_CATEGORIES).forEach(([pkg, categoryId]) => {
+    const category = APP_CATEGORIES.find((c) => c.id === categoryId);
+    if (category && lockedLabels.has(category.label)) {
+      packageCategories[pkg] = categoryId;
+    }
+  });
+
+  return { categoryIds, packageCategories };
 }

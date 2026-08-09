@@ -113,14 +113,25 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
                     </button>
                   )}
 
-                  {/* App Icon */}
-                  <div
-                    className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-xl font-bold shadow-md transition-transform group-hover:scale-105 ${
-                      isLocked ? 'ring-2 ring-black' : ''
-                    }`}
-                  >
-                    {service.name[0]}
-                  </div>
+                  {/* App Icon — 기기에서 읽어온 실제 아이콘, 없으면 첫 글자로 대체 */}
+                  {service.iconUri ? (
+                    <img
+                      src={service.iconUri}
+                      alt={service.name}
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-md transition-transform group-hover:scale-105 ${
+                        isLocked ? 'ring-2 ring-black' : ''
+                      }`}
+                      draggable={false}
+                    />
+                  ) : (
+                    <div
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-xl font-bold shadow-md transition-transform group-hover:scale-105 ${
+                        isLocked ? 'ring-2 ring-black' : ''
+                      }`}
+                    >
+                      {service.name[0]}
+                    </div>
+                  )}
                 </div>
 
                 {/* App Label */}
@@ -200,11 +211,20 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-sm font-bold shadow-sm`}
-                      >
-                        {service.name[0]}
-                      </div>
+                      {service.iconUri ? (
+                        <img
+                          src={service.iconUri}
+                          alt={service.name}
+                          className="w-9 h-9 rounded-xl object-cover shadow-sm shrink-0"
+                          draggable={false}
+                        />
+                      ) : (
+                        <div
+                          className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0`}
+                        >
+                          {service.name[0]}
+                        </div>
+                      )}
                       <div>
                         <div className="text-xs font-bold text-black">{service.name}</div>
                       </div>

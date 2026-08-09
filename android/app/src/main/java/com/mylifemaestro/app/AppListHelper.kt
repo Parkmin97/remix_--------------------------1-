@@ -5,8 +5,14 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.Base64
 import android.util.Log
+import androidx.core.graphics.createBitmap
+import java.io.ByteArrayOutputStream
 
 /**
  * 설치된 앱 목록을 조회한다. 차단 대상 선택 화면에 쓰인다.
@@ -51,6 +57,14 @@ object AppListHelper {
         "com.samsung.android.app.contacts"
     )
 
+    /**
+     * 아이콘을 줄일 크기(px).
+     *
+     * 원본 아이콘은 기기에 따라 192~512px 이라 45개를 그대로 넘기면 수 MB가 된다.
+     * 목록에서는 작게 보이므로 이 정도면 충분하고, 전체 합이 수백 KB 수준으로 떨어진다.
+     */
+    private const val ICON_SIZE_PX = 96
+
     /** 차단 대상 후보 앱 하나. */
     data class InstalledApp(
         val packageName: String,
@@ -64,8 +78,38 @@ object AppListHelper {
          *    이 값만 믿고 카테고리 분류를 하면 안 된다.
          *    실제 미설정 비율은 [logInstalledApps] 로 측정한다.
          */
-        val systemCategory: Int
+        val systemCategory: Int,
+        /**
+         * 앱 아이콘 (PNG base64). 실패하면 null.
+         *
+         * 첫 글자만 보여주면 사용자가 목록에서 앱을 못 알아본다.
+         * 자기 폰에서 늘 보던 아이콘이 그대로 나와야 한다.
+         */
+        val iconBase64: String?
     )
+
+    /**
+     * 앱 아이콘을 [ICON_SIZE_PX] 크기의 PNG base64 로 바꾼다.
+     *
+     * 안드로이드 8부터 아이콘이 '적응형'(배경+전경 두 겹)이라 단순 비트맵이 아니다.
+     * 그래서 캔버스에 직접 그려서 비트맵으로 만든다. 이 방식은 모든 아이콘 종류에 통한다.
+     */
+    private fun encodeIcon(drawable: Drawable): String? = try {
+        val bitmap = createBitmap(ICON_SIZE_PX, ICON_SIZE_PX, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, ICON_SIZE_PX, ICON_SIZE_PX)
+        drawable.draw(canvas)
+
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        bitmap.recycle()
+
+        Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+    } catch (e: Exception) {
+        // 아이콘 하나 못 읽었다고 목록 전체가 실패하면 안 된다.
+        Log.w(TAG, "아이콘 변환 실패", e)
+        null
+    }
 
     /** 안드로이드 카테고리 상수를 사람이 읽을 수 있게 변환한다. */
     private fun categoryName(category: Int): String = when (category) {
@@ -129,7 +173,8 @@ object AppListHelper {
                         appInfo.category
                     } else {
                         ApplicationInfo.CATEGORY_UNDEFINED
-                    }
+                    },
+                    iconBase64 = runCatching { encodeIcon(appInfo.loadIcon(pm)) }.getOrNull()
                 )
             }
             // 같은 앱이 여러 진입점(액티비티)을 가질 수 있어 패키지 기준으로 중복 제거

@@ -28,6 +28,10 @@ object BlockSessionStore {
     private const val KEY_LOCK_ENDS_AT = "lock_ends_at"
     private const val KEY_USAGE_ENDS_AT = "usage_ends_at"
     private const val KEY_BLOCKED_PACKAGES = "blocked_packages"
+    /** 통째로 잠근 카테고리. 잠금 중 새로 깐 앱도 여기 속하면 막는다. */
+    private const val KEY_BLOCKED_CATEGORIES = "blocked_categories"
+    /** 패키지 → 카테고리 대응표. "패키지=카테고리" 형태의 문자열 집합으로 둔다. */
+    private const val KEY_PACKAGE_CATEGORIES = "package_categories"
     private const val KEY_MISSION_ATTEMPTED = "mission_attempted"
     private const val KEY_LAUNCH_ATTEMPTS = "launch_attempts"
 
@@ -42,6 +46,10 @@ object BlockSessionStore {
         val lockEndsAt: Long,
         val usageEndsAt: Long,
         val blockedPackages: Set<String>,
+        /** 통째로 잠근 카테고리. 여기 속하면 새로 깐 앱도 막는다. */
+        val blockedCategories: Set<String>,
+        /** 패키지 → 카테고리. 잠근 카테고리에 속한 앱만 들어 있다. */
+        val packageCategories: Map<String, String>,
         /** 이번 세션에서 미션을 이미 시도했는지. 했으면 다시 못 한다. */
         val missionAttempted: Boolean,
         val launchAttempts: Int
@@ -63,7 +71,9 @@ object BlockSessionStore {
         sessionId: String,
         lockEndsAt: Long,
         usageEndsAt: Long,
-        blockedPackages: Set<String>
+        blockedPackages: Set<String>,
+        blockedCategories: Set<String> = emptySet(),
+        packageCategories: Map<String, String> = emptyMap()
     ) {
         prefs(context).edit()
             .putString(KEY_SESSION_ID, sessionId)
@@ -71,11 +81,20 @@ object BlockSessionStore {
             .putLong(KEY_LOCK_ENDS_AT, lockEndsAt)
             .putLong(KEY_USAGE_ENDS_AT, usageEndsAt)
             .putStringSet(KEY_BLOCKED_PACKAGES, blockedPackages)
+            .putStringSet(KEY_BLOCKED_CATEGORIES, blockedCategories)
+            .putStringSet(
+                KEY_PACKAGE_CATEGORIES,
+                packageCategories.map { (pkg, cat) -> "$pkg=$cat" }.toSet()
+            )
             .putBoolean(KEY_MISSION_ATTEMPTED, false)
             .putInt(KEY_LAUNCH_ATTEMPTS, 0)
             .apply()
 
-        Log.i(TAG, "세션 시작 — 대상 ${blockedPackages.size}개, 잠금 종료 ${lockEndsAt}, 사용 종료 ${usageEndsAt}")
+        Log.i(
+            TAG,
+            "세션 시작 — 앱 ${blockedPackages.size}개, 카테고리 ${blockedCategories.size}개" +
+                "(대응표 ${packageCategories.size}건), 잠금 종료 $lockEndsAt, 사용 종료 $usageEndsAt"
+        )
     }
 
     /**
@@ -140,6 +159,13 @@ object BlockSessionStore {
             lockEndsAt = lockEndsAt,
             usageEndsAt = usageEndsAt,
             blockedPackages = p.getStringSet(KEY_BLOCKED_PACKAGES, emptySet()) ?: emptySet(),
+            blockedCategories = p.getStringSet(KEY_BLOCKED_CATEGORIES, emptySet()) ?: emptySet(),
+            packageCategories = (p.getStringSet(KEY_PACKAGE_CATEGORIES, emptySet()) ?: emptySet())
+                .mapNotNull { entry ->
+                    val i = entry.lastIndexOf('=')
+                    if (i <= 0) null else entry.substring(0, i) to entry.substring(i + 1)
+                }
+                .toMap(),
             missionAttempted = p.getBoolean(KEY_MISSION_ATTEMPTED, false),
             launchAttempts = p.getInt(KEY_LAUNCH_ATTEMPTS, 0)
         )
@@ -167,10 +193,24 @@ object BlockSessionStore {
         return true
     }
 
-    /** 이 앱을 지금 막아야 하는가. 감시 서비스가 매 주기마다 묻는다. */
+    /**
+     * 이 앱을 지금 막아야 하는가. 감시 서비스가 매 주기마다 묻는다.
+     *
+     * 두 가지 경우에 막는다.
+     *  1. 사용자가 직접 고른 앱
+     *  2. **통째로 잠근 카테고리에 속한 앱** — 잠금 중에 새로 설치한 것도 포함된다.
+     *     "숏폼을 막겠다"고 걸어놓고 잠금 도중 새 숏폼 앱을 깔아 빠져나가는 길을 막는다.
+     */
     fun shouldBlock(context: Context, packageName: String): Boolean {
         val status = getStatus(context)
-        return status.isLocked && packageName in status.blockedPackages
+        if (!status.isLocked) return false
+
+        if (packageName in status.blockedPackages) return true
+
+        // 카테고리 잠금 — 세션 시작 당시엔 없던 앱도 여기서 걸린다.
+        if (status.blockedCategories.isEmpty()) return false
+        val category = status.packageCategories[packageName] ?: return false
+        return category in status.blockedCategories
     }
 
     /** 차단 화면에서 "미션으로 풀기" 버튼을 보여줄지. 이미 시도했으면 숨긴다. */

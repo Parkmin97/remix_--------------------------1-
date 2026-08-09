@@ -25,7 +25,7 @@ import { TutorialScreen } from './components/TutorialScreen';
 import { BlockChoiceScreen } from './components/BlockChoiceScreen';
 import { getBlockInfo, getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
 import { Blocker, goToRealHomeScreen } from './lib/blocker';
-import { loadAppCatalog } from './lib/appCatalog';
+import { loadAppCatalog, resolveLockedCategories } from './lib/appCatalog';
 import { syncSessionFromNative } from './lib/sessionSync';
 
 export default function App() {
@@ -151,12 +151,18 @@ export default function App() {
     // 웹 브라우저에서 실행 중이면 조용히 넘어간다(개발 편의).
     const packages = session.targetServices.map(s => s.id).filter(Boolean);
     if (packages.length > 0) {
+      // 통째로 잠근 카테고리를 함께 넘긴다.
+      // 이러면 잠금 도중에 새 숏폼 앱을 깔아 빠져나가는 길이 막힌다.
+      const { categoryIds, packageCategories } = resolveLockedCategories(packages);
+
       Blocker.startSession({
         sessionId: session.id,
         lockEndsAt: new Date(session.focusEndsAt).getTime(),
         // 모드 B는 "먼저 M분 사용" 구간이 있다. 그 시간까지는 차단하지 않는다.
         usageEndsAt: session.usageEndsAt ? new Date(session.usageEndsAt).getTime() : 0,
         blockedPackages: packages,
+        blockedCategories: categoryIds,
+        packageCategories,
       }).catch(err => console.warn('[App] 네이티브 차단 시작 실패(웹 환경일 수 있음)', err));
     }
 
