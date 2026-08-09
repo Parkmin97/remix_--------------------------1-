@@ -123,16 +123,31 @@ object BlockSessionStore {
         )
     }
 
+    /**
+     * 잠금 시간이 다 됐으면 세션을 정리한다.
+     *
+     * ⚠️ **감시 루프에서 매번, 앱 감지와 무관하게 호출해야 한다.**
+     *    앱 감지 결과에 딸려 있으면 화면이 꺼져 있을 때 만료가 처리되지 않아
+     *    잠금이 영영 풀리지 않는다. (8/9 실기기에서 확인된 문제)
+     *
+     * @param onExpired 실제로 만료 처리가 일어났을 때 호출된다. 사용자 알림용.
+     * @return 만료 처리를 했으면 true
+     */
+    fun expireIfDue(context: Context, onExpired: (() -> Unit)? = null): Boolean {
+        val p = prefs(context)
+        val sessionId = p.getString(KEY_SESSION_ID, null) ?: return false
+        val lockEndsAt = p.getLong(KEY_LOCK_ENDS_AT, 0L)
+
+        if (System.currentTimeMillis() < lockEndsAt) return false
+
+        endSession(context, "잠금 시간 종료")
+        onExpired?.invoke()
+        return true
+    }
+
     /** 이 앱을 지금 막아야 하는가. 감시 서비스가 매 주기마다 묻는다. */
     fun shouldBlock(context: Context, packageName: String): Boolean {
         val status = getStatus(context)
-
-        // 잠금 시간이 끝났으면 세션을 정리한다. 사용자가 앱을 열지 않아도 자동으로 풀려야 한다.
-        if (status.hasSession && !status.isLocked && System.currentTimeMillis() >= status.lockEndsAt) {
-            endSession(context, "잠금 시간 종료")
-            return false
-        }
-
         return status.isLocked && packageName in status.blockedPackages
     }
 

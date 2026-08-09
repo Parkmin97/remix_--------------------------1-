@@ -26,6 +26,7 @@ import { BlockChoiceScreen } from './components/BlockChoiceScreen';
 import { getBlockInfo, getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
 import { Blocker, goToRealHomeScreen } from './lib/blocker';
 import { loadAppCatalog } from './lib/appCatalog';
+import { syncSessionFromNative } from './lib/sessionSync';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<string>(() => {
@@ -76,6 +77,31 @@ export default function App() {
         })
         .catch(err => console.warn('[App] 앱 목록 로드 실패', err));
     }
+  }, []);
+
+  // 잠금 상태를 네이티브에 맞춘다.
+  //
+  // 차단 화면에서 미션에 성공하면 네이티브가 세션을 끝내는데,
+  // 차단 화면 웹뷰는 origin 이 달라 메인 앱의 localStorage 를 고칠 수 없다.
+  // 그래서 앱으로 돌아왔을 때 여기서 맞춰줘야 "잠금 중"으로 잘못 보이지 않는다.
+  useEffect(() => {
+    if (isBlockMode()) return; // 차단 화면 자신은 동기화 대상이 아니다
+
+    const sync = () => {
+      syncSessionFromNative(null).then(({ session, corrected }) => {
+        if (corrected) setActiveSession(session);
+      });
+    };
+
+    sync(); // 앱을 열었을 때
+
+    // 다른 앱에 갔다가 돌아왔을 때도 확인한다.
+    // (차단 화면에서 미션을 마치고 돌아오는 경우가 여기 해당한다)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') sync();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   // Supabase 인증 상태 구독

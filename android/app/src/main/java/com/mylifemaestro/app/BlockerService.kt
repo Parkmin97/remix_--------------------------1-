@@ -37,6 +37,22 @@ class BlockerService : Service() {
         private const val CHANNEL_ID = "blocker_service"
         private const val NOTIFICATION_ID = 1001
 
+        /**
+         * 잠금 종료 알림용. 상시 알림과 분리해야 사용자가 이것만 따로 끌 수 있다.
+         *
+         * ⚠️ 채널 ID 끝에 `_v2` 가 붙은 이유:
+         *    안드로이드는 **한 번 만든 채널의 중요도를 앱이 바꿀 수 없다.**
+         *    사용자 설정을 앱이 몰래 되돌리지 못하게 하려는 정책이다.
+         *    기존 채널이 "기본(소리만)"으로 이미 만들어져 있어서,
+         *    화면 상단에 뜨는 헤드업 알림으로 올리려면 새 ID 로 채널을 다시 만들어야 했다.
+         *    앞으로도 중요도를 바꾸려면 ID 를 올려야 한다.
+         */
+        private const val CHANNEL_DONE = "blocker_done_v2"
+        private const val NOTIFICATION_DONE_ID = 1002
+
+        /** 모드 B에서 사용 시간이 끝나 잠금으로 넘어갈 때 쓴다. */
+        private const val NOTIFICATION_LOCK_STARTED_ID = 1003
+
         /** 감지 주기. 짧을수록 빨리 막지만 배터리를 더 쓴다. Week 2에서 측정 후 조정. */
         private const val POLL_INTERVAL_MS = 800L
 
@@ -64,6 +80,12 @@ class BlockerService : Service() {
 
     /** 직전에 감지한 최상위 앱. 로그를 덜 시끄럽게 하려고 둔다. */
     private var lastForeground: String? = null
+
+    /**
+     * 직전 주기의 잠금 여부. 모드 B에서 "사용 시간 → 잠금" 전환을 잡아내는 데 쓴다.
+     * null 이면 아직 한 번도 확인하지 않은 상태다.
+     */
+    private var wasLocked: Boolean? = null
 
     private val pollTask = object : Runnable {
         override fun run() {
@@ -112,6 +134,21 @@ class BlockerService : Service() {
      */
     private fun checkForegroundApp() {
         val now = System.currentTimeMillis()
+
+        // ⚠️ 만료 처리를 앱 감지보다 먼저, 그리고 독립적으로 한다.
+        //    예전에는 아래 "포그라운드 앱을 찾은 경우"에만 만료를 확인했는데,
+        //    화면이 꺼져 있거나 앱 전환이 없으면 감지 결과가 비어 early return 되면서
+        //    **잠금이 영영 풀리지 않는** 문제가 있었다. (8/9 실기기에서 확인)
+        BlockSessionStore.expireIfDue(this, ::notifyLockFinished)
+
+        // 모드 B: "먼저 쓰기로 한 시간"이 끝나 잠금으로 넘어가는 순간을 잡는다.
+        // 사용자가 SNS를 보는 도중에 일어나는 전환이라 예고 없이 막히면 고장으로 오해한다.
+        val nowLocked = BlockSessionStore.getStatus(this).isLocked
+        if (wasLocked == false && nowLocked) {
+            notifyLockStarted()
+        }
+        wasLocked = nowLocked
+
         val events = usageStatsManager.queryEvents(now - 10_000, now)
 
         var foreground: String? = null
@@ -157,6 +194,76 @@ class BlockerService : Service() {
         startActivity(intent)
     }
 
+    /**
+     * 화면 상단에 떠오르는(헤드업) 알림을 띄운다.
+     *
+     * ⚠️ 상단에 떠 있는 시간(약 5초)은 **안드로이드가 정하며 앱이 늘릴 수 없다.**
+     *    늘리려면 전체화면 인텐트를 써야 하는데, 그건 전화·알람 전용이라
+     *    디톡스 앱이 쓰면 심사에서 문제가 된다. 쓰지 않는다.
+     *    대신 알림창에는 사용자가 지울 때까지 남는다.
+     */
+    private fun notifyHeadsUp(id: Int, title: String, text: String) {
+        Log.i(TAG, "알림: $title")
+
+        val openApp = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        val pending = PendingIntent.getActivity(
+            this, id, openApp,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder(this, CHANNEL_DONE)
+        } else {
+            // 안드로이드 7 이하는 채널이 없어 알림 자체에 우선순위를 준다.
+            @Suppress("DEPRECATION")
+            Notification.Builder(this).setPriority(Notification.PRIORITY_HIGH)
+        }
+
+        val notification = builder
+            .setContentTitle(title)
+            .setContentText(text)
+            // 긴 문구도 알림창에서 잘리지 않고 다 보이게 한다.
+            .setStyle(Notification.BigTextStyle().bigText(text))
+            .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
+            .setContentIntent(pending)
+            .setAutoCancel(true)
+            // 헤드업으로 뜨려면 소리·진동 같은 "알릴 거리"가 있어야 한다.
+            .setDefaults(Notification.DEFAULT_ALL)
+            .build()
+
+        getSystemService(NotificationManager::class.java)?.notify(id, notification)
+    }
+
+    /**
+     * 잠금 시간이 끝났음을 알린다.
+     *
+     * 이게 없으면 잠금이 조용히 풀린다. 사용자는 언제 끝났는지 모르고,
+     * "아직 잠겨 있나?" 하고 앱을 열어봐야 한다.
+     */
+    private fun notifyLockFinished() {
+        notifyHeadsUp(
+            NOTIFICATION_DONE_ID,
+            "잠금이 끝났습니다",
+            "수고하셨어요. 이제 잠갔던 앱을 다시 쓸 수 있습니다."
+        )
+    }
+
+    /**
+     * 모드 B에서 "먼저 쓰기로 한 시간"이 끝나 잠금이 시작됐음을 알린다.
+     *
+     * 이 전환은 사용자가 SNS를 보고 있는 도중에 일어난다.
+     * 예고 없이 갑자기 막히면 고장으로 오해하므로 반드시 알려야 한다.
+     */
+    private fun notifyLockStarted() {
+        notifyHeadsUp(
+            NOTIFICATION_LOCK_STARTED_ID,
+            "이제 잠금이 시작됩니다",
+            "약속한 사용 시간이 끝났습니다. 지금부터 선택한 앱이 잠깁니다."
+        )
+    }
+
     // ─────────────────────────────────────────────
     // 상시 알림 (포그라운드 서비스 필수 요건)
     // ─────────────────────────────────────────────
@@ -173,8 +280,23 @@ class BlockerService : Service() {
             setShowBadge(false)
         }
 
+        // 잠금 종료 알림은 별도 채널로 둔다.
+        // 상시 알림(끌 수 없음)과 성격이 달라서, 사용자가 이것만 끌 수 있어야 한다.
+        //
+        // IMPORTANCE_HIGH 여야 화면 상단에 잠깐 떠오르는 헤드업 알림이 된다.
+        // 잠금이 끝난 것은 사용자가 기다리던 소식이라 알림창을 열어봐야만 알 수 있으면 안 된다.
+        val doneChannel = NotificationChannel(
+            CHANNEL_DONE,
+            "잠금 종료 알림",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "설정한 잠금 시간이 끝났을 때 화면 상단에 알려줍니다"
+            enableVibration(true)
+        }
+
         val manager = getSystemService(NotificationManager::class.java)
         manager?.createNotificationChannel(channel)
+        manager?.createNotificationChannel(doneChannel)
     }
 
     private fun buildNotification(): Notification {

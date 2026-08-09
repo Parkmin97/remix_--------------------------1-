@@ -1,7 +1,10 @@
 package com.mylifemaestro.app
 
+import android.Manifest
+import android.app.Activity
 import android.app.AppOpsManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -9,6 +12,8 @@ import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 /**
  * 차단 엔진에 필요한 두 권한의 보유 여부 확인 및 설정 화면 이동을 담당한다.
@@ -126,7 +131,45 @@ object PermissionHelper {
     }
 
     // ─────────────────────────────────────────────
-    // 4. 종합
+    // 4. 알림 (안드로이드 13부터 런타임 권한)
+    // ─────────────────────────────────────────────
+
+    /**
+     * 알림을 표시할 수 있는지.
+     *
+     * ⚠️ 안드로이드 13(API 33)부터 알림은 **런타임 권한**이다.
+     *    매니페스트 선언만으로는 부여되지 않고 사용자에게 직접 요청해야 한다.
+     *    없으면 포그라운드 서비스의 상시 알림조차 표시되지 않아,
+     *    사용자는 앱이 백그라운드에서 도는 것을 알 수 없다. (8/9 실기기에서 확인)
+     */
+    fun hasNotificationPermission(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * 알림 권한을 요청한다. 이건 팝업으로 받을 수 있는 일반 런타임 권한이다.
+     * (사용 정보·오버레이 권한과 달리 설정 화면으로 보낼 필요가 없다)
+     */
+    fun requestNotificationPermission(activity: Activity) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        if (hasNotificationPermission(activity)) return
+
+        ActivityCompat.requestPermissions(
+            activity,
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            REQ_NOTIFICATION
+        )
+    }
+
+    const val REQ_NOTIFICATION = 2001
+
+    // ─────────────────────────────────────────────
+    // 5. 종합
     // ─────────────────────────────────────────────
 
     /**
@@ -149,6 +192,7 @@ object PermissionHelper {
         Log.i(TAG, "사용 정보 접근: ${if (usage) "✅ 허용됨" else "❌ 없음"}")
         Log.i(TAG, "다른 앱 위에 표시: ${if (overlay) "✅ 허용됨" else "❌ 없음"}")
         Log.i(TAG, "배터리 최적화 예외: ${if (battery) "✅ 제외됨" else "⚠️ 미적용 (며칠 뒤 서비스가 죽을 수 있음)"}")
+        Log.i(TAG, "알림: ${if (hasNotificationPermission(context)) "✅ 허용됨" else "❌ 없음 (상시 알림도 안 보임)"}")
         Log.i(TAG, "차단 가능 상태: ${if (canBlock(context)) "✅ 가능" else "❌ 불가"}")
         Log.i(TAG, "=====================")
     }

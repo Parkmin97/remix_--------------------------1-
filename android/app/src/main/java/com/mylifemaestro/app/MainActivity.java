@@ -30,6 +30,10 @@ public class MainActivity extends BridgeActivity {
         // 확인 방법: adb logcat | grep PermissionHelper
         PermissionHelper.INSTANCE.logPermissionStatus(this);
 
+        // 안드로이드 13+ 는 알림도 런타임 권한이다.
+        // 없으면 포그라운드 서비스의 상시 알림조차 표시되지 않는다.
+        PermissionHelper.INSTANCE.requestNotificationPermission(this);
+
         // [스파이크 2026-08-07] 권한이 다 있으면 감시 서비스를 켠다.
         // 정식 구현에서는 사용자가 "차단 시작"을 눌렀을 때만 켜야 한다.
         if (PermissionHelper.INSTANCE.canBlock(this)) {
