@@ -1,5 +1,6 @@
 package com.mylifemaestro.app
 
+import android.content.Intent
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -151,6 +152,27 @@ class BlockerPlugin : Plugin() {
     fun markMissionAttempted(call: PluginCall) {
         BlockSessionStore.markMissionAttempted(context)
         call.resolve()
+    }
+
+    /**
+     * 실제 안드로이드 홈 화면으로 나간다.
+     *
+     * 잠금을 시작한 뒤 사용자를 앱에 붙잡아두면 안 된다.
+     * 폰을 원래대로 쓰다가 잠근 앱을 열었을 때 차단되는 것이 이 제품의 흐름이다.
+     * (예전에는 앱 안의 '가상 폰 화면'으로 보냈지만, 실제 차단이 되면서 필요 없어졌다.)
+     */
+    @PluginMethod
+    fun goToHomeScreen(call: PluginCall) {
+        val home = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        try {
+            context.startActivity(home)
+            call.resolve()
+        } catch (e: Exception) {
+            call.reject("홈 화면으로 이동할 수 없습니다", e)
+        }
     }
 
     /** 현재 잠금 상태를 조회한다. */

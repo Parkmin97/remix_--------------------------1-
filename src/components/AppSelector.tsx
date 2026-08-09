@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Minus, X, Check, LayoutGrid } from 'lucide-react';
 import { getAppCatalog } from '../lib/appCatalog';
+import { APP_CATEGORIES } from '../data/appCategories';
 import { TargetService } from '../types';
 
 interface AppSelectorProps {
@@ -16,9 +17,36 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const selectedList = getAppCatalog().filter((s) =>
-    selectedServices.includes(s.id)
-  );
+  const catalog = getAppCatalog();
+
+  const selectedList = catalog.filter((s) => selectedServices.includes(s.id));
+
+  // 카테고리별로 묶는다. APP_CATEGORIES 순서를 따르므로 "시간을 많이 뺏는" 것부터 위에 온다.
+  const grouped = APP_CATEGORIES
+    .map((category) => ({
+      category,
+      apps: catalog.filter((s) => s.category === category.label),
+    }))
+    .filter((g) => g.apps.length > 0);
+
+  /**
+   * 카테고리 전체를 한 번에 켜고 끈다.
+   * 하나라도 꺼져 있으면 전부 켜고, 이미 다 켜져 있으면 전부 끈다.
+   * 잠금 중이라 바꿀 수 없는 앱은 건드리지 않는다.
+   */
+  const toggleCategory = (apps: TargetService[]) => {
+    const changeable = apps.filter((a) => !lockedServices.includes(a.id));
+    if (changeable.length === 0) return;
+
+    const allSelected = changeable.every((a) => selectedServices.includes(a.id));
+    changeable.forEach((a) => {
+      const isSelected = selectedServices.includes(a.id);
+      // 목표 상태와 다른 것만 뒤집는다
+      if (allSelected ? isSelected : !isSelected) {
+        onToggleService(a.id);
+      }
+    });
+  };
 
   return (
     <div className="space-y-2">
@@ -108,9 +136,32 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
               </button>
             </div>
 
-            {/* App Checkbox List */}
-            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-              {getAppCatalog().map((service: TargetService) => {
+            {/* App Checkbox List — 카테고리별로 묶어서 보여준다 */}
+            <div className="space-y-4 max-h-64 overflow-y-auto pr-1">
+              {grouped.map(({ category, apps }) => {
+              const selectedCount = apps.filter(a => selectedServices.includes(a.id)).length;
+              const allSelected = selectedCount === apps.length;
+
+              return (
+              <div key={category.id} className="space-y-2">
+                {/* 카테고리 헤더 — 묶음 선택 */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="text-[11px] font-bold text-black/70">
+                    {category.label}
+                    <span className="ml-1.5 font-normal text-black/40">
+                      {selectedCount}/{apps.length}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => toggleCategory(apps)}
+                    className="text-[11px] font-semibold px-2 py-1 rounded-lg border border-slate-300 text-black/70 hover:bg-slate-100 transition-colors"
+                  >
+                    {allSelected ? '전체 해제' : '전체 선택'}
+                  </button>
+                </div>
+
+                {apps.map((service: TargetService) => {
                 const isChecked = selectedServices.includes(service.id);
                 const isLocked = lockedServices.includes(service.id);
                 return (
@@ -153,6 +204,9 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
                     </div>
                   </div>
                 );
+                })}
+              </div>
+              );
               })}
             </div>
 

@@ -14,10 +14,7 @@ import type { TabType } from './components/BottomTabBar';
 import { LoginScreen } from './components/LoginScreen';
 import { OnboardingModal } from './components/OnboardingModal';
 import { LandingScreen } from './components/LandingScreen';
-import { HomeScreen } from './components/HomeScreen';
 import { MainLayout } from './components/MainLayout';
-import { PhoneHomeScreen } from './components/PhoneHomeScreen';
-import { ShortsFeedScreen } from './components/ShortsFeedScreen';
 import { InterventionModal } from './components/InterventionModal';
 import { ConductingMissionScreen } from './components/ConductingMissionScreen';
 import { SelfReflectionScreen } from './components/SelfReflectionScreen';
@@ -26,7 +23,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
 import { BlockChoiceScreen } from './components/BlockChoiceScreen';
 import { getBlockInfo, getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
-import { Blocker } from './lib/blocker';
+import { Blocker, goToRealHomeScreen } from './lib/blocker';
 import { loadAppCatalog } from './lib/appCatalog';
 
 export default function App() {
@@ -107,10 +104,10 @@ export default function App() {
       saveActiveSession(updated);
       setActiveSession(updated);
     }
-    setCurrentTab('phone-home');
+    setCurrentTab('home');
   };
 
-  // 모드 A/B에서 세션을 시작하면 저장·반영 후 폰 홈 화면으로 이동한다.
+  // 모드 A/B에서 세션을 시작하면 저장·반영 후 실제 폰 홈 화면으로 내보낸다.
   const handleStartSession = (session: SessionData) => {
     saveActiveSession(session);
     setActiveSession(session);
@@ -128,18 +125,22 @@ export default function App() {
       }).catch(err => console.warn('[App] 네이티브 차단 시작 실패(웹 환경일 수 있음)', err));
     }
 
-    setCurrentTab('phone-home');
+    // 잠금을 걸었으면 사용자를 앱에 붙잡아두지 않는다.
+    // 폰을 평소처럼 쓰다가 잠근 앱을 열었을 때 차단되는 것이 이 제품의 흐름이다.
+    goToRealHomeScreen().then(moved => {
+      if (!moved) setCurrentTab('home'); // 웹 브라우저에서는 홈 탭으로 대체
+    });
   };
 
-  // 흐름: 랜딩 → 무료로 시작하기 → 폰 배경화면(공개) → 내인생지휘자 앱 실행 → 로그인 → 기본 홈(서비스).
-  // 로그인 게이트는 '기본 홈(home, 실제 서비스)' 진입 시에만 적용한다. 랜딩·폰 배경화면 등은 공개.
+  // 흐름: 랜딩 → 무료로 시작하기 → 로그인 → 기본 홈(서비스).
+  // 로그인 게이트는 '기본 홈(home)' 진입 시에만 적용한다. 랜딩은 공개.
   const needsAuth = !user && currentTab === 'home';
 
-  // 무료로 시작하기: 과거 잠금 세션을 지우고 잠금효과 없는 폰 배경화면으로 진입한다.
+  // 무료로 시작하기: 과거 잠금 세션을 지우고 서비스 홈으로 들어간다.
   const handleFreeStart = () => {
     saveActiveSession(null);
     setActiveSession(null);
-    setCurrentTab('phone-home');
+    setCurrentTab('home');
   };
 
   // 리포트/튜토리얼 화면의 뒤로가기 → 기본 홈의 '더보기' 탭으로 돌아간다.
@@ -208,34 +209,6 @@ export default function App() {
           <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} activeSession={activeSession} />
         )}
 
-        {currentTab === 'phone-home' && (
-          <PhoneHomeScreen
-            activeSession={activeSession}
-            setActiveSession={setActiveSession}
-            onOpenIntervention={() => setIsInterventionOpen(true)}
-            onNavigateToScreen={(screen) => {
-              if (screen === 'home:mode-a') {
-                setMainTab('mode-a');
-                setCurrentTab('home');
-              } else if (screen === 'home:mode-b') {
-                setMainTab('mode-b');
-                setCurrentTab('home');
-              } else {
-                setCurrentTab(screen);
-              }
-            }}
-            user={user}
-          />
-        )}
-
-        {currentTab === 'shorts' && (
-          <ShortsFeedScreen
-            activeSession={activeSession}
-            setActiveSession={setActiveSession}
-            onNavigateToScreen={setCurrentTab}
-          />
-        )}
-
         {/* 차단 화면: 잠근 앱을 열었을 때 뜨는 선택지. 네이티브 웹뷰에서만 열린다. */}
         {currentTab === 'block-choice' && (
           <BlockChoiceScreen
@@ -253,7 +226,7 @@ export default function App() {
             onCancel={() => {
               // 차단 화면에서 미션을 포기한 경우: 시도로 치지 않아 나중에 다시 할 수 있다.
               if (reportMissionResult('cancel')) return;
-              setCurrentTab('phone-home');
+              setCurrentTab('home');
             }}
           />
         )}

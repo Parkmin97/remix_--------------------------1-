@@ -114,29 +114,8 @@ export const Header: React.FC<HeaderProps> = ({
               <span>기본 홈</span>
             </button>
 
-            <button
-              onClick={() => onTabChange('phone-home')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all shrink-0 whitespace-nowrap ${
-                currentTab === 'phone-home'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-semibold'
-                  : 'bg-stone-900/60 text-amber-200/80 border border-stone-800 hover:bg-stone-800/80 hover:text-amber-100'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5 shrink-0" />
-              <span>핸드폰 홈</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('shorts')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all shrink-0 whitespace-nowrap ${
-                currentTab === 'shorts'
-                  ? 'bg-amber-500 text-stone-950 shadow-md font-semibold'
-                  : 'bg-stone-900/60 text-amber-200/80 border border-stone-800 hover:bg-stone-800/80 hover:text-amber-100'
-              }`}
-            >
-              <PlaySquare className="w-3.5 h-3.5 shrink-0" />
-              <span>숏폼 피드</span>
-            </button>
+            {/* 가상 폰 홈 / 가상 숏폼 피드 버튼은 제거됨 (2026-08-09).
+                실제 OS 차단이 동작하면서 시뮬레이션 화면이 필요 없어졌다. */}
 
             <button
               onClick={() => onTabChange('mission')}

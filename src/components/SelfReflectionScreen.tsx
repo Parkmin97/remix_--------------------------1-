@@ -29,14 +29,14 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
       addCompletedSessionToReport(updated, true);
       setActiveSession(updated);
     }
-    onNavigateToScreen('phone-home');
+    onNavigateToScreen('home');
   };
 
   // Option 2: Fully Unlock Lock and return to phone home with session cleared
   const handleFullyUnlock = () => {
     saveActiveSession(null);
     setActiveSession(null);
-    onNavigateToScreen('phone-home');
+    onNavigateToScreen('home');
   };
 
   return (

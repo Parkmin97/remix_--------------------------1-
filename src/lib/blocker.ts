@@ -65,9 +65,24 @@ export interface BlockerPlugin {
   endSession(options: { reason?: string }): Promise<void>;
   markMissionAttempted(): Promise<void>;
   getStatus(): Promise<BlockStatus>;
+  /** 실제 안드로이드 홈 화면으로 나간다. 잠금 시작 후 사용자를 앱에 붙잡아두지 않기 위해 쓴다. */
+  goToHomeScreen(): Promise<void>;
 }
 
 export const Blocker = registerPlugin<BlockerPlugin>('Blocker');
+
+/**
+ * 실제 폰 홈 화면으로 나간다.
+ * 웹 브라우저에서는 할 수 없으므로 false 를 돌려준다(호출부가 대체 동작을 정한다).
+ */
+export async function goToRealHomeScreen(): Promise<boolean> {
+  try {
+    await Blocker.goToHomeScreen();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /** 네이티브 차단 엔진을 쓸 수 있는 환경인지. 웹 브라우저에서는 false. */
 export async function isBlockerAvailable(): Promise<boolean> {

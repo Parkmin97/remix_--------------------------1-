@@ -208,7 +208,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigateToScreen
       title: '무의식적 실행을 붙잡는 소프트 잠금',
       desc: '앱을 여는 순간, 강제 차단 대신 부드러운 개입 창이 오늘의 목표를 다시 물어봅니다. 반발심 없이 스스로 멈추게 됩니다.',
       cta: '잠금 홈 체험하기',
-      target: 'phone-home',
+      target: 'home',
       Mock: MockLockHome,
     },
     screen2: {
