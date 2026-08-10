@@ -87,6 +87,21 @@ body {
 }
 .lp-pulse-ring { animation: lp-pulse-ring 2.4s ease-out infinite; }
 
+/*
+ * 스크롤 유도 — 목록 아래에 내용이 더 있음을 몸짓으로 알린다.
+ *
+ * 글씨로 "아래로 스크롤하세요"라고 적는 대신, 아래로 흘러내리는 움직임을 보여준다.
+ * 사람은 정지한 안내문보다 움직임을 먼저 알아채고, 그 방향을 그대로 따라 하려 한다.
+ * 두 번째 화살표를 조금 늦게 출발시켜 흐름이 아래로 이어지는 느낌을 준다.
+ */
+@keyframes ui-scroll-hint {
+  0%   { transform: translateY(-3px); opacity: 0; }
+  35%  { opacity: 1; }
+  100% { transform: translateY(7px); opacity: 0; }
+}
+.ui-scroll-hint { animation: ui-scroll-hint 1.6s ease-in-out infinite; }
+.ui-scroll-hint-delayed { animation: ui-scroll-hint 1.6s ease-in-out 0.22s infinite; }
+
 /* Scroll reveal — toggled by IntersectionObserver via data attribute */
 .lp-reveal {
   opacity: 0;
@@ -101,6 +116,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .lp-float, .lp-baton, .lp-marquee, .lp-pulse-ring { animation: none; }
+  /* 움직임을 끈 경우에도 "더 있다"는 사실은 남아야 하므로 화살표는 그대로 보인다 */
+  .ui-scroll-hint, .ui-scroll-hint-delayed { animation: none; opacity: 0.6; }
   .lp-reveal { opacity: 1; transform: none; transition: none; }
 }
 

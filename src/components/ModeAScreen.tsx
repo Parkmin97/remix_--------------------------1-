@@ -52,13 +52,19 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     }
   }, [activeSession]);
 
+  /**
+   * 앱 하나를 켜고 끈다.
+   *
+   * ⚠️ 반드시 **직전 값을 인자로 받는 형태**로 갱신해야 한다.
+   *    '전체 선택'은 앱 개수만큼 이 함수를 연달아 부르는데,
+   *    setSelectedServices([...selectedServices, id]) 처럼 바깥 값을 쓰면
+   *    호출마다 똑같은 옛 배열을 보게 되어 마지막 하나만 남는다.
+   *    (전체 선택을 눌러도 한 개만 켜지던 원인)
+   */
   const handleToggleService = (id: string) => {
-    if (selectedServices.includes(id)) {
-      if (selectedServices.length <= 1) return;
-      setSelectedServices(selectedServices.filter(s => s !== id));
-    } else {
-      setSelectedServices([...selectedServices, id]);
-    }
+    setSelectedServices(prev =>
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
   };
 
   /**

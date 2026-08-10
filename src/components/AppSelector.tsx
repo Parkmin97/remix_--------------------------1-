@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Plus, Minus, X, Check, LayoutGrid, Lock } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Plus, Minus, X, Check, LayoutGrid, Lock, ChevronDown } from 'lucide-react';
 import { getAppCatalog, refreshAppCatalogIfStale } from '../lib/appCatalog';
 import { APP_CATEGORIES } from '../data/appCategories';
 import { TargetService } from '../types';
@@ -36,6 +36,24 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
       });
   };
 
+  /**
+   * 목록 아래에 내용이 더 있는지.
+   *
+   * 카테고리 하나가 스크롤 영역을 꽉 채우면 아래에 더 있다는 걸 알 수가 없다.
+   * 실제로 숏폼 3개만 보이고 카카오톡·넷플릭스가 안 보인다는 오해가 있었다.
+   * 끝까지 내려가면 힌트를 치워, 다 봤는데도 계속 재촉하지 않도록 한다.
+   */
+  const listRef = useRef<HTMLDivElement>(null);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
+
+  const updateScrollHint = useCallback(() => {
+    const el = listRef.current;
+    if (!el) return;
+    // 소수점 오차로 끝에 닿아도 안 닿은 것처럼 보이는 일이 있어 여유를 둔다.
+    const remaining = el.scrollHeight - el.clientHeight - el.scrollTop;
+    setHasMoreBelow(remaining > 8);
+  }, []);
+
   const catalog = getAppCatalog();
 
   const selectedList = catalog.filter((s) => selectedServices.includes(s.id));
@@ -47,6 +65,13 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
       apps: catalog.filter((s) => s.category === category.label),
     }))
     .filter((g) => g.apps.length > 0);
+
+  // 목록을 그린 뒤라야 실제 높이를 잴 수 있다.
+  // 모달을 열 때, 그리고 앱 목록이 갱신돼 항목 수가 달라졌을 때 다시 확인한다.
+  useEffect(() => {
+    if (!isModalOpen) return;
+    updateScrollHint();
+  }, [isModalOpen, grouped.length, updateScrollHint]);
 
   /**
    * 카테고리 전체를 한 번에 켜고 끈다.
@@ -182,7 +207,12 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
             </div>
 
             {/* App Checkbox List — 카테고리별로 묶어서 보여준다 */}
-            <div className="space-y-4 max-h-64 overflow-y-auto pr-1">
+            <div className="relative">
+            <div
+              ref={listRef}
+              onScroll={updateScrollHint}
+              className="space-y-4 max-h-64 overflow-y-auto pr-1"
+            >
               {grouped.map(({ category, apps }) => {
               const selectedCount = apps.filter(a => selectedServices.includes(a.id)).length;
               const allSelected = selectedCount === apps.length;
@@ -279,6 +309,21 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
               </div>
               );
               })}
+            </div>
+
+            {/*
+              스크롤 유도 — 아래에 앱이 더 있을 때만 뜬다.
+              목록 위에 겹쳐 놓아야 스크롤을 따라 사라지지 않는다.
+              pointer-events-none 이라 힌트 위를 그대로 문질러 스크롤할 수 있다.
+            */}
+            {hasMoreBelow && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 flex items-end justify-center bg-gradient-to-t from-white via-white/90 to-transparent">
+                <div className="flex flex-col items-center -space-y-2 pb-0.5">
+                  <ChevronDown className="w-4 h-4 text-black/45 stroke-[3] ui-scroll-hint" />
+                  <ChevronDown className="w-4 h-4 text-black/30 stroke-[3] ui-scroll-hint-delayed" />
+                </div>
+              </div>
+            )}
             </div>
 
             {/* Confirm Button (검은색 배경, 흰색 텍스트) */}

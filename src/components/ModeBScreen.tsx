@@ -53,13 +53,12 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
     }
   }, [activeSession]);
 
+  // 직전 값을 받는 형태로 갱신해야 '전체 선택'이 제대로 동작한다.
+  // 사유는 ModeAScreen 의 같은 자리 주석 참고.
   const handleToggleService = (id: string) => {
-    if (selectedServices.includes(id)) {
-      if (selectedServices.length <= 1) return;
-      setSelectedServices(selectedServices.filter(s => s !== id));
-    } else {
-      setSelectedServices([...selectedServices, id]);
-    }
+    setSelectedServices(prev =>
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
   };
 
   // 실제로 잠글 수 있는 앱이 있는지 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
