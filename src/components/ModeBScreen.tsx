@@ -6,6 +6,8 @@ import { saveActiveSession } from '../lib/storage';
 import { isModeRunning, isSessionRunning } from '../lib/sessionState';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { AppSelector } from './AppSelector';
+import { PermissionNotice } from './PermissionSetup';
+import { useBlockerPermissions } from '../lib/blockerPermissions';
 
 interface ModeBScreenProps {
   onStartSession: (session: SessionData) => void;
@@ -62,10 +64,17 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
   };
 
   // 실제로 잠글 수 있는 앱이 있는지 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
-  const canStart = getAppCatalog().some(s => selectedServices.includes(s.id));
+  const hasSelectableApp = getAppCatalog().some(s => selectedServices.includes(s.id));
+
+  // 필수 권한이 없으면 잠금이 실제로 걸리지 않는다 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
+  const { canBlock } = useBlockerPermissions();
+
+  const canStart = hasSelectableApp && canBlock;
 
   // 예약 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
   const handleStart = () => {
+    if (!canStart) return;
+
     // 이미 세션이 **실행 중인** 경우만 기존 세션 갱신 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
     if (isSessionRunning(activeSession)) {
       const updatedSession: SessionData = {
@@ -181,6 +190,9 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
           </div>
         </div>
 
+        {/* 차단 권한이 빠져 있을 때만 뜨는 안내 */}
+        <PermissionNotice />
+
         {/* Start Button (검은색 배경, 흰색 텍스트, #FE9A00 아이콘) */}
         <button
           onClick={handleStart}
@@ -188,7 +200,11 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
           className="w-full py-3.5 bg-black hover:bg-neutral-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
         >
           <Play className="w-4 h-4 fill-[#FE9A00] text-[#FE9A00]" />
-          <span>{canStart ? '예약 잠금 모드 실행' : '잠글 앱을 먼저 선택하세요'}</span>
+          <span>
+            {!hasSelectableApp ? '잠글 앱을 먼저 선택하세요'
+              : !canBlock ? '잠금 권한을 먼저 켜주세요'
+              : '예약 잠금 모드 실행'}
+          </span>
         </button>
       </div>
     </div>

@@ -27,8 +27,18 @@ import { getBlockInfo, getInitialScreen, isBlockMode, reportMissionResult } from
 import { Blocker, goToRealHomeScreen } from './lib/blocker';
 import { loadAppCatalog, resolveLockedCategories } from './lib/appCatalog';
 import { syncSessionFromNative } from './lib/sessionSync';
+import { BlockerPermissionsProvider, useBlockerPermissions } from './lib/blockerPermissions';
+import { PermissionSetupScreen } from './components/PermissionSetup';
 
 export default function App() {
+  return (
+    <BlockerPermissionsProvider>
+      <AppContent />
+    </BlockerPermissionsProvider>
+  );
+}
+
+function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>(() => {
     // 차단 화면(네이티브)에서 열리면 URL 로 시작 화면이 지정된다.
     const fromUrl = getInitialScreen();
@@ -48,6 +58,12 @@ export default function App() {
   const [mainTab, setMainTab] = useState<TabType>('home');
   // 앱 목록은 비동기로 도착한다. 도착하면 이 값을 올려 화면을 다시 그린다.
   const [, setCatalogVersion] = useState(0);
+
+  // 차단 권한 상태. 필수 권한이 없으면 잠금을 걸어도 아무 일도 일어나지 않으므로
+  // 홈에 들어가기 전에 안내 화면을 세운다. '나중에 하기'로 넘긴 경우만 통과시킨다.
+  // (넘겨도 잠금 실행 버튼은 모드 A/B 에서 따로 막는다)
+  const { env: permissionEnv, canBlock } = useBlockerPermissions();
+  const [permissionSkipped, setPermissionSkipped] = useState<boolean>(false);
 
   // Initialize on Mount
   useEffect(() => {
@@ -185,6 +201,12 @@ export default function App() {
   // 로그인 게이트는 '기본 홈(home)' 진입 시에만 적용한다. 랜딩은 공개.
   const needsAuth = !user && currentTab === 'home';
 
+  // 권한 안내를 홈 자리에 대신 세운다.
+  // 미션·차단 화면(block-choice)까지 가로막으면 잠긴 앱을 열었을 때 미션에 닿지 못하므로
+  // 홈에서만 띄운다. 웹 브라우저(permissionEnv === 'web')에서는 아예 뜨지 않는다.
+  const needsPermissionSetup =
+    permissionEnv === 'native' && !canBlock && !permissionSkipped && !isBlockMode();
+
   // 무료로 시작하기: 과거 잠금 세션을 지우고 서비스 홈으로 들어간다.
   const handleFreeStart = () => {
     saveActiveSession(null);
@@ -255,7 +277,14 @@ export default function App() {
         {!needsAuth && (
         <>
         {currentTab === 'home' && (
-          <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} activeSession={activeSession} />
+          needsPermissionSetup ? (
+            <PermissionSetupScreen
+              onSkip={() => setPermissionSkipped(true)}
+              onDone={() => setPermissionSkipped(true)}
+            />
+          ) : (
+            <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} activeSession={activeSession} />
+          )
         )}
 
         {/* 차단 화면: 잠근 앱을 열었을 때 뜨는 선택지. 네이티브 웹뷰에서만 열린다. */}

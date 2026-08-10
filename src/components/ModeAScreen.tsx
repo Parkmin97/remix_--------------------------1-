@@ -6,6 +6,8 @@ import { saveActiveSession } from '../lib/storage';
 import { isSessionRunning } from '../lib/sessionState';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { AppSelector } from './AppSelector';
+import { PermissionNotice } from './PermissionSetup';
+import { useBlockerPermissions } from '../lib/blockerPermissions';
 
 interface ModeAScreenProps {
   onStartSession: (session: SessionData) => void;
@@ -74,10 +76,21 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
    * 저장된 옛 세션에 지금은 없는 id 가 들어 있으면 개수만으로는 걸러지지 않고,
    * 아무것도 안 막히는 잠금이 시작돼 버린다.
    */
-  const canStart = getAppCatalog().some(s => selectedServices.includes(s.id));
+  const hasSelectableApp = getAppCatalog().some(s => selectedServices.includes(s.id));
+
+  /**
+   * 필수 권한(사용 정보 접근 + 다른 앱 위에 표시)이 있는지.
+   * 없으면 잠금을 걸어도 실제로는 아무 앱도 막히지 않는다 — 시작 자체를 막는다.
+   * 배터리 최적화는 권장이라 여기서 막지 않고 [PermissionNotice] 로 경고만 한다.
+   */
+  const { canBlock } = useBlockerPermissions();
+
+  const canStart = hasSelectableApp && canBlock;
 
   // 지금 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
   const handleStart = () => {
+    if (!canStart) return;
+
     // 이미 세션이 **실행 중인** 경우: 앱 선택 수정 사항을 기존 세션에 반영 후 폰 홈으로 이동.
     // 끝난 세션까지 여기로 들어오면 새 잠금이 시작되지 않고, 이미 지나간 종료 시각을
     // 그대로 다시 넘겨 잠금이 곧바로 만료돼 버린다.
@@ -175,6 +188,9 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
             </div>
           </div>
 
+          {/* 차단 권한이 빠져 있을 때만 뜨는 안내 (웹/모두 허용이면 아무것도 그리지 않는다) */}
+          <PermissionNotice />
+
           {/* Start Button (검은색 배경, 흰색 텍스트, #FE9A00 아이콘) */}
           <button
             onClick={handleStart}
@@ -182,7 +198,11 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
             className="w-full py-3.5 bg-black hover:bg-neutral-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
             <Play className="w-4 h-4 fill-[#FE9A00] text-[#FE9A00]" />
-            <span>{canStart ? '지금 잠금 모드 실행' : '잠글 앱을 먼저 선택하세요'}</span>
+            <span>
+              {!hasSelectableApp ? '잠글 앱을 먼저 선택하세요'
+                : !canBlock ? '잠금 권한을 먼저 켜주세요'
+                : '지금 잠금 모드 실행'}
+            </span>
           </button>
       </div>
     </div>
