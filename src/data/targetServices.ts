@@ -1,13 +1,52 @@
-import { TargetService, ShortVideo } from '../types';
+import { AppCategoryId, TargetService, ShortVideo } from '../types';
+import { APP_CATEGORIES } from './appCategories';
+
+/**
+ * 웹 브라우저용 **대체 앱 목록**.
+ *
+ * ■ 이 목록이 왜 있는가
+ *   앱 선택 목록은 원래 안드로이드에서 기기에 실제 설치된 앱을 읽어 만든다
+ *   (`lib/appCatalog.ts` 의 loadAppCatalog). 하지만 브라우저에는 네이티브 브릿지가
+ *   없어 그 호출이 실패한다. 그때 catch 절이 이 배열로 대체한다.
+ *   즉 **개발·데모 중 브라우저에서 보는 목록이 전부 여기서 나온다.**
+ *   여기가 비거나 잘못되면 앱을 못 고르고, 잠금·세션이 필요한 기능을 전부 확인할 수 없다.
+ *
+ * ■ ⚠️ category 는 APP_CATEGORIES 의 label 과 **반드시 글자까지 같아야 한다**
+ *   AppSelector 는 목록을 카테고리별로 묶어서 그린다:
+ *     APP_CATEGORIES.map(c => catalog.filter(s => s.category === c.label))
+ *   문자열 일치로 묶기 때문에 label 에 없는 값을 쓰면 그 항목은 **어느 그룹에도 안 잡히고
+ *   화면에서 조용히 사라진다. 에러도 경고도 안 난다.**
+ *   실제로 예전 값('소셜 릴스', '동영상 숏츠', '숏폼 트렌드', '실시간 피드')이
+ *   label 과 하나도 안 맞아 목록 전체가 빈 화면이 된 적이 있다.
+ *   → 그래서 아래 LABEL 을 통해서만 카테고리를 쓴다. 문자열을 직접 적지 마라.
+ *
+ * ■ id 는 실제 패키지명을 쓴다
+ *   안드로이드에서 오는 목록은 패키지명을 id 로 쓴다(네이티브 차단 엔진이 그대로 쓴다).
+ *   형식을 맞춰야 웹에서 만든 선택 결과가 실기기와 같은 모양이 된다.
+ *   예외는 아래 4개(instagram/youtube/tiktok/x-twitter)뿐이다 — SIMULATED_SHORTS 의
+ *   serviceId 가 이 id 들을 참조하고 있어 그대로 둔다. 새 항목은 반드시 패키지명으로.
+ *
+ * ■ 카테고리 분류 기준
+ *   appCategories.ts 의 BUILTIN_PACKAGE_CATEGORIES 와 동일하게 맞췄다.
+ *   같은 앱이 웹에서는 '소셜', 실기기에서는 '숏폼'으로 보이면 안 되기 때문이다.
+ */
+
+/** APP_CATEGORIES 의 label 을 id 로 안전하게 꺼내 쓰기 위한 표 (오타 시 컴파일 에러) */
+const LABEL: Record<AppCategoryId, string> = APP_CATEGORIES.reduce((acc, category) => {
+  acc[category.id] = category.label;
+  return acc;
+}, {} as Record<AppCategoryId, string>);
 
 export const TARGET_SERVICES: TargetService[] = [
+  // ── 숏폼/영상 ────────────────────────────────────────────────
   {
+    // ⚠️ id 유지: SIMULATED_SHORTS 의 serviceId 가 참조한다
     id: 'instagram',
     name: 'Instagram',
     icon: 'Instagram',
     color: 'from-purple-600 via-pink-500 to-amber-500',
     url: 'https://www.instagram.com',
-    category: '소셜 릴스'
+    category: LABEL.SHORTFORM
   },
   {
     id: 'youtube',
@@ -15,7 +54,7 @@ export const TARGET_SERVICES: TargetService[] = [
     icon: 'Youtube',
     color: 'from-red-600 to-red-700',
     url: 'https://www.youtube.com',
-    category: '동영상 숏츠'
+    category: LABEL.SHORTFORM
   },
   {
     id: 'tiktok',
@@ -23,15 +62,284 @@ export const TARGET_SERVICES: TargetService[] = [
     icon: 'Video',
     color: 'from-cyan-500 to-black',
     url: 'https://www.tiktok.com',
-    category: '숏폼 트렌드'
+    category: LABEL.SHORTFORM
   },
   {
+    id: 'tv.twitch.android.app',
+    name: '트위치',
+    icon: 'Flame',
+    color: 'from-violet-500 to-purple-700',
+    url: 'https://www.twitch.tv',
+    category: LABEL.SHORTFORM
+  },
+  {
+    id: 'kr.co.nowcom.mobile.afreeca',
+    name: 'SOOP (아프리카TV)',
+    icon: 'Flame',
+    color: 'from-blue-500 to-indigo-600',
+    url: 'https://www.sooplive.co.kr',
+    category: LABEL.SHORTFORM
+  },
+
+  // ── 소셜/메신저 ──────────────────────────────────────────────
+  {
+    // ⚠️ id 유지: SIMULATED_SHORTS 의 serviceId 가 참조한다
     id: 'x-twitter',
     name: 'X (Twitter)',
     icon: 'Twitter',
     color: 'from-gray-800 to-black',
     url: 'https://x.com',
-    category: '실시간 피드'
+    category: LABEL.SOCIAL
+  },
+  {
+    id: 'com.kakao.talk',
+    name: '카카오톡',
+    icon: 'MessageCircle',
+    color: 'from-yellow-400 to-amber-500',
+    url: 'https://www.kakaocorp.com',
+    category: LABEL.SOCIAL
+  },
+  {
+    id: 'com.nhn.android.band',
+    name: '네이버 밴드',
+    icon: 'MessageCircle',
+    color: 'from-green-500 to-emerald-600',
+    url: 'https://band.us',
+    category: LABEL.SOCIAL
+  },
+  {
+    id: 'com.facebook.katana',
+    name: '페이스북',
+    icon: 'MessageCircle',
+    color: 'from-blue-600 to-blue-800',
+    url: 'https://www.facebook.com',
+    category: LABEL.SOCIAL
+  },
+  {
+    id: 'com.discord',
+    name: '디스코드',
+    icon: 'MessageCircle',
+    color: 'from-indigo-500 to-violet-600',
+    url: 'https://discord.com',
+    category: LABEL.SOCIAL
+  },
+
+  // ── 게임 ────────────────────────────────────────────────────
+  {
+    id: 'com.roblox.client',
+    name: '로블록스',
+    icon: 'Gamepad2',
+    color: 'from-slate-600 to-slate-800',
+    url: 'https://www.roblox.com',
+    category: LABEL.GAME
+  },
+  {
+    id: 'com.supercell.brawlstars',
+    name: '브롤스타즈',
+    icon: 'Gamepad2',
+    color: 'from-amber-500 to-orange-700',
+    url: '',
+    category: LABEL.GAME
+  },
+  {
+    id: 'com.pubg.krmobile',
+    name: '배틀그라운드 모바일',
+    icon: 'Gamepad2',
+    color: 'from-orange-500 to-yellow-600',
+    url: '',
+    category: LABEL.GAME
+  },
+
+  // ── OTT/스트리밍 ────────────────────────────────────────────
+  {
+    id: 'com.netflix.mediaclient',
+    name: '넷플릭스',
+    icon: 'MonitorPlay',
+    color: 'from-red-600 to-black',
+    url: 'https://www.netflix.com',
+    category: LABEL.STREAMING
+  },
+  {
+    id: 'net.cj.cjhv.gs.tving',
+    name: '티빙',
+    icon: 'MonitorPlay',
+    color: 'from-rose-500 to-red-600',
+    url: 'https://www.tving.com',
+    category: LABEL.STREAMING
+  },
+  {
+    id: 'com.disney.disneyplus',
+    name: '디즈니+',
+    icon: 'MonitorPlay',
+    color: 'from-blue-700 to-indigo-900',
+    url: 'https://www.disneyplus.com',
+    category: LABEL.STREAMING
+  },
+
+  // ── 뉴스/커뮤니티 ───────────────────────────────────────────
+  {
+    id: 'com.nhn.android.search',
+    name: '네이버',
+    icon: 'Newspaper',
+    color: 'from-green-500 to-green-700',
+    url: 'https://www.naver.com',
+    category: LABEL.COMMUNITY
+  },
+  {
+    id: 'com.nhn.android.navercafe',
+    name: '네이버 카페',
+    icon: 'Newspaper',
+    color: 'from-lime-500 to-green-600',
+    url: 'https://cafe.naver.com',
+    category: LABEL.COMMUNITY
+  },
+  {
+    id: 'com.dcinside.app',
+    name: '디시인사이드',
+    icon: 'Newspaper',
+    color: 'from-sky-600 to-blue-700',
+    url: 'https://www.dcinside.com',
+    category: LABEL.COMMUNITY
+  },
+
+  // ── 웹툰/웹소설 ─────────────────────────────────────────────
+  {
+    id: 'com.nhn.android.webtoon',
+    name: '네이버 웹툰',
+    icon: 'BookOpen',
+    color: 'from-emerald-400 to-teal-600',
+    url: 'https://comic.naver.com',
+    category: LABEL.WEBTOON
+  },
+  {
+    id: 'com.kakao.page',
+    name: '카카오페이지',
+    icon: 'BookOpen',
+    color: 'from-yellow-500 to-amber-600',
+    url: 'https://page.kakao.com',
+    category: LABEL.WEBTOON
+  },
+
+  // ── 쇼핑/배달 ───────────────────────────────────────────────
+  {
+    id: 'com.coupang.mobile',
+    name: '쿠팡',
+    icon: 'ShoppingBag',
+    color: 'from-red-500 to-rose-600',
+    url: 'https://www.coupang.com',
+    category: LABEL.SHOPPING
+  },
+  {
+    // 배달의민족 패키지명은 실제로 com.sampleapp 이다 (오타 아님)
+    id: 'com.sampleapp',
+    name: '배달의민족',
+    icon: 'ShoppingBag',
+    color: 'from-teal-400 to-cyan-600',
+    url: 'https://www.baemin.com',
+    category: LABEL.SHOPPING
+  },
+  {
+    id: 'com.towneers.www',
+    name: '당근',
+    icon: 'ShoppingBag',
+    color: 'from-orange-400 to-amber-600',
+    url: 'https://www.daangn.com',
+    category: LABEL.SHOPPING
+  },
+
+  // ── 음악/오디오 ─────────────────────────────────────────────
+  {
+    id: 'com.iloen.melon',
+    name: '멜론',
+    icon: 'Music',
+    color: 'from-green-400 to-emerald-600',
+    url: 'https://www.melon.com',
+    category: LABEL.MUSIC
+  },
+  {
+    id: 'com.spotify.music',
+    name: '스포티파이',
+    icon: 'Music',
+    color: 'from-green-500 to-green-800',
+    url: 'https://open.spotify.com',
+    category: LABEL.MUSIC
+  },
+  {
+    id: 'com.google.android.apps.youtube.music',
+    name: '유튜브 뮤직',
+    icon: 'Music',
+    color: 'from-red-500 to-rose-700',
+    url: 'https://music.youtube.com',
+    category: LABEL.MUSIC
+  },
+
+  // ── 금융/페이 ───────────────────────────────────────────────
+  {
+    id: 'viva.republica',
+    name: '토스',
+    icon: 'Wallet',
+    color: 'from-blue-500 to-indigo-700',
+    url: 'https://toss.im',
+    category: LABEL.FINANCE
+  },
+  {
+    id: 'com.kakaopay.app',
+    name: '카카오페이',
+    icon: 'Wallet',
+    color: 'from-amber-400 to-yellow-600',
+    url: 'https://www.kakaopay.com',
+    category: LABEL.FINANCE
+  },
+
+  // ── 브라우저 ────────────────────────────────────────────────
+  {
+    id: 'com.android.chrome',
+    name: '크롬',
+    icon: 'Globe',
+    color: 'from-sky-400 to-blue-600',
+    url: 'https://www.google.com',
+    category: LABEL.BROWSER
+  },
+  {
+    id: 'com.sec.android.app.sbrowser',
+    name: '삼성 인터넷',
+    icon: 'Globe',
+    color: 'from-indigo-400 to-blue-700',
+    url: '',
+    category: LABEL.BROWSER
+  },
+  {
+    id: 'com.naver.whale',
+    name: '네이버 웨일',
+    icon: 'Globe',
+    color: 'from-cyan-400 to-sky-600',
+    url: 'https://whale.naver.com',
+    category: LABEL.BROWSER
+  },
+
+  // ── 기타 ────────────────────────────────────────────────────
+  // 매핑표에 없는 앱이 '기타'로 떨어지는 모습을 웹에서도 확인하기 위한 표본이다.
+  // (실기기에서도 매핑표에 없는 앱은 여기로 온다 — appCategories 의 FALLBACK_CATEGORY)
+  //
+  // 아래 둘이 매핑표에 없는 것은 누락이 아니라 방침이다(2026-08-10 매핑 담당 확인).
+  // 지도·업무·사진 같은 도구 앱을 매핑하면 리포트의 'SNS 시간'에 딸려 들어가므로
+  // 의도적으로 ETC 에 남겨둔다 — appCategories.ts 하단 "의도적으로 매핑하지 않은 것" 참고.
+  // 즉 이 표본은 앞으로도 '기타'로 유지된다.
+  {
+    id: 'com.nhn.android.nmap',
+    name: '네이버 지도',
+    icon: 'LayoutGrid',
+    color: 'from-green-400 to-teal-600',
+    url: 'https://map.naver.com',
+    category: LABEL.ETC
+  },
+  {
+    id: 'com.google.android.gm',
+    name: 'Gmail',
+    icon: 'LayoutGrid',
+    color: 'from-red-400 to-rose-600',
+    url: 'https://mail.google.com',
+    category: LABEL.ETC
   }
 ];
 
