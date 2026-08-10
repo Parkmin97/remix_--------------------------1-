@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
 import { SessionData } from './types';
-import { getStoredActiveSession, saveActiveSession, getOnboardingCompleted, getSoundMuted } from './lib/storage';
+import { getStoredActiveSession, saveActiveSession, getOnboardingCompleted, getSoundMuted, syncReportsFromSupabase } from './lib/storage';
 import { audioSynthesizer } from './lib/audioSynthesizer';
 import { supabase } from './lib/supabase';
 import { Header } from './components/Header';
@@ -107,13 +107,21 @@ export default function App() {
   // Supabase 인증 상태 구독
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
+      const currentUser = data.session?.user ?? null;
+      setUser(currentUser);
       setAuthChecked(true);
+      if (currentUser) {
+        syncReportsFromSupabase();
+      }
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
       setAuthChecked(true);
+      if (currentUser) {
+        syncReportsFromSupabase();
+      }
     });
 
     return () => sub.subscription.unsubscribe();

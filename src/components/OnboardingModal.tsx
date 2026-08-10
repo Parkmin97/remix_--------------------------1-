@@ -33,7 +33,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             <span className="text-2xl font-serif">𝄞</span>
           </div>
           <div>
-            <h2 className="text-xl font-bold font-serif text-amber-300">내인생 지휘자 PWA 안내</h2>
+            <h2 className="text-xl font-bold font-serif text-amber-300">내인생 지휘자 서비스 및 권한 안내</h2>
             <p className="text-xs text-stone-400">자기약속형 디지털 디톡스 & 지휘 미션</p>
           </div>
         </div>
@@ -42,9 +42,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
         <div className="p-3 bg-amber-950/40 border border-amber-600/30 rounded-xl mb-5 flex items-start gap-2.5 text-xs text-amber-200/90 leading-relaxed">
           <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <div>
-            <strong className="text-amber-300">핵심 제품 약속 (PRD v3.0):</strong>
+            <strong className="text-amber-300">핵심 서비스 안내 (안드로이드 OS 연동):</strong>
             <p className="mt-0.5">
-              이 앱은 스마트폰 OS의 다른 앱을 강제로 삭제/차단하지 않습니다. 사용자가 스스로 시작한 시간 약속, 5초 정리 유예, 1분 지휘 미션과 자각 질문으로 행동 전환을 돕는 자기 주도 디톡스 서비스입니다.
+              이 앱은 실제 안드로이드 OS 권한(사용 정보 접근, 다른 앱 위에 그리기)을 기반으로 지정한 타깃 앱 사용을 제어하며, 1분 클래식 지휘 미션을 통해 스스로 주도권을 되찾는 자기주도형 디톡스 서비스입니다.
             </p>
           </div>
         </div>
@@ -55,7 +55,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             <div>
               <h4 className="font-semibold text-amber-200">1. 두 가지 서비스 모드</h4>
               <p className="text-stone-400 mt-0.5">
-                • <strong>집중 약속 모드</strong>: 즉시 15분~360분 동안 SNS를 피하는 집중 모드<br/>
+                • <strong>집중 약속 모드</strong>: 즉시 15분~360분 동안 SNS를 피하는 집중 모드<br />
                 • <strong>의도적 SNS 이용 모드</strong>: SNS 이용 시간(5~120분)을 먼저 약속 후 시작
               </p>
             </div>

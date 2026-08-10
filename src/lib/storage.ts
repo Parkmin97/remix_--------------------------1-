@@ -1,4 +1,5 @@
 import { SessionData, DailyReport, BeatType } from '../types';
+import { syncDailyReportToSupabase, fetchDailyReportsFromSupabase } from './supabase';
 
 const STORAGE_KEYS = {
   ACTIVE_SESSION: 'life_conductor_active_session',
@@ -84,7 +85,6 @@ export const addCompletedSessionToReport = (session: SessionData, wasConfirmed: 
       missionSuccessCount: 0,
       missionFailCount: 0,
       extensionCount: 0,
-      conductorRank: '신예 지휘자'
     };
     reports.push(todayReport);
   }
@@ -111,18 +111,40 @@ export const addCompletedSessionToReport = (session: SessionData, wasConfirmed: 
     todayReport.extensionCount += 1;
   }
 
-  // Update Conductor Rank based on total minutes
-  if (todayReport.completedFocusMinutes >= 240) {
-    todayReport.conductorRank = '오케스트라 총감독';
-  } else if (todayReport.completedFocusMinutes >= 180) {
-    todayReport.conductorRank = '마에스트로';
-  } else if (todayReport.completedFocusMinutes >= 120) {
-    todayReport.conductorRank = '수석 지휘자';
-  } else {
-    todayReport.conductorRank = '지휘자';
-  }
-
   localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(reports));
+  syncDailyReportToSupabase(todayReport);
+};
+
+/**
+ * Supabase DB에 저장된 유저의 이전 일별 리포트를 가져와 localStroage에 안전하게 복원/병합한다.
+ */
+export const syncReportsFromSupabase = async (): Promise<boolean> => {
+  try {
+    const remoteReports = await fetchDailyReportsFromSupabase();
+    if (!remoteReports || remoteReports.length === 0) return false;
+
+    const localReports = getDailyReports();
+    const reportMap = new Map<string, DailyReport>();
+
+    // 원격 서버 데이터 우선 적용
+    for (const r of remoteReports) {
+      reportMap.set(r.date, r);
+    }
+
+    // 로컬 전용 데이터가 있다면 병합
+    for (const r of localReports) {
+      if (!reportMap.has(r.date)) {
+        reportMap.set(r.date, r);
+      }
+    }
+
+    const mergedReports = Array.from(reportMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+    localStorage.setItem(STORAGE_KEYS.REPORTS, JSON.stringify(mergedReports));
+    return true;
+  } catch (err) {
+    console.warn('[storage] Supabase 리포트 복원 실패:', err);
+    return false;
+  }
 };
 
 export const clearAllData = (): void => {

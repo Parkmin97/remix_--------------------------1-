@@ -185,5 +185,4 @@ export interface DailyReport {
   missionSuccessCount: number;
   missionFailCount: number;
   extensionCount: number;
-  conductorRank: string;
 }

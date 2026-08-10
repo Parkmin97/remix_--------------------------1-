@@ -1,6 +1,7 @@
 import React from 'react';
 import { SessionData } from '../types';
 import { saveActiveSession, addCompletedSessionToReport } from '../lib/storage';
+import { syncSessionDecisionToSupabase } from '../lib/supabase';
 import { ShieldCheck, Unlock, HeartHandshake, ArrowRight } from 'lucide-react';
 
 interface SelfReflectionScreenProps {
@@ -28,12 +29,27 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
       saveActiveSession(updated);
       addCompletedSessionToReport(updated, true);
       setActiveSession(updated);
+
+      // Supabase DB 백업 (로그인 유저가 있는 경우)
+      syncSessionDecisionToSupabase({
+        sessionId: activeSession.id,
+        focusTask,
+        choseNotToUse: true,
+      });
     }
     onNavigateToScreen('home');
   };
 
   // Option 2: Fully Unlock Lock and return to phone home with session cleared
   const handleFullyUnlock = () => {
+    if (activeSession) {
+      // Supabase DB 백업 (로그인 유저가 있는 경우)
+      syncSessionDecisionToSupabase({
+        sessionId: activeSession.id,
+        focusTask,
+        choseNotToUse: false,
+      });
+    }
     saveActiveSession(null);
     setActiveSession(null);
     onNavigateToScreen('home');
