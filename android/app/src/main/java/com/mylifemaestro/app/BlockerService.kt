@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.util.Log
 
 /**
@@ -53,14 +54,57 @@ class BlockerService : Service() {
         /** 모드 B에서 사용 시간이 끝나 잠금으로 넘어갈 때 쓴다. */
         private const val NOTIFICATION_LOCK_STARTED_ID = 1003
 
-        /** 감지 주기. 짧을수록 빨리 막지만 배터리를 더 쓴다. Week 2에서 측정 후 조정. */
-        private const val POLL_INTERVAL_MS = 800L
+        /*
+         * 감지 주기는 상황에 따라 다르다.
+         *
+         * 이 주기가 곧 **잠근 앱이 눈에 보이는 시간**이다. 앱은 탭하는 즉시 뜨는데
+         * 우리는 이 간격으로만 확인하기 때문이다. 그래서 짧을수록 좋다.
+         * 하지만 짧을수록 배터리를 쓴다. 3일 연속 살아남아야 하는 서비스라 그냥
+         * 줄일 수는 없다.
+         *
+         * 그래서 **빨라야 할 때만 빠르게** 한다.
+         *   - 잠금 중  : 지금 이 순간 잠근 앱을 열 수 있다 → 가장 촘촘히
+         *   - 잠금 아님: 막을 것이 없다 → 느슨하게 (세션 시작 감지만 하면 된다)
+         *   - 화면 꺼짐: 앱을 열 수가 없다 → 가장 느슨하게
+         *
+         * 화면이 꺼져 있거나 잠금이 아닌 시간이 하루의 대부분이므로, 잠금 중을
+         * 촘촘히 해도 하루 전체 소모는 예전(고정 800ms)보다 오히려 낮다.
+         */
+
+        /** 잠금 중 — 이 값이 잠근 앱이 보이는 시간의 상한이다. */
+        private const val POLL_LOCKED_MS = 100L
+
+        /** 잠금이 아닐 때 — 막을 것이 없다. */
+        private const val POLL_IDLE_MS = 1000L
 
         /**
-         * 같은 앱에 대해 차단 화면을 연속으로 띄우지 않기 위한 최소 간격.
-         * 없으면 사용자가 차단 화면을 보는 동안에도 계속 새로 띄워 깜빡인다.
+         * 화면이 꺼져 있을 때 — 앱을 열 수가 없으니 감지할 이유가 없다.
+         * 다만 잠금 만료 처리는 이 주기로도 계속 돌아야 한다(화면이 꺼진 채 시간이 끝날 수 있다).
          */
-        private const val REBLOCK_COOLDOWN_MS = 3000L
+        private const val POLL_SCREEN_OFF_MS = 3000L
+
+        /**
+         * 차단 화면을 띄우라고 지시한 뒤, 실제로 화면에 뜰 때까지 기다려주는 시간.
+         *
+         * ⚠️ 이건 "다시 막지 않는 시간"이 아니다.
+         *    액티비티는 시작을 지시해도 즉시 뜨지 않는다(웹뷰 준비까지 포함해 수백 ms).
+         *    그 사이에는 [BlockOverlayActivity.isShowing] 이 아직 false 라서,
+         *    이 유예가 없으면 감지할 때마다 계속 새로 띄우라고 지시하게 된다.
+         *
+         *    예전에는 이 값이 3초짜리 '재차단 금지 시간'이었다. 그런데 차단 화면이
+         *    뒤로 밀려 잠근 앱이 다시 보이는 경우에도 3초를 꼬박 기다려서,
+         *    사용자에게는 앱이 보였다 안 보였다 깜빡이는 것으로 나타났다.
+         *    지금은 화면이 떠 있는지를 직접 보고 판단한다.
+         */
+        private const val LAUNCH_GRACE_MS = 1200L
+
+        /**
+         * 같은 실행 시도를 몇 번이고 세지 않기 위한 간격.
+         *
+         * 리포트의 '흔들린 횟수'는 사용자가 잠근 앱을 열려고 한 횟수여야 한다.
+         * 차단 화면이 잠깐 밀렸다 다시 뜨는 것은 새로운 시도가 아니다.
+         */
+        private const val ATTEMPT_DEDUPE_MS = 10_000L
 
         fun start(context: Context) {
             val intent = Intent(context, BlockerService::class.java)
@@ -75,8 +119,12 @@ class BlockerService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var usageStatsManager: UsageStatsManager
 
-    /** 마지막으로 차단 화면을 띄운 시각. 연속 표시를 막는 용도. */
+    /** 마지막으로 차단 화면을 띄우라고 지시한 시각. 뜨는 동안 중복 지시를 막는 용도. */
     private var lastBlockAt = 0L
+
+    /** 마지막으로 '실행 시도'로 센 앱과 그 시각. 같은 시도를 여러 번 세지 않으려고 둔다. */
+    private var lastAttemptPackage: String? = null
+    private var lastAttemptAt = 0L
 
     /** 직전에 감지한 최상위 앱. 로그를 덜 시끄럽게 하려고 둔다. */
     private var lastForeground: String? = null
@@ -92,8 +140,22 @@ class BlockerService : Service() {
             checkForegroundApp()
             // 살아있다는 흔적을 남긴다. 내부적으로 1분에 한 번만 저장한다.
             SurvivalTracker.heartbeat(this@BlockerService)
-            handler.postDelayed(this, POLL_INTERVAL_MS)
+            handler.postDelayed(this, nextPollDelay())
         }
+    }
+
+    /**
+     * 다음 확인까지 얼마나 기다릴지.
+     *
+     * 잠금 중일 때만 촘촘히 본다. 그 시간이 곧 잠근 앱이 눈에 보이는 시간이기 때문이다.
+     * 나머지 상황에서는 촘촘히 볼 이유가 없어 배터리를 아낀다.
+     */
+    private fun nextPollDelay(): Long {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
+        // 화면이 꺼져 있으면 사용자가 앱을 열 수 없다.
+        if (powerManager?.isInteractive == false) return POLL_SCREEN_OFF_MS
+
+        return if (BlockSessionStore.getStatus(this).isLocked) POLL_LOCKED_MS else POLL_IDLE_MS
     }
 
     override fun onCreate() {
@@ -108,7 +170,7 @@ class BlockerService : Service() {
         handler.removeCallbacks(pollTask)
         handler.post(pollTask)
         val status = BlockSessionStore.getStatus(this)
-        Log.i(TAG, "감시 시작 — 주기 ${POLL_INTERVAL_MS}ms, 세션 ${if (status.hasSession) "있음(대상 ${status.blockedPackages.size}개)" else "없음"}")
+        Log.i(TAG, "감시 시작 — 주기 잠금중 ${POLL_LOCKED_MS}ms / 평시 ${POLL_IDLE_MS}ms / 화면꺼짐 ${POLL_SCREEN_OFF_MS}ms, 세션 ${if (status.hasSession) "있음(대상 ${status.blockedPackages.size}개)" else "없음"}")
 
         // Week 2 생존성 측정. 서비스가 며칠 뒤에 죽는지 추적한다.
         SurvivalTracker.onServiceStart(this)
@@ -172,16 +234,52 @@ class BlockerService : Service() {
         }
 
         // 차단 여부는 세션 상태가 결정한다. 잠금 시간이 끝났으면 자동으로 풀린다.
-        if (BlockSessionStore.shouldBlock(this, foreground)) {
-            if (now - lastBlockAt < REBLOCK_COOLDOWN_MS) return
-            lastBlockAt = now
+        if (!BlockSessionStore.shouldBlock(this, foreground)) return
+
+        // 이미 차단 화면이 떠 있으면 할 일이 없다.
+        // 잠근 앱이 앞에 있다는 건 화면이 아직 안 뜬 것이거나 뒤로 밀린 것이다.
+        if (BlockOverlayActivity.isShowing) return
+
+        // 방금 띄우라고 지시했다면 뜰 때까지 잠깐 기다린다.
+        // 이 유예가 없으면 뜨는 중에도 계속 새로 띄우라고 지시하게 된다.
+        if (now - lastBlockAt < LAUNCH_GRACE_MS) return
+
+        lastBlockAt = now
+
+        // 같은 시도를 여러 번 세지 않는다. 화면이 잠깐 밀렸다 다시 뜨는 것은
+        // 새로운 실행 시도가 아니라 같은 시도의 연속이다.
+        val isNewAttempt =
+            foreground != lastAttemptPackage || now - lastAttemptAt > ATTEMPT_DEDUPE_MS
+        if (isNewAttempt) {
+            lastAttemptPackage = foreground
+            lastAttemptAt = now
             BlockSessionStore.countLaunchAttempt(this)
-            showBlockScreen(foreground)
         }
+
+        showBlockScreen(foreground)
     }
 
     private fun showBlockScreen(blockedPackage: String) {
         Log.i(TAG, "🚫 차단 대상 감지: $blockedPackage → 차단 화면 표시")
+
+        /*
+         * ⚠️ 차단 화면으로 **덮기 전에 먼저 홈으로 내려보낸다.**
+         *
+         * 덮기만 하면 잠근 앱은 바로 밑에 살아 있고, 자기가 최상위라고 여겨 계속
+         * 다시 올라온다. 그러면 [차단 화면 → 잠근 앱 → 차단 화면]이 1초 남짓 간격으로
+         * 반복되어 화면이 깜빡인다. 실기기 로그로 확인했다 (8/10, 인스타그램).
+         *
+         *   57.5 인스타 감지 → 58.2 차단 화면 최상위 → 59.5 인스타가 다시 최상위
+         *   → 59.9 다시 덮음 → 60.8 인스타가 또 최상위 …
+         *
+         * 홈으로 보내면 잠근 앱이 최상위 자리를 잃어 다시 올라오지 못한다.
+         * 런처는 스스로 앞으로 나오려 하지 않으므로 자리다툼이 끝난다.
+         */
+        val home = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(home)
 
         val intent = Intent(this, BlockOverlayActivity::class.java).apply {
             addFlags(
