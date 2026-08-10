@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Minus, X, Check, LayoutGrid } from 'lucide-react';
+import { Plus, Minus, X, Check, LayoutGrid, Lock } from 'lucide-react';
 import { getAppCatalog, refreshAppCatalogIfStale } from '../lib/appCatalog';
 import { APP_CATEGORIES } from '../data/appCategories';
 import { TargetService } from '../types';
@@ -113,29 +113,44 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
                     </button>
                   )}
 
-                  {/* App Icon — 기기에서 읽어온 실제 아이콘, 없으면 첫 글자로 대체 */}
+                  {/*
+                    App Icon — 기기에서 읽어온 실제 아이콘, 없으면 첫 글자로 대체.
+                    잠금 중이면 회색조 + 밝기를 낮춰 어둡게 만든다. 실제 아이콘이 들어오면서
+                    테두리만으로는 잠긴 앱과 그냥 고른 앱이 구분되지 않게 됐다.
+                  */}
                   {service.iconUri ? (
                     <img
                       src={service.iconUri}
                       alt={service.name}
                       className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-md transition-transform group-hover:scale-105 ${
-                        isLocked ? 'ring-2 ring-black' : ''
+                        isLocked ? 'ring-2 ring-black grayscale brightness-[0.45]' : ''
                       }`}
                       draggable={false}
                     />
                   ) : (
                     <div
                       className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-xl font-bold shadow-md transition-transform group-hover:scale-105 ${
-                        isLocked ? 'ring-2 ring-black' : ''
+                        isLocked ? 'ring-2 ring-black grayscale brightness-[0.45]' : ''
                       }`}
                     >
                       {service.name[0]}
                     </div>
                   )}
+
+                  {/* 어두워진 이유를 알려주는 자물쇠. 어둡기만 하면 고장으로 보일 수 있다. */}
+                  {isLocked && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <Lock className="w-5 h-5 text-white/90 drop-shadow-md stroke-[2.5]" />
+                    </div>
+                  )}
                 </div>
 
                 {/* App Label */}
-                <span className="text-[11px] font-medium text-black truncate max-w-[64px] text-center">
+                <span
+                  className={`text-[11px] font-medium truncate max-w-[64px] text-center ${
+                    isLocked ? 'text-black/40' : 'text-black'
+                  }`}
+                >
                   {service.name}
                 </span>
               </div>
@@ -204,29 +219,46 @@ export const AppSelector: React.FC<AppSelectorProps> = ({
                     }}
                     className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
                       isLocked
-                        ? 'bg-slate-100 border-slate-200 text-black/50 cursor-not-allowed opacity-50'
+                        ? 'bg-slate-100 border-slate-200 text-black/50 cursor-not-allowed'
                         : isChecked
                         ? 'bg-slate-100 border-2 border-black text-black font-semibold cursor-pointer shadow-sm'
                         : 'bg-white border-2 border-slate-300 hover:border-slate-400 text-black cursor-pointer shadow-sm hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      {service.iconUri ? (
-                        <img
-                          src={service.iconUri}
-                          alt={service.name}
-                          className="w-9 h-9 rounded-xl object-cover shadow-sm shrink-0"
-                          draggable={false}
-                        />
-                      ) : (
-                        <div
-                          className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-sm font-bold shadow-sm shrink-0`}
-                        >
-                          {service.name[0]}
-                        </div>
-                      )}
+                      {/* 잠금 중인 앱은 목록에서도 똑같이 어둡게 보여 상태가 한눈에 읽히도록 한다 */}
+                      <div className="relative shrink-0">
+                        {service.iconUri ? (
+                          <img
+                            src={service.iconUri}
+                            alt={service.name}
+                            className={`w-9 h-9 rounded-xl object-cover shadow-sm ${
+                              isLocked ? 'grayscale brightness-[0.45]' : ''
+                            }`}
+                            draggable={false}
+                          />
+                        ) : (
+                          <div
+                            className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${service.color} flex items-center justify-center text-white text-sm font-bold shadow-sm ${
+                              isLocked ? 'grayscale brightness-[0.45]' : ''
+                            }`}
+                          >
+                            {service.name[0]}
+                          </div>
+                        )}
+                        {isLocked && (
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <Lock className="w-3.5 h-3.5 text-white/90 drop-shadow-md stroke-[2.5]" />
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <div className="text-xs font-bold text-black">{service.name}</div>
+                        <div className={`text-xs font-bold ${isLocked ? 'text-black/45' : 'text-black'}`}>
+                          {service.name}
+                        </div>
+                        {isLocked && (
+                          <div className="text-[10px] text-black/40">잠금 중 · 해제 불가</div>
+                        )}
                       </div>
                     </div>
 

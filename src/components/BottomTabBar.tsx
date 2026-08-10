@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, Lock, LockOpen, MoreHorizontal } from 'lucide-react';
 import { SessionData } from '../types';
+import { isModeRunning } from '../lib/sessionState';
 
 export type TabType = 'home' | 'mode-a' | 'mode-b' | 'more';
 
@@ -11,8 +12,11 @@ interface BottomTabBarProps {
 }
 
 export const BottomTabBar: React.FC<BottomTabBarProps> = ({ activeTab, onTabChange, activeSession }) => {
-  const isModeAActive = activeSession?.mode === 'FOCUS_NOW';
-  const isModeBActive = activeSession?.mode === 'GUIDED_USE';
+  // 한쪽 모드가 **진행 중일 때만** 반대쪽 탭을 잠근다.
+  // 예전에는 mode 만 봤더니, 잠금이 끝나 COMPLETED 가 된 세션이 남아 있는 동안
+  // 반대쪽 탭이 계속 비활성으로 잠겨 있었다.
+  const isModeAActive = isModeRunning(activeSession, 'FOCUS_NOW');
+  const isModeBActive = isModeRunning(activeSession, 'GUIDED_USE');
 
   const tabs = [
     {

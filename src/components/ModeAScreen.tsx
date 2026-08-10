@@ -3,6 +3,7 @@ import { Lock, Clock, Play, ArrowRight, CheckSquare } from 'lucide-react';
 import { getAppCatalog } from '../lib/appCatalog';
 import { SessionData } from '../types';
 import { saveActiveSession } from '../lib/storage';
+import { isSessionRunning } from '../lib/sessionState';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { AppSelector } from './AppSelector';
 
@@ -16,7 +17,11 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     if (activeSession?.targetServices && activeSession.targetServices.length > 0) {
       return activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
     }
-    return ['instagram', 'youtube'];
+    // 기본 선택은 없다. 예전에는 'instagram','youtube' 를 미리 넣어뒀는데,
+    // 앱 id 가 실제 패키지명('com.instagram.android')으로 바뀌면서 어디에도 매칭되지 않게 됐다.
+    // 그러면 targetServices 가 빈 배열이 되어 네이티브로 아무것도 넘어가지 않고,
+    // 화면에는 "잠금 중"이라 뜨는데 실제로는 한 개도 안 막히는 상태가 된다.
+    return [];
   });
   const [focusDuration, setFocusDuration] = useState<number>(() => {
     return activeSession?.focusDurationMinutes ?? 60;
@@ -25,10 +30,11 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     return activeSession?.focusTask ?? '자기소개서 작성 및 자격증 공부';
   });
 
-  const isLocked = Boolean(
-    activeSession &&
-    (activeSession.state === 'FOCUS_ACTIVE' || activeSession.state === 'MISSION_ACTIVE' || activeSession.state === 'INTERVENTION')
-  );
+  // 진행 중인 세션이 있으면 설정을 잠근다.
+  // 예전에는 상태 3개(FOCUS_ACTIVE/MISSION_ACTIVE/INTERVENTION)만 나열했는데,
+  // 그러면 DECISION_PENDING·EXTENSION_ACTIVE 처럼 아직 안 끝난 상태에서 폼이 풀려버린다.
+  // 판단 기준은 sessionState 한 곳에서만 관리한다.
+  const isLocked = isSessionRunning(activeSession);
 
   // 실행 중인 세션이 있을 경우 선택된 대상 앱 목록, 시간 설정, 목표 할 일을 세션과 동기화
   useEffect(() => {
@@ -55,10 +61,21 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     }
   };
 
+  /**
+   * 실제로 잠글 수 있는 앱이 하나라도 있는지.
+   *
+   * 고른 개수가 아니라 **설치 목록과 실제로 매칭된 개수**를 본다.
+   * 저장된 옛 세션에 지금은 없는 id 가 들어 있으면 개수만으로는 걸러지지 않고,
+   * 아무것도 안 막히는 잠금이 시작돼 버린다.
+   */
+  const canStart = getAppCatalog().some(s => selectedServices.includes(s.id));
+
   // 지금 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
   const handleStart = () => {
-    // 이미 세션이 실행 중인 경우: 앱 선택 수정 사항을 기존 세션에 반영 후 폰 홈으로 이동
-    if (activeSession) {
+    // 이미 세션이 **실행 중인** 경우: 앱 선택 수정 사항을 기존 세션에 반영 후 폰 홈으로 이동.
+    // 끝난 세션까지 여기로 들어오면 새 잠금이 시작되지 않고, 이미 지나간 종료 시각을
+    // 그대로 다시 넘겨 잠금이 곧바로 만료돼 버린다.
+    if (isSessionRunning(activeSession)) {
       const updatedSession: SessionData = {
         ...activeSession,
         targetServices: getAppCatalog().filter(s => selectedServices.includes(s.id)),
@@ -155,10 +172,11 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
           {/* Start Button (검은색 배경, 흰색 텍스트, #FE9A00 아이콘) */}
           <button
             onClick={handleStart}
-            className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+            disabled={!canStart}
+            className="w-full py-3.5 bg-black hover:bg-neutral-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
           >
             <Play className="w-4 h-4 fill-[#FE9A00] text-[#FE9A00]" />
-            <span>지금 잠금 모드 실행</span>
+            <span>{canStart ? '지금 잠금 모드 실행' : '잠글 앱을 먼저 선택하세요'}</span>
           </button>
       </div>
     </div>

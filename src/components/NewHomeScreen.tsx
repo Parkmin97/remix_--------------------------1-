@@ -2,6 +2,7 @@ import React from 'react';
 import { Shield, Lock, LockOpen, ArrowRight } from 'lucide-react';
 import { TabType } from './BottomTabBar';
 import { SessionData } from '../types';
+import { isModeRunning } from '../lib/sessionState';
 
 interface NewHomeScreenProps {
   onSelectTab: (tab: TabType) => void;
@@ -9,8 +10,9 @@ interface NewHomeScreenProps {
 }
 
 export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab, activeSession }) => {
-  const isModeAActive = activeSession?.mode === 'FOCUS_NOW';
-  const isModeBActive = activeSession?.mode === 'GUIDED_USE';
+  // 진행 중인 세션만 반대쪽 모드를 막는다 (BottomTabBar 와 같은 기준).
+  const isModeAActive = isModeRunning(activeSession, 'FOCUS_NOW');
+  const isModeBActive = isModeRunning(activeSession, 'GUIDED_USE');
 
   return (
     <div className="min-h-full flex flex-col justify-start max-w-2xl mx-auto w-full px-4 pt-6 pb-20 gap-5 text-black">

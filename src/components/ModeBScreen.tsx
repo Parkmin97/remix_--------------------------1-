@@ -3,6 +3,7 @@ import { LockOpen, Clock, Play, ArrowRight, Target, CheckSquare } from 'lucide-r
 import { getAppCatalog } from '../lib/appCatalog';
 import { SessionData } from '../types';
 import { saveActiveSession } from '../lib/storage';
+import { isModeRunning, isSessionRunning } from '../lib/sessionState';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { AppSelector } from './AppSelector';
 
@@ -16,7 +17,8 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
     if (activeSession?.targetServices && activeSession.targetServices.length > 0) {
       return activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
     }
-    return ['instagram', 'youtube'];
+    // 기본 선택 없음 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
+    return [];
   });
   const [usageLimit, setUsageLimit] = useState<number>(() => {
     return activeSession?.usageLimitMinutes ?? 15;
@@ -28,7 +30,9 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
     return activeSession?.focusTask ?? '자기소개서 작성 및 자격증 공부';
   });
 
-  const isModeBActive = Boolean(activeSession && activeSession.mode === 'GUIDED_USE');
+  // 진행 중인 예약 잠금 세션이 있을 때만 폼을 잠근다.
+  // mode 만 보면 이미 끝난(COMPLETED) 세션에도 폼이 잠긴 채로 남는다.
+  const isModeBActive = isModeRunning(activeSession, 'GUIDED_USE');
 
   // 실행 중인 세션이 있을 경우 선택된 대상 앱 목록, 시간 설정, 목표 할 일을 세션과 동기화
   useEffect(() => {
@@ -58,10 +62,13 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
     }
   };
 
+  // 실제로 잠글 수 있는 앱이 있는지 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
+  const canStart = getAppCatalog().some(s => selectedServices.includes(s.id));
+
   // 예약 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
   const handleStart = () => {
-    // 이미 세션이 실행 중인 경우: 앱 선택 수정 사항을 기존 세션에 반영 후 폰 홈으로 이동
-    if (activeSession) {
+    // 이미 세션이 **실행 중인** 경우만 기존 세션 갱신 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
+    if (isSessionRunning(activeSession)) {
       const updatedSession: SessionData = {
         ...activeSession,
         targetServices: getAppCatalog().filter(s => selectedServices.includes(s.id)),
@@ -178,10 +185,11 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
         {/* Start Button (검은색 배경, 흰색 텍스트, #FE9A00 아이콘) */}
         <button
           onClick={handleStart}
-          className="w-full py-3.5 bg-black hover:bg-neutral-800 text-white font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
+          disabled={!canStart}
+          className="w-full py-3.5 bg-black hover:bg-neutral-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm rounded-xl shadow-xl flex items-center justify-center gap-2 transition-all active:scale-[0.99]"
         >
           <Play className="w-4 h-4 fill-[#FE9A00] text-[#FE9A00]" />
-          <span>예약 잠금 모드 실행</span>
+          <span>{canStart ? '예약 잠금 모드 실행' : '잠글 앱을 먼저 선택하세요'}</span>
         </button>
       </div>
     </div>
