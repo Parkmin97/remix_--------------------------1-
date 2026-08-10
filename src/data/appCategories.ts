@@ -32,6 +32,32 @@ import {
  * 커버리지가 낮으면 사용자에게 실제보다 적은 숫자를 보여주게 되고, 에러도 나지 않는다.
  * 그래서 (1) 내장 기본값을 계속 늘리고, (2) 앱 심사 없이 원격으로 갱신할 수 있게
  * 병합 구조를 뒀다(applyRemoteMapping / syncMappingFrom 참고).
+ *
+ * ─── 전수 검증 (2026-08-10) ───
+ * 이 표의 모든 항목을 두 경로로 확인했다. 표시 규칙:
+ *
+ *   ✓D = 실기기(갤럭시 A32 / 안드로이드 13)에 실제 설치된 것을 `adb shell pm path` +
+ *        APK 라벨(aapt2 dump badging)로 확인
+ *   ✓P = Play 스토어 상세 페이지(/store/apps/details?id=…)가 200 으로 열리고
+ *        og:title 이 해당 앱과 일치
+ *
+ * 표시가 없는 항목은 v3 이전부터 있던 글로벌 앱으로, 2026-08-10 일괄 조회에서
+ * 상세 페이지가 정상 확인됐다(아래 '미등재' 목록에 없으면 전부 확인된 것이다).
+ *
+ * 미등재(상세 페이지 404)지만 **의도적으로 남긴** 27건 — 전부 과거에 실존했던
+ * 패키지이며 서비스 종료·지역 제한으로 목록에서만 빠졌다. 잔존 설치 기기에서는
+ * 여전히 매칭되므로 유지한다. 추측으로 지어낸 이름이 아니다:
+ *   com.ss.android.ugc.aweme(중국 전용) · com.google.android.apps.youtube.mango ·
+ *   com.facebook.mlite · com.linecorp.linelite · com.twitter.android.lite ·
+ *   com.spotify.lite · org.telegram.messenger.web · com.skype.raider ·
+ *   com.google.android.apps.podcasts · com.android.browser · com.kiwibrowser.browser ·
+ *   com.mxtech.videoplayer.pro · com.rockstargames.gtasa ·
+ *   com.activision.callofduty.warzone · com.ea.games.r3_row · com.ea.gp.fifamobile ·
+ *   com.nintendo.zaaa · com.miniclip.eightballpool · com.moonactive.coinmaster ·
+ *   com.playrix.wildscapes · net.peakgames.toyblast · com.rovio.angrybirds ·
+ *   com.samsung.android.game.gamehome(갤럭시 스토어 선탑재, ✓D 로 확인) 외
+ *
+ * 반대로 **틀려서 고친 것**은 아래 각 항목의 주석에 남겨뒀다(구 패키지명 병기).
  */
 
 /** 카테고리 정의 — priority 오름차순 = 시간을 많이 뺏는 순서 */
@@ -146,6 +172,13 @@ const CATEGORY_BY_ID: Record<AppCategoryId, AppCategory> = APP_CATEGORIES.reduce
  *    그 앱은 영원히 ETC 로 떨어지고 차단도 집계도 안 되는데 에러조차 나지 않는다.
  *    불확실한 후보는 파일 하단 "검증 필요" 주석에 모아뒀다. 실기기에서 확인 후 옮길 것.
  *    확인법: adb shell pm list packages | grep -i <키워드>
+ *
+ * ⚠️ **이 상수를 직접 읽지 말 것.** 여기는 앱에 박제된 기본값 스냅샷이라
+ *    원격으로 갱신한 내용이 반영되지 않는다. 원격 갱신은 오분류를 급히 고치거나
+ *    새 앱을 심사 없이 추가하는 경로인데, 이 상수를 보면 그게 전부 무시된다.
+ *      · 앱 하나 조회      → getCategoryForPackage(packageName)
+ *      · 카테고리별 패키지  → getPackagesInCategories([...])
+ *      · 전체 순회         → getActiveMapping().packages
  */
 export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   // ── 숏폼/영상 ────────────────────────────────────────────────
@@ -167,6 +200,10 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'kr.co.nowcom.mobile.afreeca': 'SHORTFORM', // SOOP (구 아프리카TV)
   'com.vimeo.android.videoapp': 'SHORTFORM', // 비메오
   'com.dailymotion.dailymotion': 'SHORTFORM', // 데일리모션
+  // 치지직은 네이버 게임 커뮤니티 앱을 그대로 승계해 패키지명에 chzzk 가 없다.
+  // 추정했던 com.naver.chzzk / com.navercorp.chzzk 은 둘 다 존재하지 않는다.
+  'com.navercorp.game.android.community': 'SHORTFORM', // 치지직 ✓P
+  'com.kwai.video': 'SHORTFORM', // 콰이(Kwai) ✓P
 
   // ── 소셜/메신저 ──────────────────────────────────────────────
   'com.kakao.talk': 'SOCIAL', // 카카오톡
@@ -203,6 +240,11 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.tinder': 'SOCIAL', // 틴더
   'com.bumble.app': 'SOCIAL', // 범블
   'com.grindrapp.android': 'SOCIAL', // 그라인더
+  'com.bereal.ft': 'SOCIAL', // BeReal ✓P
+  'com.azarlive.android': 'SOCIAL', // 아자르 ✓P
+  'com.lifeoasis.willu': 'SOCIAL', // 윌유 (소개팅) ✓D ✓P
+  'com.charmy.cupist': 'SOCIAL', // 글램 (소개팅) ✓P
+  'net.nrise.wippy': 'SOCIAL', // 위피 (소개팅) ✓P
   // ⚠️ 아래 둘은 업무용 협업툴이다. SOCIAL 이라 리포트의 'SNS 시간'에 합산된다.
   //    업무 시간이 SNS 로 잡히는 게 맞는지 기획 판단이 필요하다(리더 보고 완료).
   'com.Slack': 'SOCIAL', // 슬랙 (대문자 S 주의)
@@ -280,12 +322,40 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.google.android.play.games': 'GAME', // Play 게임즈
   'com.valvesoftware.android.steam.community': 'GAME', // 스팀
   'com.microsoft.xboxone.smartglass': 'GAME', // Xbox
+  // 넥슨 계열 — 추정했던 com.nexon.maplem / com.nexon.dnfm 은 존재하지 않는다
+  'com.nexon.bluearchive': 'GAME', // 블루 아카이브 ✓P
+  'com.nexon.nsc.maplem': 'GAME', // 메이플스토리M ✓P
+  'com.nexon.mod': 'GAME', // 메이플스토리 월드 ✓D
+  'com.nexon.nxplay': 'GAME', // 넥슨플레이 ✓D ✓P
+  'com.nexon.kart': 'GAME', // 카트라이더 러쉬플러스 ✓P
+  'com.nexon.mdnf': 'GAME', // 던전앤파이터 모바일 ✓P
+  'com.HoYoverse.hkrpgoversea': 'GAME', // 붕괴: 스타레일 ✓P
+  'com.proximabeta.nikke': 'GAME', // 승리의 여신: 니케 ✓P
+  'com.kakaogames.umamusume': 'GAME', // 우마무스메 프리티 더비 ✓P
+  'com.pearlabyss.blackdesertm.gl': 'GAME', // 검은사막 모바일 (글로벌) ✓P
+  'com.wemade.mir4': 'GAME', // 미르4 ✓P
+  'com.wemade.nightcrows': 'GAME', // 나이트 크로우 ✓P
+  'com.netmarble.mherosgb': 'GAME', // 마블 퓨처파이트 ✓P
+  'com.netmarble.lineageII': 'GAME', // 리니지2 레볼루션 ✓P
+  'com.netmarble.tskgb': 'GAME', // 세븐나이츠 리버스 ✓P
+  'com.netmarble.skiagb': 'GAME', // 세븐나이츠 키우기 ✓P
+  'com.cjenm.ModooMarbleKakao': 'GAME', // 모두의마블 ✓P
+  'com.com2us.smon.normal.freefull.google.kr.android.common': 'GAME', // 서머너즈 워 ✓P
+  'com.sundaytoz.kakao.anipang4': 'GAME', // 애니팡4 ✓P
+  'com.neowiz.games.poker': 'GAME', // 피망 포커 ✓P
+  'com.stove.epic7.google': 'GAME', // 에픽세븐 ✓P
+  'com.YoStarEN.Arknights': 'GAME', // 명일방주 (영문판) ✓P
+  'com.lilithgames.rok.gpkr': 'GAME', // 라이즈 오브 킹덤즈 ✓P
+  'com.gof.global': 'GAME', // 화이트아웃 서바이벌 ✓P
+  'com.samsung.android.game.gamehome': 'GAME', // 게임 런처 (갤럭시 선탑재) ✓D
 
   // ── OTT/스트리밍 ────────────────────────────────────────────
   'com.netflix.mediaclient': 'STREAMING', // 넷플릭스
   'net.cj.cjhv.gs.tving': 'STREAMING', // 티빙
-  'com.pooq.androidapp': 'STREAMING', // 웨이브
-  'com.frograms.wplay': 'STREAMING', // 왓챠
+  // 웨이브는 '푹(pooq)' 시절 패키지를 그대로 쓴다. 표에 있던 com.pooq.androidapp 은
+  // 존재하지 않는 이름이라 지금까지 웨이브가 통째로 ETC 로 새고 있었다.
+  'kr.co.captv.pooqV2': 'STREAMING', // 웨이브 ✓P (구 오기: com.pooq.androidapp)
+  'com.frograms.wplay': 'STREAMING', // 왓챠 ✓P
   'com.disney.disneyplus': 'STREAMING', // 디즈니+
   'com.amazon.avod.thirdpartyclient': 'STREAMING', // 프라임 비디오
   'com.google.android.videos': 'STREAMING', // 구글 TV (구 플레이 무비)
@@ -296,6 +366,16 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.mxtech.videoplayer.pro': 'STREAMING', // MX 플레이어 프로
   'org.videolan.vlc': 'STREAMING', // VLC
   'com.plexapp.android': 'STREAMING', // 플렉스
+  'com.coupang.mobile.play': 'STREAMING', // 쿠팡플레이 ✓P
+  'laftel.net.laftel': 'STREAMING', // 라프텔 ✓P
+  'com.frograms.watcha': 'STREAMING', // 왓챠피디아 ✓P
+  'com.nhn.android.navertv': 'STREAMING', // 네이버 시리즈온 ✓P
+  'com.wbd.stream': 'STREAMING', // HBO Max ✓P
+  'com.apple.atve.androidtv.appletv': 'STREAMING', // Apple TV ✓P (안드로이드 TV 배포판)
+  'kr.co.kbs.kplayer': 'STREAMING', // KBS+ ✓P
+  'com.imbc.downloadapp': 'STREAMING', // MBC ✓P
+  'kr.co.sbs.videoplayer': 'STREAMING', // SBS play ✓P
+  'com.lguplus.remocon': 'STREAMING', // U+tv모바일 ✓P (패키지명이 remocon 이지만 시청 앱이 맞다)
 
   // ── 뉴스/커뮤니티 ───────────────────────────────────────────
   'com.nhn.android.search': 'COMMUNITY', // 네이버
@@ -303,7 +383,8 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.nhn.android.blog': 'COMMUNITY', // 네이버 블로그
   'net.daum.android.daum': 'COMMUNITY', // 다음
   'net.daum.android.cafe': 'COMMUNITY', // 다음 카페
-  'com.dcinside.app': 'COMMUNITY', // 디시인사이드
+  // 표에 있던 com.dcinside.app 은 존재하지 않는다. 실제로는 .android 가 붙는다.
+  'com.dcinside.app.android': 'COMMUNITY', // 디시인사이드 ✓P (구 오기: com.dcinside.app)
   'com.everytime.v2': 'COMMUNITY', // 에브리타임
   'com.teamblind.blind': 'COMMUNITY', // 블라인드
   'com.reddit.frontpage': 'COMMUNITY', // 레딧
@@ -314,6 +395,20 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.nytimes.android': 'COMMUNITY', // 뉴욕타임스
   'com.cnn.mobile.android.phone': 'COMMUNITY', // CNN
   'bbc.mobile.news.ww': 'COMMUNITY', // BBC 뉴스
+  'com.fmkorea.m.fmk': 'COMMUNITY', // 에펨코리아 ✓P
+  'com.ppomppu.android': 'COMMUNITY', // 뽐뿌 ✓P
+  'com.esstudio.clien': 'COMMUNITY', // 클리앙 (ESClien — 공식 앱이 없어 사실상 표준 클라이언트) ✓P
+  'com.ruliweb.www.ruliapp': 'COMMUNITY', // 루리웹 ✓P
+  'kr.co.invenapp': 'COMMUNITY', // 인벤 ✓P
+  'com.nate.android.portalmini': 'COMMUNITY', // 네이트 (판 포함) ✓P
+  'net.instiz.www.instiz': 'COMMUNITY', // 인스티즈 ✓P
+  'com.nhn.android.kin': 'COMMUNITY', // 네이버 지식iN ✓P
+  'com.daumkakao.android.brunchapp': 'COMMUNITY', // 브런치 ✓P
+  'net.daum.android.tistoryapp': 'COMMUNITY', // 티스토리 ✓P
+  'kr.psynet.yhnews': 'COMMUNITY', // 연합뉴스 ✓P
+  'com.chosunmedia.android': 'COMMUNITY', // 조선일보 ✓P
+  'kr.connect.touch.joins': 'COMMUNITY', // 중앙일보 ✓P
+  'com.aslo.smartview.donga': 'COMMUNITY', // 동아일보 ✓P
 
   // ── 웹툰/웹소설 ─────────────────────────────────────────────
   'com.nhn.android.webtoon': 'WEBTOON', // 네이버 웹툰
@@ -325,6 +420,18 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'wp.wattpad': 'WEBTOON', // 왓패드 (웹소설)
   'com.google.android.apps.books': 'WEBTOON', // Play 북스 (전자책)
   'com.amazon.kindle': 'WEBTOON', // 킨들 (전자책)
+  // 케이툰은 KT 계열이라 패키지가 olleh 로 시작한다. 추정했던 com.ktoon.app 은 없다.
+  // 사용자 폰에서 '기타'로 보이던 원인이 이것이었다. Play 미등재(원스토어·선탑재 경로).
+  'com.olleh.webtoon': 'WEBTOON', // 케이툰 (완전판) ✓D
+  'net.daum.android.webtoon': 'WEBTOON', // 카카오웹툰 ✓P (추정 com.kakaoent.webtoon 은 없음)
+  'com.topco.toptoon.google.hj': 'WEBTOON', // 탑툰 ✓P
+  'com.bomcomics.bomtoon.playstore': 'WEBTOON', // 봄툰 ✓P
+  'com.toomics.global.google': 'WEBTOON', // 투믹스 ✓P
+  'com.tapastic': 'WEBTOON', // 타파스 ✓P
+  'com.qidian.Int.reader': 'WEBTOON', // WebNovel ✓P
+  'kr.co.millie.millieshelf': 'WEBTOON', // 밀리의 서재 ✓P
+  'com.kyobo.ebook.common.b2c': 'WEBTOON', // 교보eBook ✓P
+  'com.yes24.ebook.fourth': 'WEBTOON', // 예스24 eBook ✓P
 
   // ── 쇼핑/배달 ───────────────────────────────────────────────
   'com.coupang.mobile': 'SHOPPING', // 쿠팡
@@ -335,8 +442,10 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.elevenst': 'SHOPPING', // 11번가
   'com.ebay.kr.gmarket': 'SHOPPING', // G마켓
   'com.ebay.kr.auction': 'SHOPPING', // 옥션
-  'com.tmon': 'SHOPPING', // 티몬
-  'com.wemakeprice': 'SHOPPING', // 위메프
+  // 티몬(com.tmon)·위메프(com.wemakeprice)는 제거했다. 두 패키지 모두 상세 페이지가
+  // 열리지 않아 이름을 확인할 방법이 없다(2024 정산 사태 이후 서비스 중단).
+  // 확인 못 한 이름을 남겨두면 "분류했다"는 착각만 준다.
+  'com.wemakeprice.cupping': 'SHOPPING', // 위메프오 ✓P (위메프 본진과 별개로 운영 중)
   'com.musinsa.store': 'SHOPPING', // 무신사
   'com.croquis.zigzag': 'SHOPPING', // 지그재그
   'net.bucketplace': 'SHOPPING', // 오늘의집
@@ -355,6 +464,23 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.airbnb.android': 'SHOPPING', // 에어비앤비
   'com.booking': 'SHOPPING', // 부킹닷컴
   'com.agoda.mobile.consumer': 'SHOPPING', // 아고다
+  'com.dbs.kurly.m2': 'SHOPPING', // 컬리 ✓P
+  'com.banhala.android': 'SHOPPING', // 에이블리 ✓P (사명 반할라 시절 패키지 유지)
+  'com.the29cm.app29cm': 'SHOPPING', // 29CM ✓P
+  'com.fstudio.kream': 'SHOPPING', // KREAM ✓P
+  'com.oliveyoung': 'SHOPPING', // 올리브영 ✓P
+  'kr.co.ssg': 'SHOPPING', // SSG.COM ✓P
+  'com.lotte': 'SHOPPING', // 롯데ON ✓P
+  'gsshop.mobile.v2': 'SHOPPING', // GS SHOP ✓P
+  'com.cjoshppingphone': 'SHOPPING', // CJ온스타일 ✓P
+  'com.socialapps.homeplus': 'SHOPPING', // 홈플러스 ✓P
+  'kr.co.quicket': 'SHOPPING', // 번개장터 ✓P
+  'com.elz.secondhandstore': 'SHOPPING', // 중고나라 ✓P
+  'com.cultsotry.yanolja.nativeapp': 'SHOPPING', // NOL(야놀자) ✓P
+  'kr.goodchoice.abouthere': 'SHOPPING', // 여기어때 ✓P
+  'com.interpark.app.ticket': 'SHOPPING', // NOL 티켓 (구 인터파크 티켓) ✓P
+  'com.interpark.app': 'SHOPPING', // 인터파크 도서 ✓P
+  'com.mhows.giftishow': 'SHOPPING', // 기프티쇼 ✓D ✓P
 
   // ── 음악/오디오 ─────────────────────────────────────────────
   'com.iloen.melon': 'MUSIC', // 멜론
@@ -377,9 +503,17 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.google.android.apps.podcasts': 'MUSIC', // 구글 팟캐스트
   'fm.castbox.audiobook.radio.podcast': 'MUSIC', // 캐스트박스
   'com.podbean.app.podcast': 'MUSIC', // 팟빈
+  'skplanet.musicmate': 'MUSIC', // 플로(FLO) ✓P (추정 com.dreamus.flo 는 없음)
+  'com.naver.vibe': 'MUSIC', // 네이버 바이브 ✓P
+  'com.makeshop.podbbang': 'MUSIC', // 팟빵 ✓P
+  'kr.co.influential.youngkangapp': 'MUSIC', // 윌라 ✓P (추정 com.wellaudio.willa 는 없음)
+  'com.imbc.mini': 'MUSIC', // MBC mini (라디오) ✓P
 
   // ── 금융/페이 ───────────────────────────────────────────────
-  'viva.republica': 'FINANCE', // 토스
+  // 현재 스토어에 올라간 토스는 viva.republica.toss 다. 접미사 없는 viva.republica 는
+  // 상세 페이지가 열리지 않지만 구버전 잔존 설치 가능성이 있어 함께 남긴다.
+  'viva.republica.toss': 'FINANCE', // 토스 ✓P
+  'viva.republica': 'FINANCE', // 토스 (구 패키지, 잔존 설치 대비)
   'com.kakaopay.app': 'FINANCE', // 카카오페이
   'com.kakaobank.channel': 'FINANCE', // 카카오뱅크
   'com.nhnent.payapp': 'FINANCE', // 페이코
@@ -392,6 +526,16 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.btckorea.bithumb': 'FINANCE', // 빗썸
   'com.binance.dev': 'FINANCE', // 바이낸스
   'com.coinbase.android': 'FINANCE', // 코인베이스
+  'com.naverfin.payapp': 'FINANCE', // 네이버페이 ✓P
+  'com.shinhan.sbanking': 'FINANCE', // 신한 슈퍼SOL ✓P
+  'com.shcard.smartpay': 'FINANCE', // 신한 SOL페이 ✓P
+  'com.wooribank.smart.npib': 'FINANCE', // 우리WON뱅킹 ✓P
+  'com.hanabank.oqf': 'FINANCE', // 하나원큐 ✓P (추정 …channel.android.hananbank 는 없음)
+  'nh.smart.banking': 'FINANCE', // NH스마트뱅킹 ✓P
+  'com.kbankwith.smartbank': 'FINANCE', // 케이뱅크 ✓D ✓P
+  'com.ssg.serviceapp.android.egiftcertificate': 'FINANCE', // SSGPAY ✓P (SSG닷컴이 아니라 페이 앱이다)
+  'com.dunamu.stockplus': 'FINANCE', // 증권플러스 ✓P
+  'coinone.co.kr.official': 'FINANCE', // 코인원 ✓P
 
   // ── 브라우저 ────────────────────────────────────────────────
   'com.android.chrome': 'BROWSER', // 크롬 (실측에서 안드로이드가 "소셜"로 분류했던 앱)
@@ -415,13 +559,14 @@ export const BUILTIN_PACKAGE_CATEGORIES: Record<string, AppCategoryId> = {
   'com.UCMobile.intl': 'BROWSER', // UC 브라우저
   'com.yandex.browser': 'BROWSER', // 얀덱스 브라우저
   'com.vivaldi.browser': 'BROWSER', // 비발디
-  'org.torproject.torbrowser': 'BROWSER' // 토르 브라우저
+  'org.torproject.torbrowser': 'BROWSER', // 토르 브라우저
+  'mark.via.gp': 'BROWSER' // Via 브라우저 ✓P
 };
 
 /** 앱에 내장된 기본 매핑표. 원격 갱신이 없거나 실패하면 항상 이 값으로 동작한다 */
 export const BUILTIN_MAPPING: AppCategoryMapping = {
-  version: 3,
-  updatedAt: '2026-08-07',
+  version: 4,
+  updatedAt: '2026-08-10',
   packages: BUILTIN_PACKAGE_CATEGORIES
 };
 
@@ -582,6 +727,29 @@ export function getCategoryForPackage(packageName: string): AppCategory {
   return mapped ? getCategoryById(mapped) : FALLBACK_CATEGORY;
 }
 
+/**
+ * 지정한 카테고리들에 속한 패키지 전체를 돌려준다.
+ *
+ * 카테고리 단위 잠금에서 **"잠금 중에 새로 설치된 앱"을 네이티브가 판정**할 때 쓴다.
+ * 반드시 현재 매핑표(내장 + 원격 병합본)를 본다 — 내장 스냅샷
+ * (BUILTIN_PACKAGE_CATEGORIES)을 직접 순회하면 원격으로 급히 추가한 패키지가
+ * 빠져서, 카테고리를 잠갔는데도 그 앱만 안 막히는 구멍이 생긴다.
+ */
+export function getPackagesInCategories(
+  categoryIds: AppCategoryId[]
+): Record<string, AppCategoryId> {
+  const wanted = new Set<AppCategoryId>(categoryIds);
+  const result: Record<string, AppCategoryId> = {};
+
+  Object.entries(activeMapping.packages).forEach(([packageName, categoryId]) => {
+    if (wanted.has(categoryId)) {
+      result[packageName] = categoryId;
+    }
+  });
+
+  return result;
+}
+
 /** 매핑표에 등록된 앱인지 확인한다 (커버리지 진단·"기타" 안내용) */
 export function isMappedPackage(packageName: string): boolean {
   if (!packageName) return false;
@@ -617,117 +785,56 @@ export function groupPackagesByCategory(
 
 /*
  * ─────────────────────────────────────────────────────────────
- * 검증 필요 — 실기기에서 패키지명 확인 후 위 매핑표로 옮길 것
+ * 미확인 — 이름만 알고 패키지명을 확인하지 못한 앱
  *
- * 커버리지가 곧 리포트 정확도지만, 틀린 패키지명은 조용히 실패한다(에러 없음).
- * 그래서 확신이 없는 것은 여기 모아두고 확인 뒤에 올린다.
- * 확인법: adb shell pm list packages | grep -i <키워드>
- *        (또는 스파이크용 AppListHelper 로그로 실기기 목록 덤프)
+ * 2026-08-10 검증 라운드에서 후보 88건을 전부 조회했다. 확인된 것은 위 매핑표로
+ * 올렸고, **추측했던 패키지명 46건이 실제로는 존재하지 않았다**(조용히 ETC 로
+ * 새고 있었다는 뜻이다). 그중 실제 이름을 찾아낸 것은 옮겼고, 여기 남은 것은
+ * 이름을 확정하지 못한 것뿐이다.
  *
- * ★ = SNS 집계(SHORTFORM/SOCIAL/STREAMING/COMMUNITY)에 직접 영향 → 최우선 확인
+ * 원칙: **확인 못 한 이름은 적지 않는다.** 틀린 패키지명은 아무 앱에도 매칭되지
+ * 않으면서 "분류해 뒀다"는 착각만 준다. 개수보다 정확도가 우선이다.
+ *
+ * 확인법
+ *   실기기   adb shell pm list packages -3
+ *            adb shell pm path <패키지명> → adb pull → aapt2 dump badging (앱 이름 확인)
+ *   스토어   https://play.google.com/store/apps/details?id=<패키지명>
+ *            200 + og:title 이 해당 앱이면 확인, 404 면 그 이름은 존재하지 않는다
+ *
+ * ★ = SNS 집계(SHORTFORM/SOCIAL/STREAMING/COMMUNITY)에 직접 영향 → 최우선
  * ─────────────────────────────────────────────────────────────
  * [숏폼/영상] ★
- *   치지직(네이버)          com.naver.chzzk / com.navercorp.chzzk (?)
- *   카카오TV                com.kakao.tv (?)
- *   네이버 나우              com.naver.now (?)
- *   콰이(Kwai)              com.kwai.video (?)
- *   틱톡 기타 지역판          com.ss.android.ugc.trill.go 등 (?)
+ *   카카오TV        서비스 종료. 검색·직접 조회 모두 결과 없음 → 추적 중단
+ *   네이버 나우      치지직으로 통합. 별도 앱 없음 → 추적 중단
+ *   틱톡 지역 변종    com.ss.android.ugc.trill.go 는 존재하지 않음. 실기기에서 발견될
+ *                  때마다 추가하는 방식이 맞다(지역별로 이름이 계속 갈린다)
  * [OTT/스트리밍] ★
- *   쿠팡플레이               com.coupang.mobile.play (?)
- *   웨이브 구 패키지          kr.co.captv.pooqV2 (?) — 구 '푹' 시절 잔존 여부
- *   라프텔                  com.laftel.android (?)
- *   왓챠피디아               com.frograms.watchapedia (?)
- *   네이버 시리즈온           com.naver.serieson (?)
- *   애플 TV (모바일)         com.apple.atve.android.appletv (?)
- *   Max(HBO)               com.wbd.stream (?)
- *   KBS my K · MBC · SBS   (전부 미확인)
- *   B tv · U+모바일tv        com.skb.btvmobile / com.uplus.mobiletv (?)
+ *   B tv 모바일      SK브로드밴드 앱 중 시청용을 특정하지 못했다. 검색 상위는
+ *                  com.skb.smartrc(리모컨)·com.skb.bworld(요금 조회)로 전부 다른 앱
  * [뉴스/커뮤니티] ★
- *   에펨코리아               com.fmkorea.app (?)
- *   뽐뿌                    com.ppomppu.android (?)
- *   클리앙                   com.clien.android (?)
- *   더쿠                    (미확인)
- *   인스티즈                 (미확인)
- *   루리웹                   com.ruliweb.android (?)
- *   인벤                    com.inven.app (?)
- *   네이트/네이트판           com.nate.android.portalmini (?)
- *   네이버 지식iN            com.nhn.android.kin (?)
- *   네이버 포스트             com.nhn.android.post (?)
- *   브런치                   com.kakao.brunch (?)
- *   티스토리                 com.tistory.android (?)
- *   연합뉴스·조선·중앙·동아    (전부 미확인)
- * [소셜] ★
- *   BeReal                 com.bereal.ft (?)
- *   아자르                   com.azarlive.android (?)
- *   카카오톡 채널 관리자        com.kakao.yellowid (?)
- *   글램·위피 등 국내 소개팅앱  (전부 미확인)
- * [게임]
- *   블루 아카이브            com.nexon.bluearchive (?)
- *   메이플스토리M            com.nexon.maplem (?)
- *   카트라이더 러쉬플러스      com.nexon.kart (?)
- *   던전앤파이터 모바일        com.nexon.dnfm (?)
- *   붕괴: 스타레일           com.HoYoverse.hkrpgoversea (?)
- *   승리의 여신: 니케          com.proximabeta.nikke (?)
- *   우마무스메 (KR)          com.kakaogames.umamusume (?)
- *   검은사막 모바일 글로벌     com.pearlabyss.blackdesertm.gl (?)
- *   미르4                   com.wemade.mir4global (?)
- *   나이트크로우              com.wemade.nightcrow (?)
- *   마블 퓨처파이트           com.netmarble.mherosgb (?)
- *   리니지2 레볼루션          com.netmarble.revolution (?)
- *   모두의마블               com.netmarble.mnbmglobal (?)
- *   세븐나이츠               com.netmarble.sknightsgb (?)
- *   서머너즈 워              com.com2us.smon.normal.freefull.google.kr.android.common (?)
- *   애니팡 시리즈            com.wemade.anipang4 (?)
- *   피망/한게임 포커         com.neowiz.games.poker (?)
- *   에픽세븐                 com.stove.epic7.google (?)
- *   명일방주                com.YoStarEN.Arknights (?)
- *   라이즈 오브 킹덤즈        com.lilithgames.* (?)
- *   Whiteout Survival     com.gof.global (?)
- * [웹툰/웹소설]
- *   카카오웹툰               com.kakaoent.webtoon (?)
- *   케이툰                   com.ktoon.app (?) — A32 실측 목록에 있었음
- *   탑툰                    com.toptoon.android (?)
- *   봄툰                    com.bomtoon.app (?)
- *   투믹스                   com.toomics.global.google (?)
- *   타파스                   com.tapastic (?)
- *   Webnovel               com.qidian.Int.reader (?)
- *   밀리의 서재              kr.co.millie.millieofficial (?)
- *   교보ebook·예스24북클럽    (전부 미확인)
- * [쇼핑/배달]
- *   컬리                    com.kurly.mobile.app (?)
- *   에이블리                 com.ablycorp.app (?)
- *   29CM                   com.the29cm.app29cm (?)
- *   KREAM                  com.kream.app (?)
- *   올리브영                 com.oliveyoung (?)
- *   SSG닷컴                 com.ssg.serviceapp.android.egiftcertificate (?)
- *   롯데온                   com.lotte.on (?)
- *   GS SHOP                com.gsshop.mobile (?)
- *   CJ온스타일               com.cjoshppingphone (?)
- *   홈플러스                 com.homeplus.mobile (?)
- *   번개장터                 com.quicket.bunjang (?)
- *   중고나라                 com.jn.joonggonara (?)
- *   야놀자·여기어때·인터파크    (전부 미확인)
- * [음악/오디오]
- *   플로(FLO)               com.dreamus.flo (?)
- *   네이버 바이브             com.naver.vibe (?)
- *   팟빵                    com.podbbang.android (?)
- *   윌라                    com.wellaudio.willa (?)
+ *   더쿠            공식 앱 없음(웹 전용). 검색 결과는 전부 다른 앱
+ *   네이버 포스트     블로그로 통합. 독립 앱 없음 → 추적 중단
  * [금융/페이]
- *   네이버페이               com.naverfin.payapp (?)
- *   신한 SOL / 신한플레이      com.shinhan.sbanking / com.shcard.smartpay (?)
- *   우리WON뱅킹             com.wooribank.smart.npib (?)
- *   하나원큐                 com.hanabank.ebk.channel.android.hananbank (?)
- *   NH스마트뱅킹             nh.smart.banking (?)
- *   KB Liiv                com.kbstar.liivbank (?)
- *   증권플러스               com.dunamu.stockplus (?)
- *   코인원                   com.coinone.app (?)
+ *   KB Liiv         검색 상위 com.kbstar.liivmobile 은 알뜰폰(KB리브모바일) 앱이라
+ *                  금융이 아니다. 뱅킹 쪽 Liiv 는 KB스타뱅킹에 흡수된 것으로 보인다
  *   ※ 은행 앱은 생활 필수라 매핑에 넣더라도 defaultLocked 는 false 를 유지할 것
+ * [쇼핑]
+ *   티몬·위메프       두 패키지(com.tmon / com.wemakeprice) 모두 상세 페이지가 열리지
+ *                  않아 이름 확인 불가. 표에서 제거했다. 위메프오는 별개로 운영 중이라
+ *                  com.wemakeprice.cupping 으로 추가
  * [브라우저]
- *   Via / QQ브라우저 / 기타    mark.via.gp / com.tencent.mtt (?)
+ *   QQ브라우저       com.tencent.mtt 은 국내 스토어에서 조회되지 않아 확인 불가
  *
  * ─── 의도적으로 매핑하지 않은 것 ───
  * · 전화·문자·연락처·설정·알람 — 차단 후보에서 하드 제외되는 안전 목록이라 분류 불필요
  * · 구글 앱(com.google.android.googlequicksearchbox) — Discover 피드 때문에 커뮤니티로
  *   넣고 싶지만, 카테고리 일괄 잠금 시 검색·어시스턴트까지 막힌다. 기획 판단 대기.
- * · 지도·업무·사진 등 도구 앱 — SNS 집계에 들어가면 안 되므로 ETC 로 두는 게 맞다.
+ * · 카카오비즈니스 파트너센터(com.kakao.yellowid) — 이름은 '카카오톡 채널 관리자'지만
+ *   실제로는 사업자용 관리 도구다. SOCIAL 로 넣으면 업무 시간이 SNS 시간으로 집계된다.
+ * · 삼성 데일리보드(com.samsung.android.app.spage) — 뉴스·영상 피드를 스크롤하는
+ *   면이지만 홈 화면 좌측 패널이라 앱 단위 차단 대상이 아니다. 기획 판단 대기.
+ * · Google Meet(com.google.android.apps.tachyon) — 영상 통화라 전화에 가깝다.
+ *   SOCIAL 로 넣으면 통화 시간이 SNS 시간에 합산된다.
+ * · 지도·업무·사진·통신사 유틸·앱스토어 등 도구 앱 — SNS 집계에 들어가면 안 되므로
+ *   ETC 로 두는 게 맞다.
  */

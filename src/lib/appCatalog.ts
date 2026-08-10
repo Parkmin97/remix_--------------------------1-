@@ -1,10 +1,10 @@
-import { TargetService } from '../types';
+import { AppCategoryId, TargetService } from '../types';
 import { TARGET_SERVICES } from '../data/targetServices';
 import {
   APP_CATEGORIES,
-  BUILTIN_PACKAGE_CATEGORIES,
   FALLBACK_CATEGORY,
   getCategoryForPackage,
+  getPackagesInCategories,
 } from '../data/appCategories';
 import { Blocker } from './blocker';
 
@@ -128,7 +128,7 @@ export function resolveLockedCategories(selectedIds: string[]): {
 } {
   const selected = new Set(selectedIds);
   const catalog = getAppCatalog();
-  const categoryIds: string[] = [];
+  const categoryIds: AppCategoryId[] = [];
 
   APP_CATEGORIES.forEach((category) => {
     // '기타'는 성격이 모호해 통째로 잠그는 의미가 없다.
@@ -142,17 +142,14 @@ export function resolveLockedCategories(selectedIds: string[]): {
   });
 
   // 대응표는 잠근 카테고리에 속한 것만 넘긴다. 전부 넘길 이유가 없다.
-  const lockedLabels = new Set(
-    APP_CATEGORIES.filter((c) => categoryIds.includes(c.id)).map((c) => c.label)
-  );
-  const packageCategories: Record<string, string> = {};
-
-  Object.entries(BUILTIN_PACKAGE_CATEGORIES).forEach(([pkg, categoryId]) => {
-    const category = APP_CATEGORIES.find((c) => c.id === categoryId);
-    if (category && lockedLabels.has(category.label)) {
-      packageCategories[pkg] = categoryId;
-    }
-  });
+  //
+  // ⚠️ 반드시 **지금 실제로 쓰이는 매핑표**(내장본 + 원격 갱신본)를 봐야 한다.
+  //    예전에는 내장 스냅샷(BUILTIN_PACKAGE_CATEGORIES)만 훑었는데, 그러면
+  //    화면에 앱을 그릴 때 쓰는 getCategoryForPackage 와 기준이 어긋난다.
+  //    원격으로 오분류를 고친 뒤에도 그 수정이 차단 판정에는 닿지 않아,
+  //    "숏폼을 통째로 잠갔는데 이 앱만 열린다"가 되고 에러도 안 난다.
+  //    (원격 갱신을 앱 심사 없이 고치는 통로로 두었으므로 더더욱 여기를 봐야 한다)
+  const packageCategories = getPackagesInCategories(categoryIds);
 
   return { categoryIds, packageCategories };
 }
