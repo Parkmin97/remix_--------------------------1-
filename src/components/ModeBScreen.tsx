@@ -15,43 +15,47 @@ interface ModeBScreenProps {
 }
 
 export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, activeSession }) => {
+  // 진행 중인 세션만 폼에 되살린다 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
+  const runningSession = isSessionRunning(activeSession) ? activeSession : null;
+
   const [selectedServices, setSelectedServices] = useState<string[]>(() => {
-    if (activeSession?.targetServices && activeSession.targetServices.length > 0) {
-      return activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
+    if (runningSession?.targetServices && runningSession.targetServices.length > 0) {
+      return runningSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
     }
     // 기본 선택 없음 — 사유는 ModeAScreen 의 같은 자리 주석 참고.
     return [];
   });
   const [usageLimit, setUsageLimit] = useState<number>(() => {
-    return activeSession?.usageLimitMinutes ?? 15;
+    return runningSession?.usageLimitMinutes ?? 15;
   });
   const [focusDuration, setFocusDuration] = useState<number>(() => {
-    return activeSession?.focusDurationMinutes ?? 60;
+    return runningSession?.focusDurationMinutes ?? 60;
   });
   const [focusTask, setFocusTask] = useState<string>(() => {
-    return activeSession?.focusTask ?? '자기소개서 작성 및 자격증 공부';
+    return runningSession?.focusTask ?? '자기소개서 작성 및 자격증 공부';
   });
 
   // 진행 중인 예약 잠금 세션이 있을 때만 폼을 잠근다.
   // mode 만 보면 이미 끝난(COMPLETED) 세션에도 폼이 잠긴 채로 남는다.
   const isModeBActive = isModeRunning(activeSession, 'GUIDED_USE');
 
-  // 실행 중인 세션이 있을 경우 선택된 대상 앱 목록, 시간 설정, 목표 할 일을 세션과 동기화
+  // 잠금이 실행 중일 때만 폼을 세션에 맞춘다.
+  // 끝난 세션까지 반영하면 지난번 설정이 계속 되살아난다.
   useEffect(() => {
-    if (activeSession) {
-      if (activeSession.targetServices && activeSession.targetServices.length > 0) {
-        const activeIds = activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
-        setSelectedServices(activeIds);
-      }
-      if (activeSession.usageLimitMinutes) {
-        setUsageLimit(activeSession.usageLimitMinutes);
-      }
-      if (activeSession.focusDurationMinutes) {
-        setFocusDuration(activeSession.focusDurationMinutes);
-      }
-      if (activeSession.focusTask) {
-        setFocusTask(activeSession.focusTask);
-      }
+    if (!isSessionRunning(activeSession) || !activeSession) return;
+
+    if (activeSession.targetServices && activeSession.targetServices.length > 0) {
+      const activeIds = activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
+      setSelectedServices(activeIds);
+    }
+    if (activeSession.usageLimitMinutes) {
+      setUsageLimit(activeSession.usageLimitMinutes);
+    }
+    if (activeSession.focusDurationMinutes) {
+      setFocusDuration(activeSession.focusDurationMinutes);
+    }
+    if (activeSession.focusTask) {
+      setFocusTask(activeSession.focusTask);
     }
   }, [activeSession]);
 

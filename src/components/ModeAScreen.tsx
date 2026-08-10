@@ -15,9 +15,19 @@ interface ModeAScreenProps {
 }
 
 export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, activeSession }) => {
+  /**
+   * **진행 중인** 세션만 폼에 되살린다.
+   *
+   * 끝난 세션(COMPLETED)도 localStorage 에 그대로 남는다. 예전에는 그것까지
+   * 되살려서, 앱을 완전히 종료했다가 다시 켜도 지난번에 잠갔던 앱들이 미리
+   * 체크된 채로 나왔다. 새로 고르려는 사람에게는 남의 설정처럼 보인다.
+   * 기본은 아무것도 선택되지 않은 상태여야 한다.
+   */
+  const runningSession = isSessionRunning(activeSession) ? activeSession : null;
+
   const [selectedServices, setSelectedServices] = useState<string[]>(() => {
-    if (activeSession?.targetServices && activeSession.targetServices.length > 0) {
-      return activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
+    if (runningSession?.targetServices && runningSession.targetServices.length > 0) {
+      return runningSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
     }
     // 기본 선택은 없다. 예전에는 'instagram','youtube' 를 미리 넣어뒀는데,
     // 앱 id 가 실제 패키지명('com.instagram.android')으로 바뀌면서 어디에도 매칭되지 않게 됐다.
@@ -26,31 +36,32 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
     return [];
   });
   const [focusDuration, setFocusDuration] = useState<number>(() => {
-    return activeSession?.focusDurationMinutes ?? 60;
+    return runningSession?.focusDurationMinutes ?? 60;
   });
   const [focusTask, setFocusTask] = useState<string>(() => {
-    return activeSession?.focusTask ?? '자기소개서 작성 및 자격증 공부';
+    return runningSession?.focusTask ?? '자기소개서 작성 및 자격증 공부';
   });
 
   // 진행 중인 세션이 있으면 설정을 잠근다.
   // 예전에는 상태 3개(FOCUS_ACTIVE/MISSION_ACTIVE/INTERVENTION)만 나열했는데,
   // 그러면 DECISION_PENDING·EXTENSION_ACTIVE 처럼 아직 안 끝난 상태에서 폼이 풀려버린다.
   // 판단 기준은 sessionState 한 곳에서만 관리한다.
-  const isLocked = isSessionRunning(activeSession);
+  const isLocked = runningSession !== null;
 
-  // 실행 중인 세션이 있을 경우 선택된 대상 앱 목록, 시간 설정, 목표 할 일을 세션과 동기화
+  // 잠금이 실행 중일 때만 폼을 세션에 맞춘다.
+  // 끝난 세션까지 반영하면 지난번 설정이 계속 되살아난다.
   useEffect(() => {
-    if (activeSession) {
-      if (activeSession.targetServices && activeSession.targetServices.length > 0) {
-        const activeIds = activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
-        setSelectedServices(activeIds);
-      }
-      if (activeSession.focusDurationMinutes) {
-        setFocusDuration(activeSession.focusDurationMinutes);
-      }
-      if (activeSession.focusTask) {
-        setFocusTask(activeSession.focusTask);
-      }
+    if (!isSessionRunning(activeSession) || !activeSession) return;
+
+    if (activeSession.targetServices && activeSession.targetServices.length > 0) {
+      const activeIds = activeSession.targetServices.map((s: unknown) => (typeof s === 'string' ? s : (s as { id: string }).id));
+      setSelectedServices(activeIds);
+    }
+    if (activeSession.focusDurationMinutes) {
+      setFocusDuration(activeSession.focusDurationMinutes);
+    }
+    if (activeSession.focusTask) {
+      setFocusTask(activeSession.focusTask);
     }
   }, [activeSession]);
 
