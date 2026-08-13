@@ -1,5 +1,14 @@
 import React, { useRef, useEffect } from 'react';
 
+/**
+ * 정식 출시 전까지만 쓰는 테스트용 임시 시간 옵션(분).
+ *
+ * 잠금이 실제로 걸리고 풀리는지 확인하려면 최소 15분을 기다려야 해서
+ * 실기기 검증이 사실상 불가능하다. 그래서 1분을 임시로 열어둔다.
+ * **출시 전에 이 배열을 비우면** 원래 최소 시간 규칙으로 그대로 돌아간다.
+ */
+export const TEST_EXTRA_MINUTES: number[] = [1];
+
 interface TimeSlotPickerProps {
   value: number; // minutes, e.g. 5, 10, 15...
   onChange: (value: number) => void;
@@ -7,6 +16,8 @@ interface TimeSlotPickerProps {
   max?: number;
   step?: number;
   heightPx?: number; // overall wheel height; compact frames pass a smaller value
+  /** min 아래로 추가할 값들(분). 테스트용 1분처럼 규칙 밖의 값을 끼워 넣는 용도. */
+  extraOptions?: number[];
 }
 
 export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
@@ -16,6 +27,7 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   max = 480,
   step = 5,
   heightPx = 160,
+  extraOptions = [],
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -23,6 +35,15 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   const options: number[] = [];
   for (let i = min; i <= max; i += step) {
     options.push(i);
+  }
+  // 규칙 밖 값(테스트용 1분 등)을 앞에 붙인다. 중복·범위 밖 값은 걸러내고 오름차순 유지.
+  if (extraOptions.length > 0) {
+    for (const extra of extraOptions) {
+      if (extra > 0 && extra <= max && !options.includes(extra)) {
+        options.push(extra);
+      }
+    }
+    options.sort((a, b) => a - b);
   }
 
   const ITEM_HEIGHT = 40; // Height of each slot item in px

@@ -4,7 +4,7 @@ import { getAppCatalog } from '../lib/appCatalog';
 import { SessionData } from '../types';
 import { saveActiveSession } from '../lib/storage';
 import { isModeRunning, isSessionRunning } from '../lib/sessionState';
-import { TimeSlotPicker } from './TimeSlotPicker';
+import { TimeSlotPicker, TEST_EXTRA_MINUTES } from './TimeSlotPicker';
 import { AppSelector } from './AppSelector';
 import { PermissionNotice } from './PermissionSetup';
 import { useBlockerPermissions } from '../lib/blockerPermissions';
@@ -149,7 +149,9 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
             <label className="text-xs font-semibold text-black mb-1.5 flex items-center gap-1.5 break-keep">
               <Clock className="w-3.5 h-3.5 text-[#FE9A00]" />
               <span>예약 시간 설정</span>
-              <span className="text-[10px] text-black/60 font-normal">(최대 2시간)</span>
+              <span className="text-[10px] text-black/60 font-normal">
+                (최대 2시간{TEST_EXTRA_MINUTES.length > 0 ? ' · 테스트용 1분' : ''})
+              </span>
               {isModeBActive && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
             </label>
             <TimeSlotPicker
@@ -158,6 +160,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
               min={5}
               max={120}
               step={5}
+              extraOptions={TEST_EXTRA_MINUTES}
             />
           </div>
 
@@ -165,7 +168,9 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
             <label className="text-xs font-semibold text-black mb-1.5 flex items-center gap-1.5 break-keep">
               <Target className="w-3.5 h-3.5 text-[#FE9A00]" />
               <span>잠금 시간 설정</span>
-              <span className="text-[10px] text-black/60 font-normal">(최소 15분)</span>
+              <span className="text-[10px] text-black/60 font-normal">
+                (최소 15분{TEST_EXTRA_MINUTES.length > 0 ? ' · 테스트용 1분' : ''})
+              </span>
               {isModeBActive && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
             </label>
             <TimeSlotPicker
@@ -174,6 +179,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
               min={15}
               max={360}
               step={5}
+              extraOptions={TEST_EXTRA_MINUTES}
             />
           </div>
 
