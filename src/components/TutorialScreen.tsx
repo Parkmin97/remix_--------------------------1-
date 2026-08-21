@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Square, RefreshCw, Camera, Sparkles, Volume2, VolumeX, CheckCircle, ArrowRight, ArrowLeft, HelpCircle, Music, Award, Compass, Zap } from 'lucide-react';
+import { Sparkles, Volume2, VolumeX, ArrowLeft, Compass } from 'lucide-react';
 import { BeatType } from '../types';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
 
@@ -100,17 +100,13 @@ const BEAT_TUTORIALS: Record<BeatType, BeatInfo> = {
   },
 };
 
-export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScreen, onBack }) => {
+export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onBack }) => {
   const [selectedBeat, setSelectedBeat] = useState<BeatType>('4/4');
-  const [bpm, setBpm] = useState<number>(90);
+  const [bpm] = useState<number>(90);
   const [isPracticing, setIsPracticing] = useState<boolean>(false);
   const [metronomeOn, setMetronomeOn] = useState<boolean>(true);
   const [activeBeatIndex, setActiveBeatIndex] = useState<number>(1);
-  const [cameraActive, setCameraActive] = useState<boolean>(false);
-  const [score, setScore] = useState<number>(0);
-  const [feedback, setFeedback] = useState<string>('지휘 시작 버튼을 눌러 연습해보세요!');
 
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const isMouseDownRef = useRef<boolean>(false);
   const userTrailRef = useRef<Array<{ x: number; y: number; time: number }>>([]);
@@ -136,53 +132,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
     return () => clearInterval(timer);
   }, [isPracticing, bpm, tutorial.count, metronomeOn]);
 
-  // Handle Camera Enable for Gesture Practice
-  const toggleCamera = async () => {
-    if (cameraActive) {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach((t) => t.stop());
-        videoRef.current.srcObject = null;
-      }
-      setCameraActive(false);
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
-        setCameraActive(true);
-      } catch (e) {
-        alert('카메라 접근 권한을 확인해주세요. 마우스/터치로도 연습할 수 있습니다!');
-      }
-    }
-  };
-
   // Canvas Mouse/Touch Conducting Trace
-  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    isMouseDownRef.current = true;
-    userTrailRef.current = [];
-    addTrailPoint(e);
-  };
-
-  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isMouseDownRef.current) return;
-    addTrailPoint(e);
-    drawCanvasTrail();
-  };
-
-  const handleCanvasMouseUp = () => {
-    if (!isMouseDownRef.current) return;
-    isMouseDownRef.current = false;
-
-    // Evaluate trace against active beat timing
-    if (userTrailRef.current.length > 5) {
-      setScore((prev) => Math.min(100, prev + 10));
-      setFeedback('좋은 궤적입니다! 반사점(Ictus)을 리드미컬하게 이어나가세요.');
-    }
-  };
-
   const addTrailPoint = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -203,6 +153,23 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
     if (userTrailRef.current.length > 35) {
       userTrailRef.current.shift();
     }
+  };
+
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    isMouseDownRef.current = true;
+    userTrailRef.current = [];
+    addTrailPoint(e);
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isMouseDownRef.current) return;
+    addTrailPoint(e);
+    drawCanvasTrail();
+  };
+
+  const handleCanvasMouseUp = () => {
+    if (!isMouseDownRef.current) return;
+    isMouseDownRef.current = false;
   };
 
   const drawCanvasTrail = () => {
@@ -240,43 +207,26 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
   };
 
   return (
-    <div className="min-h-full text-black px-3 sm:px-6 py-3 flex flex-col relative select-none">
-      <div className="max-w-5xl w-full mx-auto flex-1 min-h-0 flex flex-col gap-3 sm:gap-4 overflow-hidden relative z-10">
-
-        {/* Header Title Banner */}
-        <div className="shrink-0 space-y-2">
-          <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200 pb-3 shrink-0">
-            <button
-              onClick={onBack}
-              className="shrink-0 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-black transition-colors active:scale-95 shadow-sm"
-              title="뒤로가기"
-              aria-label="뒤로가기"
-            >
-              <ArrowLeft className="w-4 h-4 text-black" />
-            </button>
-
-            <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-black text-center">
-              MY LIFE MAESTRO
-            </h1>
-
-            <div className="w-8 shrink-0" />
-          </div>
-
-          {/* Sub Title Below Line */}
-          <div className="space-y-0.5 pt-0.5 pb-1 shrink-0">
-            <h2 className="text-lg sm:text-xl font-sans font-extrabold text-black tracking-wide">
-              지휘 동작 튜토리얼
-            </h2>
-            <p className="text-xs text-black/70 font-medium break-keep">
-              올바른 지휘 궤적(Pattern)과 타점(Ictus)을 익히고, 메트로놈과 함께 손짓을 연습해보세요.
-            </p>
-          </div>
+    <div className="min-h-full text-black px-4 py-3 sm:py-4 flex flex-col relative select-none">
+      <div className="w-full max-w-lg mx-auto flex flex-col gap-3.5">
+        {/* 1. 상단 뒤로가기 & 서브 타이틀 */}
+        <div className="flex items-center gap-3 shrink-0 pt-0.5 pb-1">
+          <button
+            onClick={onBack}
+            className="p-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-black transition-colors active:scale-95 shadow-sm"
+            title="뒤로가기"
+            aria-label="뒤로가기"
+          >
+            <ArrowLeft className="w-4 h-4 text-black" />
+          </button>
+          <h2 className="text-base sm:text-lg font-sans font-extrabold text-black tracking-wide">
+            지휘 동작 튜토리얼
+          </h2>
         </div>
 
-        {/* Beat Selector Tabs */}
-        <div className="shrink-0 flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {(['4/4', '3/4', '2/4', '1/4'] as BeatType[]).map((beat) => {
-            const info = BEAT_TUTORIALS[beat];
+        {/* 2. 박자 선택 칩 (가로 알약 4/4박자, 3/4박자, 2/4박자) */}
+        <div className="shrink-0 flex items-center gap-2.5">
+          {(['4/4', '3/4', '2/4'] as BeatType[]).map((beat) => {
             const isSelected = selectedBeat === beat;
             return (
               <button
@@ -285,230 +235,132 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onNavigateToScre
                   setSelectedBeat(beat);
                   setActiveBeatIndex(1);
                 }}
-                className={`px-3 py-2 rounded-xl border text-left transition-all shrink-0 min-w-[112px] ${
+                className={`px-5 py-2.5 rounded-2xl border text-sm font-bold transition-all shrink-0 cursor-pointer ${
                   isSelected
-                    ? 'bg-black text-white border-black font-extrabold shadow-md'
-                    : 'bg-white border-slate-200 text-black/70 hover:border-slate-300 hover:text-black'
+                    ? 'bg-black text-white border-black shadow-md'
+                    : 'bg-white border-slate-200 text-black hover:border-slate-300'
                 }`}
               >
-                <div className={`text-xs font-mono font-bold ${isSelected ? 'text-white' : 'text-black'}`}>{info.type}</div>
-                <div className={`text-sm font-semibold mt-0.5 ${isSelected ? 'text-white' : 'text-black/80'}`}>{info.count}박자 궤적</div>
+                {beat}박자
               </button>
             );
           })}
         </div>
 
-        {/* Main Tutorial Interactive Grid */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:overflow-hidden">
+        {/* 3. 메인 지휘 연습 카드 (피그마 3번 시안 완벽 맞춤) */}
+        <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3 shrink-0">
+          {/* 카드 헤더 라인: 타이틀 + 소리 ON/OFF 버튼 */}
+          <div className="flex items-center justify-between shrink-0">
+            <h3 className="font-serif font-bold text-base sm:text-lg text-black flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#FE9A00]" />
+              <span>{selectedBeat}박자 지휘법</span>
+            </h3>
 
-          {/* Left Column: Pattern Diagram & Interactive Practice Canvas */}
-          <div className="lg:col-span-7 space-y-3 lg:min-h-0 lg:flex lg:flex-col">
-            <div className="bg-white border border-slate-200 rounded-3xl p-3 sm:p-4 shadow-xl relative overflow-hidden lg:flex-1 lg:min-h-0 lg:flex lg:flex-col">
-              <div className="flex items-center justify-between mb-2 shrink-0 gap-2">
-                <h2 className="font-serif font-bold text-lg text-black flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#FE9A00]" />
-                  <span>{tutorial.title}</span>
-                </h2>
-              </div>
-
-              {/* SVG Pattern Guide Visualizer & Practice Canvas */}
-              <div className="relative w-full aspect-[4/3] lg:aspect-auto lg:flex-1 lg:min-h-0 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden flex items-center justify-center select-none touch-none">
-                
-                {/* Background Camera Feed (Optional) */}
-                {cameraActive && (
-                  <video
-                    ref={videoRef}
-                    className="absolute inset-0 w-full h-full object-cover opacity-30 transform -scale-x-100"
-                    playsInline
-                    muted
-                  />
-                )}
-
-                {/* SVG Guide Path */}
-                <svg viewBox="0 0 200 150" className="w-full h-full absolute inset-0 pointer-events-none p-4">
-                  {/* Dashed Guide Track */}
-                  <path
-                    d={tutorial.svgPath}
-                    fill="none"
-                    stroke="#a3a3a3"
-                    strokeWidth="3"
-                    strokeDasharray="4 4"
-                  />
-
-                  {/* Beat Target Points */}
-                  {tutorial.points.map((pt) => {
-                    const isActive = isPracticing && activeBeatIndex === pt.beat;
-                    return (
-                      <g key={pt.beat}>
-                        <circle
-                          cx={pt.x}
-                          cy={pt.y}
-                          r={isActive ? 12 : 7}
-                          className={`transition-all duration-300 ${
-                            isActive
-                              ? 'fill-[#FE9A00] stroke-white stroke-2 animate-ping'
-                              : 'fill-neutral-800 stroke-neutral-500 stroke-1'
-                          }`}
-                        />
-                        <circle
-                          cx={pt.x}
-                          cy={pt.y}
-                          r={isActive ? 9 : 6}
-                          className={isActive ? 'fill-[#FE9A00]' : 'fill-neutral-400'}
-                        />
-                        <text
-                          x={pt.x}
-                          y={pt.y + 22}
-                          textAnchor="middle"
-                          fill={isActive ? '#FE9A00' : '#d4d4d4'}
-                          fontSize="10"
-                          fontWeight={isActive ? 'bold' : 'normal'}
-                          className="font-mono select-none"
-                        >
-                          {pt.label}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                {/* Draw Canvas overlay for user gesture tracking */}
-                <canvas
-                  ref={canvasRef}
-                  width={400}
-                  height={300}
-                  onMouseDown={handleCanvasMouseDown}
-                  onMouseMove={handleCanvasMouseMove}
-                  onMouseUp={handleCanvasMouseUp}
-                  onTouchStart={handleCanvasMouseDown}
-                  onTouchMove={handleCanvasMouseMove}
-                  onTouchEnd={handleCanvasMouseUp}
-                  className="absolute inset-0 w-full h-full cursor-crosshair z-10"
-                />
-
-                {/* Overlay Prompt Instruction */}
-                {!isPracticing && (
-                  <div className="absolute inset-0 bg-black/75 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-20">
-                    <Compass className="w-10 h-10 text-[#FE9A00] mb-2 animate-bounce" />
-                    <p className="text-white font-semibold text-sm">연습 시작 버튼을 누르거나 마우스/터치로 궤적을 그리세요</p>
-                    <p className="text-xs text-neutral-300 mt-1">
-                      메트로놈 구령에 맞춰 화면 상의 박자 번호(1➔2➔3➔4) 순서대로 손을 움직입니다.
-                    </p>
-                  </div>
-                )}
-
-                {/* Live Active Beat Indicator Badge */}
-                {isPracticing && (
-                  <div className="absolute top-3 left-3 bg-black/90 border border-slate-700 rounded-lg px-3 py-1.5 flex items-center gap-2 z-20">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#FE9A00] animate-pulse" />
-                    <span className="text-xs font-mono font-bold text-neutral-200">
-                      현재 박자: <span className="text-base text-[#FE9A00] font-serif">{activeBeatIndex}</span> / {tutorial.count}박
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Controls Toolbar: BPM, Metronome, Camera */}
-              <div className="mt-3 space-y-2 shrink-0">
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
-                  
-                  {/* Play/Stop Button (검은색 배경, 흰색 텍스트, #FE9A00 아이콘) */}
-                  <button
-                    onClick={() => setIsPracticing(!isPracticing)}
-                    className="px-4 py-2 rounded-xl bg-black hover:bg-neutral-800 text-white font-extrabold text-xs flex items-center gap-2 active:scale-95 transition-all cursor-pointer shadow-md"
-                  >
-                    {isPracticing ? <Square className="w-3.5 h-3.5 fill-[#FE9A00] text-[#FE9A00]" /> : <Play className="w-3.5 h-3.5 fill-[#FE9A00] text-[#FE9A00]" />}
-                    <span>{isPracticing ? '연습 정지' : '지휘 연습 시작'}</span>
-                  </button>
-
-                  {/* BPM Slider */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-mono text-black/70">속도:</span>
-                    <input
-                      type="range"
-                      min="60"
-                      max="140"
-                      value={bpm}
-                      onChange={(e) => setBpm(Number(e.target.value))}
-                      className="w-24 accent-[#FE9A00]"
-                    />
-                    <span className="text-xs font-mono font-bold text-black w-12">{bpm} BPM</span>
-                  </div>
-
-                  {/* Metronome Sound Toggle */}
-                  <button
-                    onClick={() => setMetronomeOn(!metronomeOn)}
-                    className={`p-2 rounded-lg border text-xs flex items-center gap-1.5 ${
-                      metronomeOn
-                        ? 'bg-white border-slate-300 text-black font-semibold shadow-sm'
-                        : 'bg-slate-100 border-slate-200 text-black/60'
-                    }`}
-                    title="메트로놈 소리"
-                  >
-                    {metronomeOn ? <Volume2 className="w-3.5 h-3.5 text-[#FE9A00]" /> : <VolumeX className="w-3.5 h-3.5" />}
-                    <span>소리 {metronomeOn ? 'ON' : 'OFF'}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* 소리 토글 버튼 */}
+            <button
+              onClick={() => setMetronomeOn(!metronomeOn)}
+              className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                metronomeOn
+                  ? 'bg-white border-slate-300 text-black shadow-xs'
+                  : 'bg-slate-100 border-slate-200 text-slate-500'
+              }`}
+            >
+              {metronomeOn ? <Volume2 className="w-3.5 h-3.5 text-[#FE9A00]" /> : <VolumeX className="w-3.5 h-3.5" />}
+              <span>소리 {metronomeOn ? 'ON' : 'OFF'}</span>
+            </button>
           </div>
 
-          {/* Right Column: Beat Step-by-Step Guide & Tips */}
-          <div className="lg:col-span-5 space-y-3 lg:min-h-0">
+          {/* 중앙 블랙 지휘 캔버스 스테이지 */}
+          <div
+            onClick={() => {
+              if (!isPracticing) setIsPracticing(true);
+            }}
+            className="relative w-full aspect-[4/4.5] bg-neutral-950 rounded-2xl border border-neutral-800 overflow-hidden flex items-center justify-center select-none touch-none shadow-inner cursor-pointer"
+          >
+            {/* SVG 점선 가이드 궤적 */}
+            <svg viewBox="0 0 200 150" className="w-full h-full absolute inset-0 pointer-events-none p-5">
+              <path
+                d={tutorial.svgPath}
+                fill="none"
+                stroke="#525252"
+                strokeWidth="3.5"
+                strokeDasharray="5 5"
+              />
 
-            {/* Step-by-Step Beat Breakdown List */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-3 sm:p-4 shadow-xl space-y-2">
-              <h3 className="text-xs sm:text-sm font-bold text-black flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-[#FE9A00]" />
-                <span>박자별 동작 포인트</span>
-              </h3>
-
-              <div className="space-y-1.5">
-                {tutorial.steps.map((step) => {
-                  const isActive = isPracticing && activeBeatIndex === step.beat;
-                  return (
-                    <div
-                      key={step.beat}
-                      className={`p-2.5 rounded-xl border transition-all ${
+              {/* 타점 포인트들 */}
+              {tutorial.points.map((pt) => {
+                const isActive = isPracticing && activeBeatIndex === pt.beat;
+                return (
+                  <g key={pt.beat}>
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r={isActive ? 12 : 7}
+                      className={`transition-all duration-300 ${
                         isActive
-                          ? 'bg-black border-black text-white font-semibold shadow-md'
-                          : 'bg-slate-50 border-slate-200 text-black/80'
+                          ? 'fill-[#FE9A00] stroke-white stroke-2'
+                          : 'fill-neutral-800 stroke-neutral-600 stroke-1'
                       }`}
+                    />
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r={isActive ? 8 : 5}
+                      className={isActive ? 'fill-[#FE9A00]' : 'fill-neutral-500'}
+                    />
+                    <text
+                      x={pt.x}
+                      y={pt.y + 20}
+                      textAnchor="middle"
+                      fill={isActive ? '#FE9A00' : '#a3a3a3'}
+                      fontSize="9.5"
+                      fontWeight={isActive ? 'bold' : 'normal'}
+                      className="font-mono select-none"
                     >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-xs font-bold flex items-center gap-1.5 ${isActive ? 'text-white' : 'text-black'}`}>
-                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold ${
-                            isActive ? 'bg-[#FE9A00] text-black' : 'bg-slate-200 text-black'
-                          }`}>
-                            {step.beat}
-                          </span>
-                          {step.name}
-                        </span>
-                        <span className={`text-[11px] font-mono ${isActive ? 'text-neutral-300' : 'text-black/60'}`}>{step.direction}</span>
-                      </div>
-                      <p className={`text-xs pl-6 ${isActive ? 'text-neutral-300' : 'text-black/70'}`}>{step.tip}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+                      {pt.label}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
 
-            {/* General Conducting Pro Tips */}
-            <div className="bg-white border border-slate-200 rounded-3xl p-3 shadow-md">
-              <div className="flex items-center gap-2 text-xs font-bold text-black mb-1.5 break-keep">
-                <HelpCircle className="w-4 h-4 text-[#FE9A00] shrink-0" />
-                <span>지휘자 핵심 꿀팁 (Ictus & Preparatory Beat)</span>
-              </div>
-              <ul className="text-[11px] sm:text-xs text-black/70 space-y-1 list-disc pl-4 leading-snug break-keep">
-                <li><strong className="text-black">예비박(Preparatory Beat):</strong> 첫 박을 내리치기 직전, 1초 전에 위로 손을 올리는 동작으로 연주자들에게 템포와 숨을 미리 알려줍니다.</li>
-                <li><strong className="text-black">반사점(Ictus):</strong> 공이 바닥에 튕기듯 정점에 부딪히는 지점입니다. 손끝에 가벼운 탄성을 유지하세요.</li>
-              </ul>
-            </div>
+            {/* 사용자 터치/제스처 캔버스 */}
+            <canvas
+              ref={canvasRef}
+              width={400}
+              height={360}
+              onMouseDown={handleCanvasMouseDown}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
+              onTouchStart={handleCanvasMouseDown}
+              onTouchMove={handleCanvasMouseMove}
+              onTouchEnd={handleCanvasMouseUp}
+              className="absolute inset-0 w-full h-full cursor-crosshair z-10"
+            />
 
+            {/* 시작 전 안내 오버레이 (화면을 터치하여 연습을 시작하세요) */}
+            {!isPracticing && (
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center z-20 transition-opacity">
+                <div className="w-14 h-14 rounded-full border-2 border-[#FE9A00] flex items-center justify-center mb-3 bg-black/40 shadow-[0_0_15px_rgba(254,154,0,0.3)]">
+                  <Compass className="w-7 h-7 text-[#FE9A00]" />
+                </div>
+                <p className="text-white font-bold text-sm">
+                  화면을 터치하여 연습을 시작하세요
+                </p>
+              </div>
+            )}
+
+            {/* 실시간 현재 박자 뱃지 (연습 중일 때) */}
+            {isPracticing && (
+              <div className="absolute top-3 left-3 bg-black/85 border border-neutral-700 rounded-xl px-3 py-1.5 flex items-center gap-2 z-20 shadow-md">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FE9A00] animate-pulse" />
+                <span className="text-xs font-mono font-bold text-neutral-200">
+                  현재 박자: <span className="text-sm text-[#FE9A00] font-serif">{activeBeatIndex}</span> / {tutorial.count}박
+                </span>
+              </div>
+            )}
           </div>
-
         </div>
-
       </div>
     </div>
   );

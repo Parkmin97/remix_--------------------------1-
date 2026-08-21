@@ -18,18 +18,11 @@ body {
 }
 
 /* ---------------------------------------------------------------- */
-/* 앱 라이트 테마 배경 (랜딩 페이지와 동일 톤)                        */
-/* 검은 지휘 사진 위에 흰색 78% 오버레이를 얹어, 흰 배경을 유지하면서  */
-/* 오케스트라 실루엣이 은은하게 비쳐 보이게 한다.                     */
+/* 앱 라이트 테마 배경 (피그마 디자인 시안 맞춤 단색)                  */
 /* ---------------------------------------------------------------- */
 .app-bg-light {
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.78)),
-    url("/bg_conductor.png");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-color: #F1F5F9;
+  background-image: none;
 }
 
 @layer utilities {

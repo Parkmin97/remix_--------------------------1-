@@ -63,7 +63,13 @@ function AppContent() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
-  const [mainTab, setMainTab] = useState<TabType>('home');
+  const [mainTab, setMainTab] = useState<TabType>(() => {
+    if (typeof window !== 'undefined') {
+      const tabParam = new URLSearchParams(window.location.search).get('tab') as TabType;
+      if (tabParam && ['home', 'mode-a', 'mode-b', 'more'].includes(tabParam)) return tabParam;
+    }
+    return 'home';
+  });
   // 앱 목록은 비동기로 도착한다. 도착하면 이 값을 올려 화면을 다시 그린다.
   const [, setCatalogVersion] = useState(0);
   // 잠금 종료 시각을 넘겼는지 스스로 알아차리기 위한 시계.
@@ -278,16 +284,17 @@ function AppContent() {
         <span className="text-neutral-400">| PWA 테스트 완료</span>
       </div>
 
-      {/* Musical Staff Header Navigation — SHOW_TOP_NAV 로 표시 제어 */}
-      {SHOW_TOP_NAV && (
-        <Header
-          currentTab={currentTab}
-          onTabChange={setCurrentTab}
-          onOpenOnboarding={() => setIsOnboardingOpen(true)}
-          isMuted={isMuted}
-          setIsMuted={setIsMuted}
-          user={user}
-        />
+      {/* Top Header Banner — 모든 화면(홈, 지휘 미션, 차단, 튜토리얼, 리포트, 설정 등) 상단에 고정되는 공통 블랙 헤더 */}
+      {currentTab !== 'landing' && (
+        <header className="shrink-0 z-40 bg-neutral-950 px-4 py-3 shadow-lg relative border-b border-neutral-900">
+          <div className="max-w-2xl mx-auto flex items-center justify-center relative">
+            <div className="flex items-center justify-center">
+              <span className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.3)] text-center">
+                MY LIFE MAESTRO
+              </span>
+            </div>
+          </div>
+        </header>
       )}
 
       {/* Main Content Area — 콘텐츠가 길면 세로 스크롤로 위아래를 모두 볼 수 있게 한다 */}
@@ -366,6 +373,7 @@ function AppContent() {
 
         {currentTab === 'settings' && (
           <SettingsScreen
+            onBack={handleBackToMore}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
             isMuted={isMuted}
             setIsMuted={setIsMuted}

@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { getDailyReports, clearAllData } from '../lib/storage';
+import { getDailyReports } from '../lib/storage';
 import { Blocker, LockHistoryEntry, ScreenTimeDay } from '../lib/blocker';
 import { getCategoryById, getCategoryForPackage, isSnsCategory, SNS_CATEGORY_IDS } from '../data/appCategories';
-import { ShieldCheck, Smartphone, Trash2, ArrowLeft, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { ShieldCheck, Smartphone, ArrowLeft, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 
 interface ReportScreenProps {
   onBack: () => void;
@@ -219,7 +219,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   const snsSharePercent =
     totalUsageMinutes > 0 ? Math.round((totalSnsMinutes / totalUsageMinutes) * 100) : 0;
 
-  // 이번 주에 가장 오래 쓴 앱 5개 (실제 스크린타임이 있을 때만)
+  // 이번 주에 가장 오래 쓴 앱 3개 (실제 스크린타임이 있을 때만)
   const topApps = useMemo(() => {
     if (!hasRealScreenTime) return [];
 
@@ -243,8 +243,26 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         categoryLabel: getCategoryForPackage(packageName).label,
       }))
       .sort((a, b) => b.minutes - a.minutes)
-      .slice(0, 5);
+      .slice(0, 3);
   }, [hasRealScreenTime, screenTimeByDateMap, weekOffset]);
+
+  // 터치 스와이프로 주간 이동
+  const touchStartXRef = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) return;
+    const diff = touchStartXRef.current - e.changedTouches[0].clientX;
+    if (diff > 45) {
+      // 왼쪽으로 스와이프 -> 다음 주로 이동
+      if (weekOffset < 0) goNextWeek();
+    } else if (diff < -45) {
+      // 오른쪽으로 스와이프 -> 이전 주로 이동
+      goPrevWeek();
+    }
+    touchStartXRef.current = null;
+  };
 
   // 사용 시간 막대의 눈금 상한. 실제 스크린타임은 4시간을 쉽게 넘기므로 그 주의 최댓값까지 늘린다.
   // 전체/SNS 를 한 막대에 겹쳐 그리므로 기준은 더 큰 쪽(전체)에 맞춘다.
@@ -277,98 +295,110 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   const weekExpiredCount = weekLockEntries.filter((e) => e.endReason === 'expired').length;
   const weekLaunchAttempts = weekLockEntries.reduce((acc, e) => acc + e.launchAttempts, 0);
 
-  // 이번 주에 아무 기록도 없는지 (가짜 시드 데이터를 걷어냈으므로 빈 상태가 정상적으로 나온다)
-  const isWeekEmpty =
-    totalFocusMinutes === 0 && totalSnsMinutes === 0 && totalUsageMinutes === 0 && weekLockCount === 0;
-
   const goPrevWeek = () => setWeekOffset((prev) => prev - 1);
   const goNextWeek = () => { if (weekOffset < 0) setWeekOffset((prev) => prev + 1); };
 
-  const handleClearData = () => {
-    if (confirm('모든 리포트 및 지휘 세션 기록을 삭제하시겠습니까?')) {
-      clearAllData();
-      window.location.reload();
-    }
-  };
-
-  // 선택된 카드 state: 'focus' (지켜낸 시간) | 'sns' (SNS 이용 시간)
+  // 선택된 카드 state: 'focus' (지켜낸 시간) | 'sns' (앱 이용 시간)
   const [activeTab, setActiveTab] = useState<'focus' | 'sns'>('focus');
 
   return (
-    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-4 gap-3.5 text-black relative select-none">
-      {/* Title Header */}
-      <div className="flex flex-row items-center justify-between gap-3 border-b border-slate-200 pb-3 shrink-0">
+    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-3 sm:py-4 gap-3.5 text-black relative select-none">
+      {/* 1. 상단 뒤로가기 & REPORT 서브 타이틀 (휴지통 버튼 삭제) */}
+      <div className="flex items-center gap-3 shrink-0 pt-0.5 pb-1">
         <button
           onClick={onBack}
-          className="shrink-0 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-black transition-colors active:scale-95 shadow-sm"
+          className="p-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-black transition-colors active:scale-95 shadow-sm"
           title="뒤로가기"
           aria-label="뒤로가기"
         >
           <ArrowLeft className="w-4 h-4 text-black" />
         </button>
-
-        <h1 className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-black text-center">
-          MY LIFE MAESTRO
-        </h1>
-
-        <button
-          onClick={handleClearData}
-          className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-600 hover:text-black text-xs rounded-xl border border-slate-200 transition-colors flex items-center gap-1.5 shrink-0"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">기록 초기화</span>
-        </button>
-      </div>
-
-      {/* Sub Title (Below Header Line, Above Summary Cards) */}
-      <div className="pt-1 pb-1 shrink-0 flex items-center justify-between">
         <h2 className="text-base sm:text-lg font-sans font-extrabold text-black tracking-widest">
           REPORT
         </h2>
-        {/* 주간 이동 네비게이션 */}
-        <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-xl px-2 py-1">
-          <button
-            onClick={goPrevWeek}
-            className="p-1 rounded-lg bg-white hover:bg-slate-200 text-black transition-colors active:scale-95 shadow-sm"
-            title="이전 주"
-            aria-label="이전 주"
-          >
-            <ChevronLeft className="w-4 h-4" />
-          </button>
-          <span className="text-xs font-mono font-bold text-black">
-            {startDateStr} ~ {endDateStr}
-          </span>
-          <button
-            onClick={goNextWeek}
-            disabled={weekOffset >= 0}
-            className="p-1 rounded-lg bg-white hover:bg-slate-200 text-black transition-colors active:scale-95 disabled:opacity-40 disabled:pointer-events-none shadow-sm"
-            title="다음 주"
-            aria-label="다음 주"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
+      </div>
+
+      {/* 2. [주간 잠금 달성 현황] 카드 (최상단 1순위 이동 + 화살표 주간 이동 + 스와이프 제스처) */}
+      <div
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className="p-4 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3 shrink-0 w-full"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-[#FE9A00]" />
+            <span>주간 잠금 달성 현황</span>
+          </h3>
+
+          {/* 주간 이동 < > 화살표 버튼 */}
+          <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl p-1">
+            <button
+              onClick={goPrevWeek}
+              className="p-1 rounded-lg bg-white hover:bg-slate-200 text-black transition-colors active:scale-95 shadow-xs"
+              title="이전 주"
+              aria-label="이전 주"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={goNextWeek}
+              disabled={weekOffset >= 0}
+              className="p-1 rounded-lg bg-white hover:bg-slate-200 text-black transition-colors active:scale-95 disabled:opacity-30 disabled:pointer-events-none shadow-xs"
+              title="다음 주"
+              aria-label="다음 주"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Day grid: 월 화 수 목 금 토 일 */}
+        <div className="grid grid-cols-7 gap-1.5 pt-0.5">
+          {weekDays.map((w, idx) => {
+            const dayLocks = lockEntriesByDateMap.get(w.dateStr) ?? [];
+            const r = reportByDateMap.get(w.dateStr);
+            const used = hasRealLockHistory
+              ? dayLocks.length > 0
+              : Boolean(r && (r.completedFocusMinutes > 0 || r.confirmedCount > 0 || r.missionSuccessCount > 0));
+
+            return (
+              <div key={idx} className="flex flex-col items-center gap-1.5">
+                <span className={`text-[11px] font-bold ${w.dayName === '일' ? 'text-rose-500' : w.dayName === '토' ? 'text-sky-500' : 'text-slate-600'}`}>
+                  {w.dayName}
+                </span>
+                <div
+                  className={`w-full h-10 rounded-2xl flex items-center justify-center text-xs font-semibold border transition-all ${
+                    used
+                      ? 'bg-black text-white border-black font-extrabold shadow-md'
+                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                  } ${w.isToday ? 'border-black border-2 font-bold ring-1 ring-black' : ''}`}
+                >
+                  {w.dayNum}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Summary Highlight Cards */}
+      {/* 3. [지켜낸 시간 ↔ 앱 이용 시간] 요약 탭 카드 (클릭 시 검정 활성화 및 아래 그래프 연동) */}
       <div className="grid grid-cols-2 gap-2.5 shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab('focus')}
-          className={`p-3.5 rounded-3xl border shadow-xl space-y-1 text-left transition-all cursor-pointer ${
+          className={`p-4 rounded-3xl border shadow-xl space-y-1.5 text-left transition-all cursor-pointer ${
             activeTab === 'focus'
-              ? 'bg-black text-white border-black ring-2 ring-black'
+              ? 'bg-black text-white border-black ring-2 ring-black shadow-black/10'
               : 'bg-white text-black border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <div className="flex items-center justify-between text-[11px] font-bold">
+          <div className="flex items-center justify-between text-xs font-bold">
             <span className="break-keep">지켜낸 시간</span>
-            <ShieldCheck className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
+            <ShieldCheck className="w-4 h-4 text-[#FE9A00] shrink-0" />
           </div>
-          <div className="text-2xl font-serif font-extrabold">
+          <div className="text-3xl font-serif font-extrabold tracking-tight">
             {totalFocusMinutes}분
           </div>
-          {/* 그 주에 잠금을 몇 번 걸었고 계획을 얼마나 채웠는지 */}
           {hasRealLockHistory && weekLockCount > 0 && (
             <div className="text-[10px] font-semibold opacity-60 break-keep">
               잠금 {weekLockCount}회 · 계획의 {weekAchievementPercent}%
@@ -379,20 +409,19 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         <button
           type="button"
           onClick={() => setActiveTab('sns')}
-          className={`p-3.5 rounded-3xl border shadow-xl space-y-1 text-left transition-all cursor-pointer ${
+          className={`p-4 rounded-3xl border shadow-xl space-y-1.5 text-left transition-all cursor-pointer ${
             activeTab === 'sns'
-              ? 'bg-black text-white border-black ring-2 ring-black'
+              ? 'bg-black text-white border-black ring-2 ring-black shadow-black/10'
               : 'bg-white text-black border-slate-200 hover:bg-slate-50'
           }`}
         >
-          <div className="flex items-center justify-between text-[11px] font-bold">
-            <span className="break-keep">SNS 이용 시간</span>
-            <Smartphone className="w-3.5 h-3.5 text-[#FE9A00] shrink-0" />
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="break-keep">앱 이용 시간</span>
+            <Smartphone className="w-4 h-4 text-[#FE9A00] shrink-0" />
           </div>
-          <div className="text-2xl font-serif font-extrabold">
+          <div className="text-3xl font-serif font-extrabold tracking-tight">
             {totalSnsMinutes}분
           </div>
-          {/* 전체 사용 시간 대비 비율. 같은 시간도 전체가 얼마냐에 따라 의미가 달라진다 */}
           {hasRealScreenTime && (
             <div className="text-[10px] font-semibold opacity-60 break-keep">
               전체 {totalUsageMinutes}분 중 {snsSharePercent}%
@@ -401,7 +430,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         </button>
       </div>
 
-      {/* Weekly Visual Chart Bar */}
+      {/* 4. [주간 기록 막대 그래프] (지켜낸 시간 ↔ 앱 이용 시간 탭에 따라 실시간 전환) */}
       <div className="p-4.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3 shrink-0 flex flex-col">
         <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2 shrink-0">
           {activeTab === 'focus' ? (
@@ -410,35 +439,23 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
             <Smartphone className="w-4 h-4 text-[#FE9A00]" />
           )}
           <span>
-            {activeTab === 'focus' ? '지켜낸 시간 주간 기록' : 'SNS 이용시간 주간 기록'}
+            {activeTab === 'focus' ? '지켜낸 시간 주간 기록' : '앱 이용 시간 주간 기록'}
           </span>
         </h3>
 
-        {/* 잠금 이력 출처 안내 — 실제 유지 시간인지, 예전 집계값인지 알려준다 */}
         {activeTab === 'focus' && (
           <p className="text-[11px] text-slate-500 break-keep -mt-1">
             {hasRealLockHistory
               ? '실제로 잠금이 유지된 시간입니다. 미션으로 일찍 풀면 그만큼만 기록됩니다.'
-              : lockHistoryState === 'loading'
-              ? '잠금 기록을 불러오는 중입니다.'
-              : lockHistoryState === 'failed'
-              ? '잠금 기록을 읽지 못했습니다. 앱에 저장된 값으로 표시합니다.'
               : '아직 잠금 기록이 없습니다. 첫 잠금을 시작해보세요.'}
           </p>
         )}
 
-        {/* 스크린타임 출처 안내 — 실제 값인지, 앱이 직접 센 값인지 알려준다 */}
         {activeTab === 'sns' && (
           <p className="text-[11px] text-slate-500 break-keep -mt-1">
             {hasRealScreenTime
-              ? `휴대폰이 기록한 실제 사용 시간입니다. SNS·숏폼은 ${SNS_CATEGORY_LABELS} 앱을 합산한 값입니다.`
-              : screenTimeState === 'loading'
-              ? '실제 사용 시간을 불러오는 중입니다.'
-              : screenTimeState === 'failed'
-              ? '앱에서 측정한 값입니다. 실제 사용 시간을 보려면 사용 정보 접근 권한이 필요합니다.'
-              : screenTimeState === 'ready'
-              ? '아직 기록된 사용 시간이 없습니다. 하루 이상 사용하면 표시됩니다.'
-              : '앱에서 측정한 값입니다.'}
+              ? `휴대폰이 기록한 실제 앱 사용 시간입니다. (${SNS_CATEGORY_LABELS})`
+              : '휴대폰에 기록된 앱 사용 시간입니다.'}
           </p>
         )}
 
@@ -449,8 +466,6 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
             const maxVal = isFocusTab ? focusChartMaxMinutes : usageChartMaxMinutes;
             const percentage = Math.min(100, Math.round((minutes / maxVal) * 100));
 
-            // 같은 막대 위에 비교 대상을 옅게 깔아 비율을 보여준다.
-            // 지켜낸 시간 탭은 '설정했던 시간', SNS 탭은 '그날 전체 사용 시간'이 배경이다.
             const showComparison = isFocusTab ? hasRealLockHistory : hasRealScreenTime;
             const totalMinutes = !showComparison
               ? 0
@@ -463,8 +478,10 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
             return (
               <div key={idx} className="space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="font-mono text-black/70 flex items-center gap-1">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${w.dayName === '일' ? 'bg-rose-100 text-rose-600 border border-rose-200' : w.dayName === '토' ? 'bg-sky-100 text-sky-600 border border-sky-200' : 'bg-slate-100 text-slate-700'}`}>{w.dayName}</span>
+                  <span className="font-mono text-black/70 flex items-center gap-1.5">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-extrabold ${w.dayName === '일' ? 'bg-rose-100 text-rose-600 border border-rose-200' : w.dayName === '토' ? 'bg-sky-100 text-sky-600 border border-sky-200' : 'bg-slate-100 text-slate-700'}`}>
+                      {w.dayName}
+                    </span>
                     <span>{w.dateStr}</span>
                   </span>
                   <span className="font-semibold text-black break-keep">
@@ -491,96 +508,14 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
             );
           })}
         </div>
-
-        {/* Legend — 두 색이 각각 무엇인지 (주간 잠금 달성 현황 카드와 같은 형식) */}
-        {((activeTab === 'sns' && hasRealScreenTime) || (activeTab === 'focus' && hasRealLockHistory)) && (
-          <div className="flex items-center justify-center gap-4 text-[11px] text-slate-600 pt-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-black border border-black"></span>
-              <span className="break-keep">{activeTab === 'focus' ? '지켜낸 시간' : 'SNS·숏폼'}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-slate-300 border border-slate-300"></span>
-              <span className="break-keep">{activeTab === 'focus' ? '설정한 시간' : '전체 사용'}</span>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Weekly Lock Sessions (실제 잠금 이력이 있을 때만) */}
-      {activeTab === 'focus' && weekLockEntries.length > 0 && (
-        <div className="p-4.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3 shrink-0 flex flex-col">
-          <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2 shrink-0">
-            <ShieldCheck className="w-4 h-4 text-[#FE9A00]" />
-            <span>주간 잠금 기록</span>
-          </h3>
-
-          <p className="text-[11px] text-slate-500 break-keep -mt-1">
-            잠금 {weekLockCount}회 · 설정한 {weekPlannedMinutes}분 중 {weekAchievementPercent}% 달성 ·
-            끝까지 채움 {weekExpiredCount}회
-            {weekLaunchAttempts > 0 && ` · 잠근 앱 열기 시도 ${weekLaunchAttempts}회`}
-          </p>
-
-          <div className="space-y-2.5 pt-1">
-            {weekLockEntries.slice(0, 5).map((entry) => {
-              const startedAt = new Date(entry.startedAt);
-              const percentage = Math.min(
-                100,
-                Math.round((entry.heldMinutes / Math.max(1, entry.plannedMinutes)) * 100)
-              );
-              const isExpired = entry.endReason === 'expired';
-
-              return (
-                <div key={entry.sessionId} className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px] gap-2">
-                    <span className="font-mono text-black/70 flex items-center gap-1.5 min-w-0">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-slate-100 text-slate-700 shrink-0">
-                        {entry.date}
-                      </span>
-                      <span className="shrink-0">
-                        {pad2(startedAt.getHours())}:{pad2(startedAt.getMinutes())}
-                      </span>
-                      <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] border shrink-0 break-keep ${
-                          isExpired
-                            ? 'bg-black text-white border-black font-extrabold'
-                            : 'bg-slate-100 text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {isExpired ? '끝까지' : '미션 해제'}
-                      </span>
-                    </span>
-                    <span className="font-semibold text-black break-keep shrink-0">
-                      {entry.heldMinutes}분
-                      <span className="font-normal text-slate-400"> / {entry.plannedMinutes}분</span>
-                    </span>
-                  </div>
-
-                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                    <div
-                      className="h-full bg-black rounded-full transition-all duration-500"
-                      style={{ width: `${Math.max(entry.heldMinutes > 0 ? 5 : 0, percentage)}%` }}
-                    ></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {weekLockEntries.length > 5 && (
-            <p className="text-[11px] text-slate-500 text-center break-keep">
-              외 {weekLockEntries.length - 5}건
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Top Apps (실제 스크린타임이 있을 때만) */}
-      {activeTab === 'sns' && topApps.length > 0 && (
+      {/* 5. [가장 오래 쓴 앱] (1위 ~ 3위까지만 표시) */}
+      {topApps.length > 0 && (
         <div className="p-4.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3 shrink-0 flex flex-col">
           <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2 shrink-0">
             <Smartphone className="w-4 h-4 text-[#FE9A00]" />
-            <span>가장 오래 쓴 앱</span>
+            <span>가장 오래 쓴 앱 (TOP 3)</span>
           </h3>
 
           <div className="space-y-2.5 pt-1">
@@ -614,71 +549,6 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
           </div>
         </div>
       )}
-
-      {/* Weekly Detox Grid (월화수목금토일) */}
-      <div className="p-3.5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-2 shrink-0 max-w-sm mx-auto w-full">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold font-serif text-black flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-[#FE9A00]" />
-            <span>주간 잠금 달성 현황</span>
-          </h3>
-        </div>
-
-        {/* Day grid: 월 화 수 목 금 토 일 */}
-        <div className="grid grid-cols-7 gap-1.5 pt-1">
-          {weekDays.map((w, idx) => {
-            // 실제 잠금 이력이 있으면 그 기준으로, 없으면 예전처럼 저장된 리포트로 판정한다.
-            const dayLocks = lockEntriesByDateMap.get(w.dateStr) ?? [];
-            const r = reportByDateMap.get(w.dateStr);
-            const used = hasRealLockHistory
-              ? dayLocks.length > 0
-              : Boolean(r && (r.completedFocusMinutes > 0 || r.confirmedCount > 0 || r.missionSuccessCount > 0));
-
-            const title = used
-              ? hasRealLockHistory
-                ? `${w.dateStr} · 잠금 ${dayLocks.length}회 · ${getFocusMinutes(w.dateStr)}분 지켜냄`
-                : `${w.dateStr} · 잠금 사용`
-              : `${w.dateStr} · 미사용`;
-
-            return (
-              <div key={idx} className="flex flex-col items-center gap-1">
-                <span className={`text-[11px] font-bold ${w.dayName === '일' ? 'text-rose-500' : w.dayName === '토' ? 'text-sky-500' : 'text-slate-600'}`}>
-                  {w.dayName}
-                </span>
-                <div
-                  className={`w-full h-9 rounded-xl flex items-center justify-center text-xs font-semibold border transition-all ${
-                    used
-                      ? 'bg-black text-white border-black font-extrabold shadow-md scale-105'
-                      : 'bg-slate-100 text-slate-400 border-slate-200'
-                  } ${w.isToday ? 'ring-2 ring-black' : ''}`}
-                  title={title}
-                >
-                  {w.dayNum}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Legend — 기록이 하나도 없는 주에는 안내 한 줄로 대신한다 */}
-        {isWeekEmpty ? (
-          <p className="text-[11px] text-slate-500 text-center break-keep pt-1.5">
-            아직 기록이 없습니다. 첫 잠금을 시작해보세요.
-          </p>
-        ) : (
-          <div className="flex items-center justify-center gap-4 text-[11px] text-slate-600 pt-1.5">
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-black border border-black"></span>
-              <span className="break-keep">잠금 사용한 날</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-slate-100 border border-slate-200"></span>
-              <span className="break-keep">미사용 날</span>
-            </div>
-          </div>
-        )}
-      </div>
-
     </div>
   );
 };

@@ -35,17 +35,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
 
   return (
     <div className="h-full app-bg-light text-neutral-900 flex flex-col font-sans relative select-none">
-      {/* Top Header Banner — 랜딩과 동일한 블랙 블록 */}
-      <header className="shrink-0 z-40 bg-neutral-950 px-4 py-3 shadow-lg relative">
-        <div className="max-w-2xl mx-auto flex items-center justify-center relative">
-          <div className="flex items-center justify-center">
-            <span className="font-sans font-extrabold text-base sm:text-lg tracking-widest text-white drop-shadow-[0_1px_8px_rgba(255,255,255,0.3)] text-center">
-              MY LIFE MAESTRO
-            </span>
-          </div>
-        </div>
-      </header>
-
       {/* 예약 잠금 진행 중이면 어느 탭에 있든 남은 시간이 보인다 */}
       <UsageCountdownBar activeSession={activeSession} />
 

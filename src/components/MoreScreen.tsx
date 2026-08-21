@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, BarChart3, User as UserIcon, ChevronRight, Camera, LogOut, Loader2, Pencil, Lock } from 'lucide-react';
+import { HelpCircle, BarChart3, Settings, User as UserIcon, ChevronRight, Camera, LogOut, Loader2, Pencil, Lock } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 interface MoreScreenProps {
@@ -86,7 +86,8 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen, lock
         title: '서비스 기능',
         items: [
           { icon: BarChart3, label: '디톡스 주간 리포트', target: 'report' },
-          { icon: HelpCircle, label: '지휘 동작 연습 튜토리얼', target: 'tutorial' },
+          { icon: HelpCircle, label: '지휘 동작 튜토리얼', target: 'tutorial' },
+          { icon: Settings, label: '설정 및 서비스 정보', target: 'settings' },
         ],
       },
     ];

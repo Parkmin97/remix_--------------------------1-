@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { getSoundMuted, setSoundMuted } from '../lib/storage';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
-import { Settings, Volume2, VolumeX, Activity, HelpCircle, CheckCircle2, FileText, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Volume2, VolumeX, Activity, HelpCircle, CheckCircle2, FileText, ExternalLink, ShieldCheck, ArrowLeft, Sparkles, Smartphone } from 'lucide-react';
 
 /**
- * 약관 웹 URL 상수 (나중에 노션 공유 링크나 웹페이지 주소가 나오면 이 값만 교체하면 됩니다)
+ * 약관 및 개인정보처리방침 PDF 파일 경로
  */
-const PRIVACY_POLICY_URL = ''; // 예: 'https://your-notion-privacy-url.com'
-const TERMS_OF_SERVICE_URL = ''; // 예: 'https://your-notion-terms-url.com'
+const PRIVACY_POLICY_URL = '/privacy_terms.pdf';
+const TERMS_OF_SERVICE_URL = '/privacy_terms.pdf';
 
 interface SettingsScreenProps {
+  onBack?: () => void;
   onOpenOnboarding: () => void;
   isMuted: boolean;
   setIsMuted: (muted: boolean) => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
+  onBack,
   onOpenOnboarding,
   isMuted,
   setIsMuted
@@ -58,137 +60,155 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   };
 
   return (
-    <div className="min-h-full flex flex-col max-w-3xl mx-auto px-4 py-4 gap-4 text-neutral-900">
-      <div className="flex items-center gap-2 border-b border-neutral-200 pb-3 shrink-0">
-        <Settings className="w-5 h-5 text-amber-500" />
-        <h2 className="text-lg font-bold font-serif text-neutral-900 break-keep">
+    <div className="min-h-full flex flex-col max-w-4xl mx-auto px-4 py-3 sm:py-4 gap-3.5 text-black relative select-none">
+      {/* 1. 상단 뒤로가기 & 서브 타이틀 */}
+      <div className="flex items-center gap-3 shrink-0 pt-0.5 pb-1">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="p-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-black transition-colors active:scale-95 shadow-sm"
+            title="뒤로가기"
+            aria-label="뒤로가기"
+          >
+            <ArrowLeft className="w-4 h-4 text-black" />
+          </button>
+        )}
+        <h2 className="text-base sm:text-lg font-sans font-extrabold text-black tracking-wide">
           설정 및 서비스 정보
         </h2>
       </div>
 
-      <div className="bg-neutral-950 ring-1 ring-black/5 rounded-3xl p-4 space-y-3.5 shadow-xl">
-        {/* Sound Settings */}
-        <div className="flex items-center justify-between gap-3 p-3 bg-neutral-900 rounded-2xl border border-neutral-800">
-          <div className="space-y-0.5 min-w-0">
-            <div className="text-sm font-bold text-amber-200 flex items-center gap-2">
-              {isMuted ? <VolumeX className="w-4 h-4 text-rose-400 shrink-0" /> : <Volume2 className="w-4 h-4 text-amber-400 shrink-0" />}
-              <span className="break-keep">클래식 오케스트라 사운드 및 메트로놈</span>
+      {/* 2. 사운드 및 메트로놈 설정 카드 */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-2xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0">
+              {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-[#FE9A00]" />}
             </div>
-            <p className="text-[11px] text-stone-400 break-keep leading-snug">
-              지휘 미션 및 메트로놈 카운트다운 사운드를 켜거나 끕니다.
-            </p>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-black break-keep">오케스트라 & 메트로놈 사운드</h3>
+              <p className="text-xs text-slate-500 break-keep mt-0.5">
+                지휘 미션 및 박자 카운트다운 소리를 제어합니다.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleTestSound}
-              className="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-semibold rounded-xl border border-amber-600/30"
+              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold rounded-xl border border-slate-200 transition-colors active:scale-95"
             >
               소리 테스트
             </button>
             <button
               onClick={toggleSound}
-              className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer ${
                 isMuted
-                  ? 'bg-rose-950/60 text-rose-300 border border-rose-800'
-                  : 'bg-amber-500 text-stone-950 shadow'
+                  ? 'bg-slate-100 text-slate-500 border border-slate-200'
+                  : 'bg-black text-white border border-black shadow-md'
               }`}
             >
-              {isMuted ? '음소거 됨' : '사운드 켜짐'}
+              {isMuted ? '음소거' : '켜짐'}
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Motion Sensor Calibration */}
-        <div className="p-3 bg-neutral-900 rounded-2xl border border-neutral-800 space-y-2.5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="space-y-0.5 min-w-0">
-              <div className="text-sm font-bold text-amber-200 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-amber-400 shrink-0" />
-                <span className="break-keep">지휘 모션 센서 보정 (DeviceMotion / Touch)</span>
-              </div>
-              <p className="text-[11px] text-stone-400 break-keep leading-snug">
-                스마트폰의 가속도계 센서 반응 속도 및 터치 지휘 궤적을 보정합니다.
+      {/* 3. 모션 센서 보정 카드 */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 rounded-2xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0">
+              <Activity className="w-4 h-4 text-[#FE9A00]" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-bold text-black break-keep">지휘 모션 센서 보정</h3>
+              <p className="text-xs text-slate-500 break-keep mt-0.5">
+                스마트폰의 가속도계 센서 반응 감도를 최적화합니다.
               </p>
             </div>
-
-            <button
-              onClick={handleCalibrateSensors}
-              className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold rounded-xl text-xs shadow transition-all shrink-0 break-keep"
-            >
-              센서 보정하기
-            </button>
-          </div>
-
-          {calibrated && (
-            <div className="p-2.5 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2 animate-fade-in">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-              <span className="break-keep">지휘 모션 센서 보정이 완료되었습니다!</span>
-            </div>
-          )}
-        </div>
-
-        {/* Onboarding Restart */}
-        <div className="flex items-center justify-between gap-3 p-3 bg-neutral-900 rounded-2xl border border-neutral-800">
-          <div className="space-y-0.5 min-w-0">
-            <div className="text-sm font-bold text-amber-200 flex items-center gap-2">
-              <HelpCircle className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="break-keep">서비스 작동 방식 및 권한 안내 다시 보기</span>
-            </div>
-            <p className="text-[11px] text-stone-400 break-keep leading-snug">
-              안드로이드 OS 연동 및 핵심 제품 서비스 고지를 확인합니다.
-            </p>
           </div>
 
           <button
-            onClick={onOpenOnboarding}
-            className="px-3.5 py-2 bg-stone-800 hover:bg-stone-700 text-amber-200 font-semibold rounded-xl text-xs border border-amber-600/40 shrink-0 break-keep"
+            onClick={handleCalibrateSensors}
+            className="px-3.5 py-2 bg-black hover:bg-neutral-800 text-white font-bold rounded-xl text-xs shadow-md transition-all shrink-0 active:scale-95"
           >
-            안내 창 열기
+            센서 보정
           </button>
         </div>
 
-        {/* Legal Notices Section */}
-        <div className="p-3.5 bg-neutral-900 rounded-2xl border border-neutral-800 space-y-3">
-          <div className="text-xs font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5">
-            <FileText className="w-3.5 h-3.5 text-amber-400" />
-            <span>약관 및 법적 고지</span>
+        {calibrated && (
+          <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            <span>지휘 모션 센서가 성공적으로 보정되었습니다!</span>
           </div>
+        )}
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button
-              onClick={handleOpenPrivacyPolicy}
-              className="flex items-center justify-between p-3 bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 rounded-xl text-xs font-medium text-stone-300 transition-colors text-left group"
-            >
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>개인정보처리방침</span>
-              </div>
-              <ExternalLink className="w-3.5 h-3.5 text-stone-500 group-hover:text-amber-300 transition-colors" />
-            </button>
-
-            <button
-              onClick={handleOpenTerms}
-              className="flex items-center justify-between p-3 bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 rounded-xl text-xs font-medium text-stone-300 transition-colors text-left group"
-            >
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>서비스 이용약관</span>
-              </div>
-              <ExternalLink className="w-3.5 h-3.5 text-stone-500 group-hover:text-amber-300 transition-colors" />
-            </button>
+      {/* 4. 온보딩 안내 다시 보기 카드 */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-2xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0">
+            <HelpCircle className="w-4 h-4 text-[#FE9A00]" />
           </div>
-
-          {legalNoticeMessage && (
-            <div className="p-2.5 bg-amber-950/60 border border-amber-600/40 rounded-xl text-xs text-amber-200 animate-fade-in break-keep">
-              💡 {legalNoticeMessage}
-            </div>
-          )}
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold text-black break-keep">서비스 작동 방식 안내</h3>
+            <p className="text-xs text-slate-500 break-keep mt-0.5">
+              앱 잠금 원리와 모드 A/B 가이드를 다시 확인합니다.
+            </p>
+          </div>
         </div>
 
-        {/* App Version Info */}
-        <div className="pt-2 text-center text-[11px] text-stone-500 font-mono">
-          내인생 지휘자 · My Life Maestro v1.0.0 (Capacitor Android Ready)
+        <button
+          onClick={onOpenOnboarding}
+          className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-black font-bold rounded-xl text-xs border border-slate-200 transition-colors active:scale-95 shrink-0"
+        >
+          가이드 열기
+        </button>
+      </div>
+
+      {/* 5. 약관 및 법적 고지 카드 */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3">
+        <div className="text-xs font-bold text-black/60 uppercase tracking-wider flex items-center gap-1.5 px-1">
+          <FileText className="w-3.5 h-3.5 text-[#FE9A00]" />
+          <span>약관 및 법적 고지</span>
+        </div>
+
+        <button
+          onClick={handleOpenPrivacyPolicy}
+          className="w-full flex items-center justify-between p-3.5 bg-slate-50 hover:bg-black hover:text-white border border-slate-200 rounded-2xl text-xs sm:text-sm font-bold text-black transition-all text-left group active:scale-98 cursor-pointer shadow-xs"
+        >
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-[#FE9A00] shrink-0" />
+            <span className="group-hover:text-white transition-colors break-keep">
+              서비스 이용약관 및 개인정보처리방침
+            </span>
+          </div>
+          <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-[#FE9A00] transition-colors shrink-0" />
+        </button>
+
+        {legalNoticeMessage && (
+          <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl text-xs text-amber-900 font-medium animate-fade-in break-keep">
+            💡 {legalNoticeMessage}
+          </div>
+        )}
+      </div>
+
+      {/* 6. 앱 버전 및 개발팀 정보 푸터 배너 (피그마 톤앤매너 완벽 맞춤) */}
+      <div className="mt-2 p-5 rounded-3xl bg-black text-white border border-black shadow-xl flex flex-col items-center justify-center text-center space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="font-sans font-extrabold text-sm sm:text-base tracking-widest text-white">
+            MY LIFE MAESTRO
+          </span>
+          <span className="px-2 py-0.5 rounded-full bg-[#FE9A00] text-black text-[10px] font-mono font-extrabold shadow-sm">
+            v1.0.0
+          </span>
+        </div>
+        <p className="text-[11px] text-neutral-400 font-medium">
+          스마트폰 사용 절제를 위한 클래식 인터랙션 앱
+        </p>
+        <div className="text-[10px] text-neutral-500 font-mono pt-1 border-t border-neutral-800 w-full">
+          Designed & Developed with Passion by Team Maestro
         </div>
       </div>
     </div>

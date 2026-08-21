@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BeatType, ClassicalPiece, SessionData } from '../types';
 import { CLASSICAL_PIECES } from '../data/classicalPieces';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
-import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target, VolumeX } from 'lucide-react';
+import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target, VolumeX, Sparkles } from 'lucide-react';
 
 // 미션 통과 기준(정확 타점 비율 %). 화면 안내 문구와 판정 로직이 이 값 하나를 공유한다.
 const PASS_THRESHOLD_PERCENT = 70;
@@ -74,6 +74,17 @@ const TUTORIAL_SVG_GUIDES: Record<BeatType, {
     ],
   },
 };
+
+/**
+ * 지휘봉 + 음표 커스텀 이미지 (/baton_notes_orange.png)
+ */
+const ConductingBatonIcon: React.FC<{ className?: string }> = ({ className = 'w-10 h-10' }) => (
+  <img
+    src="/baton_notes_orange.png"
+    alt="지휘봉 아이콘"
+    className={`object-contain ${className}`}
+  />
+);
 
 interface ConductingMissionScreenProps {
   activeSession: SessionData | null;
@@ -690,7 +701,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         : null;
 
   return (
-    <div className="min-h-full w-full max-w-2xl mx-auto px-2 sm:px-4 py-2 sm:py-3 flex flex-col gap-2 sm:gap-3 text-black relative select-none bg-slate-100">
+    <div className="min-h-full w-full max-w-2xl mx-auto px-4 py-4 flex flex-col gap-4 text-black relative select-none">
 
       {/* 판정 순간 화면 전체가 한 번 깜빡인다. 다음 박이 오기 전에 완전히 사라진다. */}
       {judgementFlashTone && (
@@ -701,36 +712,46 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         />
       )}
 
-      {/* 준비 화면은 곡 선택을 강조하고, 진행 중에는 무대 확보를 위해 압축한다. */}
+      {/* READY 상태일 때 상단 검정 알약 타이틀 배지 */}
+      {gameState === 'READY' && (
+        <div className="text-center shrink-0">
+          <div className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-black text-white border border-black shadow-md">
+            <Music className="w-5 h-5 text-[#FE9A00]" />
+            <h1 className="text-xl sm:text-2xl font-serif font-bold text-white tracking-wide">
+              클래식 1분 지휘 미션
+            </h1>
+          </div>
+        </div>
+      )}
+
+      {/* 곡 정보 카드 */}
       <div
-        className={`shrink-0 rounded-2xl bg-white border border-slate-200 shadow-xl relative overflow-hidden ${gameState === 'READY' ? 'p-4 sm:p-5 text-center space-y-3' : 'px-3.5 py-2.5'
-          }`}
+        className={`shrink-0 rounded-3xl bg-white border border-slate-200 shadow-lg relative overflow-hidden ${
+          gameState === 'READY' ? 'p-5 text-center space-y-3' : 'px-4 py-3'
+        }`}
       >
         {gameState === 'READY' ? (
           <>
-            <div className="flex flex-col items-center justify-center gap-2">
-              <h2 className="text-xl sm:text-2xl font-serif font-extrabold text-[#FE9A00] tracking-wide">
-                클래식 1분 지휘 미션
-              </h2>
-              <span className="px-3.5 py-1 rounded-full bg-[#FE9A00] text-black text-xs sm:text-sm font-bold whitespace-nowrap inline-block">
+            <div className="flex justify-center">
+              <span className="px-4 py-1.5 rounded-full bg-[#FE9A00] text-black text-xs sm:text-sm font-bold whitespace-nowrap inline-block shadow-sm">
                 랜덤 지정: {selectedBeat} 박자
               </span>
             </div>
-            <div className="px-1 space-y-2.5 w-full">
+            <div className="px-1 space-y-2 w-full">
               <div className="flex flex-col items-center justify-center">
-                <span className="block w-full line-clamp-2 text-center text-sm sm:text-lg font-bold text-black leading-snug break-keep">
+                <span className="block w-full text-center text-lg sm:text-xl font-bold font-serif text-black leading-snug break-keep">
                   {currentPiece.title}
                 </span>
                 <span className="block w-full truncate text-center text-xs sm:text-sm text-black/60 font-medium leading-tight mt-1">
                   {currentPiece.composer} · {currentPiece.bpm} BPM
                 </span>
               </div>
-              <div className="mt-3 flex items-center justify-center gap-2.5">
+              <div className="mt-3 flex items-center justify-center gap-3">
                 <button
                   onClick={handlePickRandomPiece}
                   type="button"
                   title="다른 곡으로 바꾸기"
-                  className="px-4 py-2.5 bg-black hover:bg-neutral-800 text-white rounded-xl border border-black text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+                  className="px-5 py-2.5 bg-black hover:bg-neutral-800 text-white rounded-xl border border-black text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-md"
                 >
                   <Shuffle className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
                   <span>곡 변경</span>
@@ -739,10 +760,11 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   onClick={toggleAudioPreview}
                   type="button"
                   title={isAudioPreviewPlaying ? '미리듣기 정지' : '미리듣기 재생'}
-                  className={`px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-sm ${isAudioPreviewPlaying
-                    ? 'bg-black text-white border-black ring-2 ring-[#FE9A00]'
-                    : 'bg-black hover:bg-neutral-800 text-white border-black'
-                    }`}
+                  className={`px-5 py-2.5 rounded-xl border text-xs sm:text-sm font-bold transition-colors active:translate-y-px flex items-center gap-1.5 whitespace-nowrap shadow-md ${
+                    isAudioPreviewPlaying
+                      ? 'bg-black text-white border-black ring-2 ring-[#FE9A00]'
+                      : 'bg-black hover:bg-neutral-800 text-white border-black'
+                  }`}
                 >
                   {isAudioPreviewPlaying ? (
                     <Pause className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
@@ -769,25 +791,18 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       </div>
 
       {/* Game Stage Area */}
-      <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-xl">
-        {/* Animated Background Musical Notes */}
-        <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-around text-4xl text-black select-none">
-          <span className="animate-bounce">♩</span>
-          <span className="animate-pulse">♪</span>
-          <span className="animate-bounce delay-100">♫</span>
-          <span className="animate-pulse delay-200">♬</span>
-        </div>
+      <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-lg">
 
         {/* READY STATE */}
         {gameState === 'READY' && (
-          <div className="text-center space-y-3.5 max-w-md z-10 w-full">
-            {/* 조작 방식 안내 아이콘 */}
-            <div className="w-12 h-12 mx-auto rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center shadow-sm">
-              <Smartphone className="w-6 h-6 text-[#FE9A00]" aria-hidden="true" />
+          <div className="text-center space-y-4 max-w-md z-10 w-full">
+            {/* 조작 방식 안내 아이콘 (지휘봉 + 음표 모티프) */}
+            <div className="w-14 h-14 mx-auto rounded-2xl border border-slate-200 bg-white flex items-center justify-center shadow-sm">
+              <ConductingBatonIcon className="w-9 h-9" />
             </div>
 
             {/* 통과 조건 요약 */}
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-left space-y-2.5">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-left space-y-2.5">
               <div className="flex items-start gap-2 text-xs text-black">
                 <Target className="w-4 h-4 text-[#FE9A00] shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="leading-snug break-keep">
@@ -799,10 +814,10 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 <Timer className="w-4 h-4 text-[#FE9A00] shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="leading-snug break-keep">
                   <strong className="text-black font-bold">허용 오차: </strong>
-                  <span className="text-black/80">0.25초 (강박에서 0.15초까지 좁아짐)</span>
+                  <span className="text-black/80">±0.25초</span>
                 </div>
               </div>
-              <div className="flex items-start gap-2 text-xs text-black pt-0.5 border-t border-slate-200">
+              <div className="flex items-start gap-2 text-xs text-black pt-1 border-t border-slate-200">
                 <Activity className="w-4 h-4 text-[#FE9A00] shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="leading-snug break-keep">
                   <strong className="text-black font-bold">강한 모션 필수: </strong>
@@ -835,17 +850,18 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </div>
             )}
 
-            <div className="pt-1 grid grid-cols-1 sm:grid-cols-[1fr_auto] items-stretch gap-2 w-full">
+            {/* 가로 2열 버튼 (튜토리얼 후 시작 vs 취소) */}
+            <div className="pt-2 grid grid-cols-[1.6fr_1fr] items-stretch gap-2.5 w-full">
               <button
                 onClick={handleStartGame}
-                className="px-7 py-3.5 bg-black hover:bg-neutral-800 text-white font-extrabold text-sm sm:text-base rounded-xl shadow-lg flex items-center justify-center gap-2 transition-colors active:translate-y-px"
+                className="py-3.5 bg-black hover:bg-neutral-800 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-colors active:translate-y-px"
               >
                 <Play className="w-4 h-4 fill-[#FE9A00] text-[#FE9A00]" aria-hidden="true" />
                 <span>튜토리얼 후 시작</span>
               </button>
               <button
                 onClick={onCancel}
-                className="px-5 py-2.5 bg-slate-100 text-black hover:bg-slate-200 text-xs font-semibold rounded-xl border border-slate-200 transition-colors active:translate-y-px shadow-sm"
+                className="py-3.5 bg-slate-100 text-black hover:bg-slate-200 text-sm font-bold rounded-2xl border border-slate-200 transition-colors active:translate-y-px shadow-sm flex items-center justify-center"
               >
                 취소
               </button>
@@ -855,18 +871,16 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
         {/* TUTORIAL PREVIEW STATE (10s BEFORE 3, 2, 1 COUNTDOWN) */}
         {gameState === 'TUTORIAL_PREVIEW' && (
-          <div className="text-center space-y-4 max-w-md z-10 w-full animate-fade-in p-1">
-            {/* Top Status Header (검은색 배경) */}
-            <div className="flex items-center justify-between gap-2 bg-black border border-black rounded-xl px-3.5 py-2.5 shadow-md">
-              <div className="flex items-center gap-2 text-left">
-                <Music className="w-4 h-4 text-[#FE9A00] shrink-0" aria-hidden="true" />
-                <div className="text-xs font-bold text-white">{selectedBeat} 지휘 동작 가이드</div>
-              </div>
+          <div className="text-center space-y-4 max-w-md z-10 w-full animate-fade-in flex flex-col items-center">
+            {/* Top Status Header (검은색 알약 배지) */}
+            <div className="inline-flex items-center gap-2 bg-black border border-black rounded-full px-5 py-2 shadow-md">
+              <Music className="w-4 h-4 text-[#FE9A00] shrink-0" aria-hidden="true" />
+              <div className="text-xs font-bold text-white">{selectedBeat} 지휘 동작 가이드</div>
             </div>
 
             {/* 소리가 안 들리는 두 가지 원인(앱 음소거, 브라우저 오디오 잠금)을 구분해 알린다. */}
             {isAppMuted ? (
-              <div className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-left">
+              <div className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left">
                 <VolumeX className="w-4 h-4 shrink-0 text-[#FE9A00]" aria-hidden="true" />
                 <span className="min-w-0 text-[11px] leading-snug text-black break-keep">
                   앱 음소거가 켜져 있어 박자 소리가 나지 않습니다. 상단 스피커 버튼으로 해제해 주세요.
@@ -876,7 +890,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               <button
                 type="button"
                 onClick={handleUnlockAudio}
-                className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-left transition-colors hover:bg-slate-100 active:translate-y-px"
+                className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-colors hover:bg-slate-100 active:translate-y-px"
               >
                 <VolumeX className="w-4 h-4 shrink-0 text-[#FE9A00]" aria-hidden="true" />
                 <span className="min-w-0 text-[11px] leading-snug text-black break-keep">
@@ -885,138 +899,117 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </button>
             ) : null}
 
-            {/* Pattern Visualizer Diagram */}
+            {/* Pattern Visualizer Fullsize Diagram (피그마 2번 시안 맞춤) */}
             {(() => {
               const guide = TUTORIAL_SVG_GUIDES[selectedBeat] || TUTORIAL_SVG_GUIDES['4/4'];
               const isSuccessDemo = tutorialDemoMode === 'SUCCESS';
               const activePoint = guide.points.find(pt => pt.beat === activeTutorialBeat) ?? guide.points[0];
               return (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5 text-left shadow-sm">
-                  <div className="flex flex-col gap-1.5 text-xs font-semibold text-black sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-                    <span className="font-bold break-keep">{guide.title.replace(/\s*\(.*\)\s*$/, '')}</span>
-                    <span className="font-mono text-[10px] text-black/70 border border-slate-200 bg-white px-2 py-0.5 rounded self-start sm:self-auto sm:shrink-0">{guide.pattern}</span>
-                  </div>
-
-                  {/* SVG Diagram Guide */}
-                  <div
-                    className={`relative w-full aspect-[16/9] rounded-xl border overflow-hidden flex items-center justify-center ${isSuccessDemo
-                      ? 'bg-emerald-50 border-emerald-300'
-                      : 'bg-rose-50 border-rose-300'
-                      }`}
-                  >
-                    <svg viewBox="0 0 200 150" className="w-full h-full p-2">
-                      <path d={guide.svgPath} fill="none" stroke="#94a3b8" strokeWidth="3" strokeDasharray="4 4" />
-                      {guide.points.map(pt => {
-                        const isActive = activeTutorialBeat === pt.beat;
-                        const activeFill = isSuccessDemo
-                          ? 'fill-emerald-500 stroke-emerald-200 stroke-2'
-                          : 'fill-rose-500 stroke-rose-300 stroke-2';
-                        return (
-                          <g key={pt.beat}>
-                            <circle
-                              cx={pt.x}
-                              cy={pt.y}
-                              r={isActive ? 11 : 6}
-                              className={isActive ? activeFill : 'fill-slate-300 stroke-slate-400 stroke-1'}
-                            />
-                            <text
-                              x={pt.x}
-                              y={pt.y + 20}
-                              textAnchor="middle"
-                              fill={isActive ? (isSuccessDemo ? '#059669' : '#e11d48') : '#64748b'}
-                              fontSize="9"
-                              fontWeight={isActive ? 'bold' : 'normal'}
-                              className="font-mono"
-                            >
-                              {pt.label}
-                            </text>
-                          </g>
-                        );
-                      })}
-
-                      {isSuccessDemo ? (
-                        <circle
-                          cx={activePoint.x}
-                          cy={activePoint.y}
-                          r={17}
-                          fill="none"
-                          stroke="#059669"
-                          strokeWidth="2"
-                          opacity="0.85"
-                        />
-                      ) : (
-                        <g>
-                          <circle
-                            cx={activePoint.x + 20}
-                            cy={activePoint.y + 14}
-                            r={8}
-                            fill="none"
-                            stroke="#e11d48"
-                            strokeWidth="2"
-                            strokeDasharray="3 3"
-                          />
-                          <line
-                            x1={activePoint.x}
-                            y1={activePoint.y}
-                            x2={activePoint.x + 20}
-                            y2={activePoint.y + 14}
-                            stroke="#e11d48"
-                            strokeWidth="1.5"
-                            strokeDasharray="2 3"
-                            opacity="0.8"
-                          />
-                        </g>
-                      )}
-                    </svg>
-
-                    <div className="absolute top-2 left-2 bg-white/90 border border-slate-200 px-2 py-1 rounded text-[10px] font-mono text-black tabular-nums shadow-xs">
-                      <span className={`font-bold ${isSuccessDemo ? 'text-emerald-600' : 'text-rose-600'}`}>{activeTutorialBeat}</span> / {guide.points.length}박
-                    </div>
-
-                    <div
-                      className={`absolute top-2 right-2 px-2 py-1 rounded text-[10px] font-bold tracking-wide border ${isSuccessDemo
-                        ? 'bg-emerald-100 border-emerald-300 text-emerald-700'
-                        : 'bg-rose-100 border-rose-300 text-rose-700'
-                        }`}
-                    >
-                      {isSuccessDemo ? '성공 예시 (정확한 타점)' : '실패 예시 (벗어난 궤적)'}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-1.5 pt-1">
-                    {guide.steps.map(s => {
-                      const isActive = activeTutorialBeat === s.beat;
+                <div
+                  className={`relative w-full h-[290px] sm:h-[330px] rounded-2xl border overflow-hidden flex items-center justify-center shadow-inner ${
+                    isSuccessDemo
+                      ? 'bg-emerald-50/40 border-emerald-300'
+                      : 'bg-rose-50/40 border-rose-300'
+                  }`}
+                >
+                  <svg viewBox="0 0 200 150" className="w-full h-full p-4">
+                    <path d={guide.svgPath} fill="none" stroke="#94a3b8" strokeWidth="3.5" strokeDasharray="5 5" />
+                    {guide.points.map(pt => {
+                      const isActive = activeTutorialBeat === pt.beat;
+                      const activeFill = isSuccessDemo
+                        ? 'fill-emerald-500 stroke-emerald-200 stroke-2'
+                        : 'fill-rose-500 stroke-rose-300 stroke-2';
                       return (
-                        <div
-                          key={s.beat}
-                          className={`p-2 rounded-xl border text-[11px] transition-colors ${isActive
-                            ? 'bg-black text-white border-black font-bold shadow-sm'
-                            : 'bg-white text-black/80 border-slate-200'
-                            }`}
-                        >
-                          <div className="flex items-center justify-between font-bold">
-                            <span className={isActive ? 'text-white' : 'text-black'}>{s.name}</span>
-                          </div>
-                          <div className={`text-[10px] mt-0.5 break-keep ${isActive ? 'text-neutral-300' : 'text-black/60'}`}>{s.tip}</div>
-                        </div>
+                        <g key={pt.beat}>
+                          <circle
+                            cx={pt.x}
+                            cy={pt.y}
+                            r={isActive ? 12 : 7}
+                            className={isActive ? activeFill : 'fill-slate-300 stroke-slate-400 stroke-1'}
+                          />
+                          <text
+                            x={pt.x}
+                            y={pt.y + 20}
+                            textAnchor="middle"
+                            fill={isActive ? (isSuccessDemo ? '#059669' : '#e11d48') : '#64748b'}
+                            fontSize="9.5"
+                            fontWeight={isActive ? 'bold' : 'normal'}
+                            className="font-mono"
+                          >
+                            {pt.label}
+                          </text>
+                        </g>
                       );
                     })}
+
+                    {isSuccessDemo ? (
+                      <circle
+                        cx={activePoint.x}
+                        cy={activePoint.y}
+                        r={18}
+                        fill="none"
+                        stroke="#059669"
+                        strokeWidth="2.5"
+                        opacity="0.85"
+                      />
+                    ) : (
+                      <g>
+                        <circle
+                          cx={activePoint.x + 20}
+                          cy={activePoint.y + 14}
+                          r={9}
+                          fill="none"
+                          stroke="#e11d48"
+                          strokeWidth="2"
+                          strokeDasharray="3 3"
+                        />
+                        <line
+                          x1={activePoint.x}
+                          y1={activePoint.y}
+                          x2={activePoint.x + 20}
+                          y2={activePoint.y + 14}
+                          stroke="#e11d48"
+                          strokeWidth="1.5"
+                          strokeDasharray="2 3"
+                          opacity="0.8"
+                        />
+                      </g>
+                    )}
+                  </svg>
+
+                  {/* 좌측 상단 박자 카운터 배지 */}
+                  <div className="absolute top-3 left-3 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-mono text-black tabular-nums shadow-sm">
+                    <span className={`font-bold ${isSuccessDemo ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {activeTutorialBeat}
+                    </span>{' '}
+                    / {guide.points.length}박
+                  </div>
+
+                  {/* 우측 상단 성공/실패 예시 배지 */}
+                  <div
+                    className={`absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide border shadow-sm ${
+                      isSuccessDemo
+                        ? 'bg-emerald-100/90 border-emerald-300 text-emerald-800'
+                        : 'bg-rose-100/90 border-rose-300 text-rose-800'
+                    }`}
+                  >
+                    {isSuccessDemo ? '성공 예시 (정확한 타점)' : '실패 예시 (벗어난 궤적)'}
                   </div>
                 </div>
               );
             })()}
 
-            {/* Bottom Buttons: Skip & Timer */}
-            <div className="flex items-center gap-2">
+            {/* Bottom Buttons: Skip & Timer (가로 2열 배치) */}
+            <div className="pt-2 grid grid-cols-[1.6fr_1fr] items-stretch gap-2.5 w-full">
               <button
                 onClick={start321Countdown}
                 type="button"
-                className="flex-1 py-2.5 bg-black hover:bg-neutral-800 text-white font-extrabold text-xs rounded-xl transition-colors active:translate-y-px flex items-center justify-center gap-1.5 shadow-md"
+                className="py-3.5 bg-black hover:bg-neutral-800 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-colors active:translate-y-px"
               >
                 <SkipForward className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
                 <span>건너뛰고 바로 시작</span>
               </button>
-              <div className="shrink-0 text-xs font-mono font-bold text-black bg-[#FE9A00] px-3 py-2.5 rounded-xl tabular-nums shadow-sm">
+              <div className="py-3.5 bg-[#FE9A00] text-black font-bold text-sm sm:text-base rounded-2xl shadow-md flex items-center justify-center tabular-nums">
                 {tutorialTimeLeft}초 후 시작
               </div>
             </div>
@@ -1035,133 +1028,70 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
           </div>
         )}
 
-        {/* CONDUCTING STATE */}
+        {/* CONDUCTING STATE (피그마 2번 시안 완벽 맞춤) */}
         {gameState === 'CONDUCTING' && (
-          <div className="w-full h-full flex flex-col items-center justify-between z-10 gap-2 sm:gap-3">
-            {/* 상단 계기판: 남은 시간과 목표 달성률 */}
-            <div className="w-full shrink-0 grid grid-cols-[auto_1fr] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 shadow-sm">
-              <div className="flex items-center gap-2">
-                <Timer className="w-4 h-4 text-[#FE9A00] shrink-0" aria-hidden="true" />
-                <span className="font-mono text-xl font-bold tabular-nums text-black leading-none w-[3.2rem]">
-                  {timeLeft}
-                </span>
-                <span className="text-[10px] font-semibold text-black/60">초 남음</span>
-              </div>
-
-              <div className="min-w-0">
-                <div className="flex items-baseline justify-end gap-1.5">
-                  <span className="text-[10px] font-semibold text-black/60">정확한 박</span>
-                  <span className="font-mono text-sm font-bold tabular-nums text-black">
-                    {accurateBeatCount}
-                    <span className="text-black/40">/{requiredBeatsToPass}</span>
-                  </span>
-                  <span
-                    className={`font-mono text-xs font-bold tabular-nums ${currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'text-emerald-600' : 'text-[#FE9A00]'
-                      }`}
-                  >
-                    {currentMatchPercent}%
-                  </span>
-                </div>
-                {/* 목표 통과 기준까지의 진행률 */}
-                <div
-                  className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200"
-                  role="progressbar"
-                  aria-valuenow={currentMatchPercent}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="박자 일치율"
-                >
-                  <div
-                    className={`h-full rounded-full transition-[width] duration-150 ${currentMatchPercent >= PASS_THRESHOLD_PERCENT ? 'bg-emerald-500' : 'bg-[#FE9A00]'
-                      }`}
-                    style={{ width: `${Math.min(100, currentMatchPercent)}%` }}
-                  />
+          <div className="w-full h-full flex flex-col justify-between items-center z-10 py-1 sm:py-3">
+            {/* 1. 상단 대형 타점 스코어보드 */}
+            <div className="w-full flex flex-col items-center pt-2">
+              <div className="flex items-center justify-center gap-3">
+                <Activity className="w-11 h-11 sm:w-12 sm:h-12 text-[#FE9A00] stroke-[3]" aria-hidden="true" />
+                <div className="font-mono text-5xl sm:text-6xl font-bold tracking-tight text-black flex items-baseline">
+                  <span className="tabular-nums">{accurateBeatCount}</span>
+                  <span className="text-slate-400 font-light">/{requiredBeatsToPass}</span>
                 </div>
               </div>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-4" />
             </div>
 
-            {/* 지휘 무대 */}
-            <div className="relative w-full flex-1 min-h-0 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden flex flex-col items-center justify-center p-3 sm:p-4 shadow-inner">
+            {/* 2. 중앙 인터랙티브 지휘 스테이지 */}
+            <div className="relative w-full flex-1 flex flex-col items-center justify-center my-3 overflow-hidden">
               <canvas
                 ref={canvasRef}
                 width={500}
-                height={220}
+                height={260}
                 className="absolute inset-0 w-full h-full pointer-events-none opacity-80"
               />
 
-              {/* 마디 위치 표시 */}
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 pointer-events-none">
-                {Array.from({ length: beatsPerBar }, (_, i) => i + 1).map(beat => (
-                  <span
-                    key={beat}
-                    className={`h-1.5 rounded-full transition-all duration-150 ${guideBeat === beat
-                      ? 'w-7 bg-[#FE9A00]'
-                      : beat === 1
-                        ? 'w-3 bg-slate-400'
-                        : 'w-3 bg-slate-300'
-                      }`}
-                  />
-                ))}
-              </div>
+              {/* 판정 링 애니메이션 */}
+              {judgementAccent && (
+                <span
+                  key={`judge-${judgementSeq}`}
+                  aria-hidden="true"
+                  className={`cm-hit-ring pointer-events-none absolute w-24 h-24 rounded-full border-4 ${judgementAccent}`}
+                />
+              )}
 
-              {/* 시각 메트로놈 */}
-              <div className="z-10 w-full h-full min-h-0 flex flex-col items-center justify-center text-center gap-3 pointer-events-none">
-                <div className="relative flex items-center justify-center">
-                  {judgementAccent && (
-                    <span
-                      key={`judge-${judgementSeq}`}
-                      aria-hidden="true"
-                      className={`cm-hit-ring pointer-events-none absolute w-[4.5rem] h-[4.5rem] rounded-full border-4 ${judgementAccent}`}
-                    />
-                  )}
-                  <div
-                    className={`relative w-[4.5rem] h-[4.5rem] rounded-full border-2 flex items-center justify-center transition-[background-color,border-color,box-shadow,transform] duration-100 ease-out ${isGuidePulsing
-                      ? 'bg-[#FE9A00] border-[#e08800] text-black scale-110 shadow-[0_0_20px_rgba(254,154,0,0.6)]'
-                      : 'bg-white border-slate-300 text-[#FE9A00] scale-100 shadow-sm'
-                      }`}
-                    role="img"
-                    aria-label={`${guideBeat}박 시각 안내`}
-                  >
-                    <img
-                      src={isGuidePulsing ? '/baton_icon_black.png' : '/baton_icon.png'}
-                      alt="지휘봉 아이콘"
-                      className="w-8 h-8 object-contain"
-                      draggable={false}
-                      aria-hidden="true"
-                    />
-                    <span className="absolute -right-1.5 -top-1.5 min-w-6 h-6 px-1 rounded-full bg-black text-white text-[11px] font-mono font-bold flex items-center justify-center tabular-nums shadow-sm">
-                      {guideBeat}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 흔드는 세기 게이지 */}
-                <div className="w-44">
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
-                    <div
-                      className={`h-full rounded-full transition-[width] duration-75 ${currentAccValue >= 66 ? 'bg-emerald-500' : 'bg-[#FE9A00]'
-                        }`}
-                      style={{ width: `${Math.min(100, currentAccValue)}%` }}
-                    />
-                  </div>
-                </div>
+              {/* 중앙 은은한 음표 4개 */}
+              <div className="w-full flex items-center justify-around text-4xl sm:text-5xl text-slate-200 pointer-events-none select-none px-4">
+                <span className={`transition-all duration-150 ${guideBeat === 1 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♩</span>
+                <span className={`transition-all duration-150 ${guideBeat === 2 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♪</span>
+                <span className={`transition-all duration-150 ${guideBeat === 3 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♫</span>
+                <span className={`transition-all duration-150 ${guideBeat === 4 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♬</span>
               </div>
             </div>
 
-            {/* 하단 조작부: 지휘는 오직 스마트폰을 흔드는 동작 센서로만 진행된다(터치/클릭 불가). */}
-            <div className="w-full shrink-0 grid grid-cols-[1fr_auto] items-stretch gap-2">
-              <div className="rounded-xl border border-amber-500/30 bg-stone-900/70 text-amber-200 text-xs font-semibold flex items-center justify-center gap-2 py-3.5 px-3 text-center break-keep">
-                <Smartphone className="w-4 h-4 shrink-0" aria-hidden="true" />
-                <span>스마트폰을 힘차게 흔들어 박자를 맞추세요</span>
+            {/* 3. 하단 대형 남은 시간 타이머 */}
+            <div className="w-full flex items-center justify-center gap-3 my-2">
+              <Timer className="w-11 h-11 sm:w-12 sm:h-12 text-[#FE9A00] stroke-[2.5]" aria-hidden="true" />
+              <span className="font-mono text-5xl sm:text-6xl font-extrabold text-black tabular-nums tracking-tight">
+                {timeLeft}
+              </span>
+            </div>
+
+            {/* 4. 최하단 안내 바 & 닫기(X) 버튼 */}
+            <div className="w-full shrink-0 grid grid-cols-[1fr_auto] items-stretch gap-2.5 pt-2">
+              <div className="rounded-2xl bg-stone-800 border border-stone-700 text-stone-200 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 py-3.5 px-4 text-center break-keep shadow-md">
+                <Smartphone className="w-4 h-4 text-[#FE9A00] shrink-0" aria-hidden="true" />
+                <span>스마트폰을 움직여 박자를 맞추세요</span>
               </div>
               <button
                 type="button"
                 onClick={handleLose}
                 title="미션 포기"
                 aria-label="미션 포기"
-                className="rounded-xl border border-stone-700 bg-stone-900 px-4 text-stone-400 hover:text-rose-300 hover:border-rose-800 active:translate-y-px transition-colors flex items-center justify-center"
+                className="w-14 rounded-2xl bg-black border border-black text-white hover:text-rose-400 active:translate-y-px transition-colors flex items-center justify-center shadow-md"
               >
-                <X className="w-4 h-4" aria-hidden="true" />
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
           </div>

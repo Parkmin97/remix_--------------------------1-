@@ -24,9 +24,6 @@ export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab, activ
             디톡스 모드 선택
           </h1>
         </div>
-        <p className="text-xs text-black/70 break-keep pt-1">
-          모드 카드를 클릭하면 상세 설정 탭으로 이동합니다.
-        </p>
       </div>
 
       {/* Detox Mode Selection Cards (Mode A vs Mode B only) */}
@@ -36,16 +33,14 @@ export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab, activ
           onClick={() => {
             if (!isModeBActive) onSelectTab('mode-a');
           }}
-          className={`p-5 rounded-3xl border transition-all relative overflow-hidden group ${
-            isModeBActive
-              ? 'bg-slate-100 border-slate-200 text-black/40 cursor-not-allowed opacity-40 shadow-none'
-              : 'bg-white hover:bg-black text-black hover:text-white border-slate-200 hover:border-black cursor-pointer shadow-lg hover:shadow-2xl active:bg-black active:text-white'
-          }`}
+          className={`p-5 rounded-3xl border transition-all relative overflow-hidden group ${isModeBActive
+            ? 'bg-slate-100 border-slate-200 text-black/40 cursor-not-allowed opacity-40 shadow-none'
+            : 'bg-white hover:bg-black text-black hover:text-white border-slate-200 hover:border-black cursor-pointer shadow-lg hover:shadow-2xl active:bg-black active:text-white'
+            }`}
         >
           <div className="space-y-2">
-            <h2 className={`text-lg font-bold font-serif flex items-center justify-between break-keep ${
-              isModeBActive ? 'text-black/40' : 'text-black group-hover:text-white group-active:text-white'
-            } transition-colors`}>
+            <h2 className={`text-lg font-bold font-serif flex items-center justify-between break-keep ${isModeBActive ? 'text-black/40' : 'text-black group-hover:text-white group-active:text-white'
+              } transition-colors`}>
               <span className="flex items-center gap-2">
                 <Lock className="w-5 h-5 text-[#FE9A00]" />
                 <span>지금 잠금 모드</span>
@@ -72,16 +67,14 @@ export const NewHomeScreen: React.FC<NewHomeScreenProps> = ({ onSelectTab, activ
           onClick={() => {
             if (!isModeAActive) onSelectTab('mode-b');
           }}
-          className={`p-5 rounded-3xl border transition-all relative overflow-hidden group ${
-            isModeAActive
-              ? 'bg-slate-100 border-slate-200 text-black/40 cursor-not-allowed opacity-40 shadow-none'
-              : 'bg-white hover:bg-black text-black hover:text-white border-slate-200 hover:border-black cursor-pointer shadow-lg hover:shadow-2xl active:bg-black active:text-white'
-          }`}
+          className={`p-5 rounded-3xl border transition-all relative overflow-hidden group ${isModeAActive
+            ? 'bg-slate-100 border-slate-200 text-black/40 cursor-not-allowed opacity-40 shadow-none'
+            : 'bg-white hover:bg-black text-black hover:text-white border-slate-200 hover:border-black cursor-pointer shadow-lg hover:shadow-2xl active:bg-black active:text-white'
+            }`}
         >
           <div className="space-y-2">
-            <h2 className={`text-lg font-bold font-serif flex items-center justify-between break-keep ${
-              isModeAActive ? 'text-black/40' : 'text-black group-hover:text-white group-active:text-white'
-            } transition-colors`}>
+            <h2 className={`text-lg font-bold font-serif flex items-center justify-between break-keep ${isModeAActive ? 'text-black/40' : 'text-black group-hover:text-white group-active:text-white'
+              } transition-colors`}>
               <span className="flex items-center gap-2">
                 <LockOpen className="w-5 h-5 text-[#FE9A00]" />
                 <span>예약 잠금 모드</span>
