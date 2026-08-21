@@ -29,6 +29,8 @@ import { loadAppCatalog, resolveLockedCategories } from './lib/appCatalog';
 import { syncSessionFromNative } from './lib/sessionSync';
 import { BlockerPermissionsProvider, useBlockerPermissions } from './lib/blockerPermissions';
 import { PermissionSetupScreen } from './components/PermissionSetup';
+import { SplashQuoteScreen } from './components/SplashQuoteScreen';
+import { isLockActive, isSessionRunning } from './lib/sessionState';
 
 export default function App() {
   return (
@@ -49,6 +51,12 @@ function AppContent() {
     // 랜딩은 웹으로 배포할 때의 홍보 페이지로만 남긴다.
     return Capacitor.isNativePlatform() ? 'home' : 'landing';
   });
+  // 진입 화면(오늘의 한마디). 앱을 켤 때마다 한 번 지나간다.
+  //
+  // ⚠️ 차단 화면 웹뷰에서는 띄우지 않는다.
+  //    잠근 앱을 열어 차단 화면이 뜨는 순간에 명언부터 보여주면
+  //    사용자는 미션에 닿기까지 2.5초를 더 기다려야 한다. 그 자리에 낄 화면이 아니다.
+  const [showSplash, setShowSplash] = useState<boolean>(() => !isBlockMode());
   const [activeSession, setActiveSession] = useState<SessionData | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);
@@ -58,6 +66,9 @@ function AppContent() {
   const [mainTab, setMainTab] = useState<TabType>('home');
   // 앱 목록은 비동기로 도착한다. 도착하면 이 값을 올려 화면을 다시 그린다.
   const [, setCatalogVersion] = useState(0);
+  // 잠금 종료 시각을 넘겼는지 스스로 알아차리기 위한 시계.
+  // 세션이 살아 있는 동안에만 돈다 (아래 useEffect 참고).
+  const [lockClock, setLockClock] = useState<number>(() => Date.now());
 
   // 차단 권한 상태. 필수 권한이 없으면 잠금을 걸어도 아무 일도 일어나지 않으므로
   // 홈에 들어가기 전에 안내 화면을 세운다. '나중에 하기'로 넘긴 경우만 통과시킨다.
@@ -117,8 +128,31 @@ function AppContent() {
       if (document.visibilityState === 'visible') sync();
     };
     document.addEventListener('visibilitychange', onVisible);
-    return () => document.removeEventListener('visibilitychange', onVisible);
+
+    /*
+     * 앱을 켜둔 채로 잠금 시간이 끝나는 경우가 있다.
+     *
+     * 예전에는 '앱을 열 때'와 '다른 앱에서 돌아올 때'만 확인했다.
+     * 그래서 사용자가 앱을 계속 보고 있으면 아무 계기도 생기지 않아
+     * 잠금이 이미 끝났는데도 화면은 계속 "잠금 중"이었다.
+     * 로그아웃을 잠금 중에 막게 되면서 이 틈이 실제로 사용자를 가둔다
+     * — 잠금은 끝났는데 로그아웃 버튼은 여전히 잠긴 채로 남는다.
+     */
+    const timer = setInterval(sync, 15_000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      clearInterval(timer);
+    };
   }, []);
+
+  // 세션이 살아 있는 동안에는 시계를 돌려 잠금 종료 시각을 스스로 넘긴다.
+  // 세션이 없으면 돌릴 이유가 없으니 멈춘다.
+  useEffect(() => {
+    if (!isSessionRunning(activeSession)) return;
+    const timer = setInterval(() => setLockClock(Date.now()), 5_000);
+    return () => clearInterval(timer);
+  }, [activeSession]);
 
   // Supabase 인증 상태 구독
   useEffect(() => {
@@ -230,6 +264,11 @@ function AppContent() {
   // "상단버튼되돌려줘" 요청 시 이 값을 true로 바꾸면 지금 상태 그대로 복원된다.
   const SHOW_TOP_NAV = false;
 
+  // 잠금이 도는 동안에는 로그아웃을 막는다 — 사유는 MoreScreen 의 lockRunning 주석 참고.
+  // 시계까지 보는 isLockActive 를 쓴다. 잠금 시간이 지났는데 버튼이 계속 잠겨 있으면
+  // 사용자는 나갈 방법이 없다고 느낀다.
+  const lockRunning = isLockActive(activeSession, lockClock);
+
   return (
     <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-amber-400 selection:text-neutral-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'app-bg-light text-neutral-900'}`}>
       {/* Mobile-optimized status badge */}
@@ -258,7 +297,7 @@ function AppContent() {
         )}
 
         {currentTab === 'login' && (
-          <LoginScreen user={user} onNavigateToScreen={handleAuthedNavigate} />
+          <LoginScreen user={user} onNavigateToScreen={handleAuthedNavigate} lockRunning={lockRunning} />
         )}
 
         {/* 서비스 진입 게이트: 로그인 전에는 로그인/회원가입 화면을 띄운다. */}
@@ -283,7 +322,7 @@ function AppContent() {
               onDone={() => setPermissionSkipped(true)}
             />
           ) : (
-            <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} activeSession={activeSession} />
+            <MainLayout onStartSession={handleStartSession} onNavigateToScreen={setCurrentTab} activeTab={mainTab} onTabChange={setMainTab} activeSession={activeSession} lockRunning={lockRunning} />
           )
         )}
 
@@ -349,6 +388,9 @@ function AppContent() {
         onStartMission={handleStartMissionFromIntervention}
         focusTask={activeSession?.focusTask}
       />
+
+      {/* 진입 화면 — 모든 것 위에 덮이고, 2.5초 뒤 또는 탭하면 사라진다 */}
+      {showSplash && <SplashQuoteScreen onDone={() => setShowSplash(false)} />}
     </div>
   );
 }
