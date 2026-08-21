@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, BarChart3, User as UserIcon, ChevronRight, Camera, LogOut, Loader2, Pencil } from 'lucide-react';
+import { HelpCircle, BarChart3, User as UserIcon, ChevronRight, Camera, LogOut, Loader2, Pencil, Lock } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-
 interface MoreScreenProps {
   onNavigateToScreen: (screen: string) => void;
+  /*
+   * 잠금이 지금 돌고 있는지. true 면 로그아웃을 막는다.
+   *
+   * ■ 왜 막는가
+   *   로그아웃은 잠금을 푸는 문이 되어서는 안 된다.
+   *   실제 차단은 네이티브가 계속 하지만, 로그인 화면으로 빠져나가면
+   *   남은 시간도 미션도 보이지 않아 사용자는 "고장났다"고 판단하고 앱을 지운다.
+   *   잠금에서 빠져나오는 길은 미션 하나뿐이어야 한다.
+   *
+   * ■ 왜 여기서 직접 계산하지 않는가
+   *   잠금 시간이 끝났는지는 시계를 봐야 알 수 있고, 그 시계는 App 이 돌린다.
+   *   화면마다 따로 판단하면 어느 화면은 잠기고 어느 화면은 안 잠기는 일이 생긴다.
+   */
+  lockRunning?: boolean;
 }
 
-export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) => {
+export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen, lockRunning = false }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState<boolean>(false);
@@ -17,6 +30,7 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
   const [nicknameError, setNicknameError] = useState<string | null>(null);
 
   const handleLogout = async () => {
+    if (lockRunning) return; // 잠금 중에는 확인 모달 자체가 뜨지 않지만, 최후 방어선으로 둔다
     setLoggingOut(true);
     // 로그아웃 → App의 onAuthStateChange가 user를 비우면 서비스 게이트(로그인)로 자동 전환된다.
     await supabase.auth.signOut();
@@ -117,15 +131,30 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen }) =>
           </p>
         </div>
 
-        {/* 로그아웃 버튼 */}
+        {/* 로그아웃 버튼 — 잠금 중에는 잠긴다 */}
         <button
-          onClick={() => setShowLogoutConfirm(true)}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-extrabold text-xs border border-neutral-800 transition-colors active:scale-95 shadow-sm"
+          onClick={() => { if (!lockRunning) setShowLogoutConfirm(true); }}
+          disabled={lockRunning}
+          title={lockRunning ? '잠금이 끝난 뒤에 로그아웃할 수 있습니다' : undefined}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white font-extrabold text-xs border border-neutral-800 transition-colors active:scale-95 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-neutral-900 disabled:active:scale-100"
         >
-          <LogOut className="w-3.5 h-3.5 text-[#FE9A00] stroke-[2.5]" />
+          {lockRunning
+            ? <Lock className="w-3.5 h-3.5 text-[#FE9A00] stroke-[2.5]" />
+            : <LogOut className="w-3.5 h-3.5 text-[#FE9A00] stroke-[2.5]" />}
           <span>로그아웃</span>
         </button>
       </div>
+
+      {/* 왜 로그아웃이 잠겨 있는지 알려준다. 이유 없이 막힌 버튼은 고장으로 보인다. */}
+      {lockRunning && (
+        <div className="flex items-start gap-2 rounded-2xl border border-[#FE9A00]/40 bg-[#FE9A00]/10 px-4 py-3 shrink-0">
+          <Lock className="mt-0.5 h-4 w-4 shrink-0 text-[#FE9A00]" />
+          <p className="text-xs leading-snug text-black/80 break-keep">
+            <span className="font-bold text-black">잠금이 실행 중이라 로그아웃할 수 없습니다.</span><br />
+            잠금 시간이 끝나거나 지휘 미션에 성공하면 다시 로그아웃할 수 있습니다.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {menuSections.map((section, idx) => (

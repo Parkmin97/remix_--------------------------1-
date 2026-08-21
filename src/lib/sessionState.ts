@@ -30,6 +30,26 @@ export function isSessionRunning(session: SessionData | null | undefined): boole
   return !FINISHED_STATES.includes(session.state);
 }
 
+/**
+ * 잠금이 **지금 이 순간** 걸려 있는지. 시계까지 본다.
+ *
+ * [isSessionRunning] 은 세션 객체의 state 만 보므로, 잠금 시간이 지났는데도
+ * 아직 아무도 상태를 COMPLETED 로 고쳐주지 않은 동안에는 계속 true 다.
+ * 보통은 네이티브 동기화가 곧 고쳐주지만, 그 사이의 틈으로 사용자를 가두면 안 되는
+ * 판단(로그아웃 차단 등)에는 이쪽을 쓴다.
+ *
+ * @param now 비교 기준 시각(epoch millis). 화면이 1초마다 갱신하는 값을 넘긴다.
+ */
+export function isLockActive(
+  session: SessionData | null | undefined,
+  now: number = Date.now()
+): boolean {
+  if (!isSessionRunning(session) || !session?.focusEndsAt) return false;
+
+  const endsAt = new Date(session.focusEndsAt).getTime();
+  return Number.isFinite(endsAt) && now < endsAt;
+}
+
 /** 지정한 모드의 세션이 진행 중인지. 탭 잠금·폼 잠금 판단에 쓴다. */
 export function isModeRunning(
   session: SessionData | null | undefined,

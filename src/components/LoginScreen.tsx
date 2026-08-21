@@ -6,11 +6,16 @@ import { supabase, toKoreanAuthError, isSupabaseConfigured } from '../lib/supaba
 interface LoginScreenProps {
   user: User | null;
   onNavigateToScreen: (screen: string) => void;
+  /**
+   * 잠금이 실행 중인지. true 면 로그아웃 버튼을 잠근다.
+   * 로그아웃이 잠금을 푸는 문이 되어서는 안 된다 — 사유는 MoreScreen 의 같은 자리 주석 참고.
+   */
+  lockRunning?: boolean;
 }
 
 type Mode = 'login' | 'signup';
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScreen }) => {
+export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScreen, lockRunning = false }) => {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,6 +67,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
   };
 
   const handleLogout = async () => {
+    if (lockRunning) return;
     resetMessages();
     setLoading(true);
     await supabase.auth.signOut();
@@ -91,12 +97,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
             </button>
             <button
               onClick={handleLogout}
-              disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-stone-800 bg-stone-900 py-3 text-sm font-semibold text-stone-300 transition-colors hover:bg-stone-800 disabled:opacity-60"
+              disabled={loading || lockRunning}
+              title={lockRunning ? '잠금이 끝난 뒤에 로그아웃할 수 있습니다' : undefined}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-stone-800 bg-stone-900 py-3 text-sm font-semibold text-stone-300 transition-colors hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-stone-900"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
               로그아웃
             </button>
+            {lockRunning && (
+              <p className="text-xs leading-snug text-stone-400 break-keep">
+                잠금이 실행 중이라 로그아웃할 수 없습니다. 잠금 시간이 끝나거나 지휘 미션에 성공하면 풀립니다.
+              </p>
+            )}
           </div>
         </div>
       </div>

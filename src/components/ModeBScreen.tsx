@@ -91,9 +91,13 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
     }
 
     // 신규 예약 잠금 세션 생성
+    //
+    // ⚠️ 사용 가능 시간은 사용자가 "예약 시간 설정"에서 고른 값(usageLimit) 그대로다.
+    //    예전에는 여기가 30초로 고정되어 있어서, 몇 분을 고르든 30초 뒤에 잠겼다.
+    //    개발 중 테스트 편의로 넣어둔 값이 그대로 남아 있던 것이다.
+    //    짧게 시험해보고 싶으면 TimeSlotPicker 의 테스트용 1분 옵션을 쓴다.
     const now = new Date();
-    const ACTIVITY_SECONDS = 30;
-    const focusStartsAt = new Date(now.getTime() + ACTIVITY_SECONDS * 1000);
+    const focusStartsAt = new Date(now.getTime() + usageLimit * 60 * 1000);
     const focusEndsAt = new Date(focusStartsAt.getTime() + focusDuration * 60 * 1000);
     const session: SessionData = {
       id: `session-${Date.now()}`,

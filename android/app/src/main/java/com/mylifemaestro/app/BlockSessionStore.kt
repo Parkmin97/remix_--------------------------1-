@@ -204,6 +204,19 @@ object BlockSessionStore {
     fun shouldBlock(context: Context, packageName: String): Boolean {
         val status = getStatus(context)
         if (!status.isLocked) return false
+        return isTarget(status, packageName)
+    }
+
+    /**
+     * 이 앱이 이번 세션의 **잠금 대상**인가. 시간은 보지 않는다.
+     *
+     * [shouldBlock] 은 "지금 막아야 하는가"(대상 + 잠금 시간 중)를 묻고,
+     * 이쪽은 "대상이기는 한가"만 묻는다. 둘을 나눈 이유는 모드 B의 사용 시간 때문이다.
+     * 그 구간에서는 막지 않지만, 사용자가 대상 앱을 쓰고 있다는 사실은 알아야 한다
+     * — 남은 시간을 그 위에 띄워줘야 하기 때문이다 (UsageOverlay).
+     */
+    fun isTarget(status: Status, packageName: String): Boolean {
+        if (!status.hasSession) return false
 
         if (packageName in status.blockedPackages) return true
 

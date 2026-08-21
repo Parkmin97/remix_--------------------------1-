@@ -182,6 +182,8 @@ class BlockerService : Service() {
 
     override fun onDestroy() {
         handler.removeCallbacks(pollTask)
+        // 서비스가 죽으면 갱신해줄 사람이 없다. 멈춘 숫자가 남 앱 위에 떠 있으면 안 된다.
+        UsageOverlay.hide()
         Log.i(TAG, "서비스 종료됨")
         super.onDestroy()
     }
@@ -203,9 +205,11 @@ class BlockerService : Service() {
         //    **잠금이 영영 풀리지 않는** 문제가 있었다. (8/9 실기기에서 확인)
         BlockSessionStore.expireIfDue(this, ::notifyLockFinished)
 
+        val status = BlockSessionStore.getStatus(this)
+
         // 모드 B: "먼저 쓰기로 한 시간"이 끝나 잠금으로 넘어가는 순간을 잡는다.
         // 사용자가 SNS를 보는 도중에 일어나는 전환이라 예고 없이 막히면 고장으로 오해한다.
-        val nowLocked = BlockSessionStore.getStatus(this).isLocked
+        val nowLocked = status.isLocked
         if (wasLocked == false && nowLocked) {
             notifyLockStarted()
         }
@@ -226,12 +230,19 @@ class BlockerService : Service() {
             if (resumed) foreground = event.packageName
         }
 
-        if (foreground == null) return
-
-        if (foreground != lastForeground) {
+        if (foreground != null && foreground != lastForeground) {
             Log.i(TAG, "현재 앱: $foreground")
             lastForeground = foreground
         }
+
+        // 모드 B 사용 시간 중이면 남은 시간을 잠글 앱 위에 띄운다.
+        //
+        // ⚠️ foreground 가 비어도(앱 전환이 없어 새 이벤트가 없을 때) 지나가야 한다.
+        //    아래 early return 뒤에 두면 초 표시가 멈춘 것처럼 보인다.
+        //    직전에 확인한 앱(lastForeground)을 그대로 쓰면 계속 갱신된다.
+        updateUsageOverlay(status, foreground ?: lastForeground, now)
+
+        if (foreground == null) return
 
         // 차단 여부는 세션 상태가 결정한다. 잠금 시간이 끝났으면 자동으로 풀린다.
         if (!BlockSessionStore.shouldBlock(this, foreground)) return
@@ -257,6 +268,31 @@ class BlockerService : Service() {
         }
 
         showBlockScreen(foreground)
+    }
+
+    /**
+     * 모드 B 사용 시간 중, 잠글 앱을 쓰고 있으면 남은 시간을 그 위에 띄운다.
+     *
+     * 세 조건이 모두 맞을 때만 띄운다.
+     *   ① 세션이 있고 아직 잠금 전(사용 시간 중)
+     *   ② 지금 보고 있는 앱이 잠금 대상
+     *   ③ 남은 시간이 실제로 있음
+     * 하나라도 어긋나면 내린다. 특히 잠금이 시작되면 차단 화면이 그 역할을 대신하므로
+     * 띠가 남아 있으면 안 된다.
+     */
+    private fun updateUsageOverlay(
+        status: BlockSessionStore.Status,
+        foreground: String?,
+        now: Long
+    ) {
+        val inUsageWindow = status.hasSession && !status.isLocked && status.usageEndsAt > now
+        val onTargetApp = foreground != null && BlockSessionStore.isTarget(status, foreground)
+
+        if (inUsageWindow && onTargetApp) {
+            UsageOverlay.show(this, status.usageEndsAt - now)
+        } else {
+            UsageOverlay.hide()
+        }
     }
 
     private fun showBlockScreen(blockedPackage: String) {
