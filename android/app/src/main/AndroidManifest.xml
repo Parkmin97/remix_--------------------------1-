@@ -10,12 +10,24 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
+        <!--
+            화면 세로 고정 유지 — 2026-08-26 추가
+            targetSdk 36(안드로이드 16)부터 최소 너비 600dp 이상 화면(태블릿·폴더블 펼침)에서는
+            screenOrientation 이 무시된다. 아래 속성이 그 예외 처리를 되살린다.
+            ⚠️ 이 opt-out 은 한시적이다. targetSdk 37 부터는 동작하지 않으므로,
+               그때는 세로 고정 대신 반응형 레이아웃으로 대응해야 한다.
+        -->
+        <property
+            android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+            android:value="true" />
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
+            android:screenOrientation="portrait"
             android:exported="true">
 
             <intent-filter>
