@@ -242,10 +242,12 @@ class BlockerService : Service() {
         //    직전에 확인한 앱(lastForeground)을 그대로 쓰면 계속 갱신된다.
         updateUsageOverlay(status, foreground ?: lastForeground, now)
 
-        if (foreground == null) return
+        val effectiveForeground = foreground ?: lastForeground
+
+        if (effectiveForeground == null) return
 
         // 차단 여부는 세션 상태가 결정한다. 잠금 시간이 끝났으면 자동으로 풀린다.
-        if (!BlockSessionStore.shouldBlock(this, foreground)) return
+        if (!BlockSessionStore.shouldBlock(this, effectiveForeground)) return
 
         // 이미 차단 화면이 떠 있으면 할 일이 없다.
         // 잠근 앱이 앞에 있다는 건 화면이 아직 안 뜬 것이거나 뒤로 밀린 것이다.
@@ -260,14 +262,14 @@ class BlockerService : Service() {
         // 같은 시도를 여러 번 세지 않는다. 화면이 잠깐 밀렸다 다시 뜨는 것은
         // 새로운 실행 시도가 아니라 같은 시도의 연속이다.
         val isNewAttempt =
-            foreground != lastAttemptPackage || now - lastAttemptAt > ATTEMPT_DEDUPE_MS
+            effectiveForeground != lastAttemptPackage || now - lastAttemptAt > ATTEMPT_DEDUPE_MS
         if (isNewAttempt) {
-            lastAttemptPackage = foreground
+            lastAttemptPackage = effectiveForeground
             lastAttemptAt = now
             BlockSessionStore.countLaunchAttempt(this)
         }
 
-        showBlockScreen(foreground)
+        showBlockScreen(effectiveForeground)
     }
 
     /**
@@ -296,6 +298,7 @@ class BlockerService : Service() {
     }
 
     private fun showBlockScreen(blockedPackage: String) {
+        if (BlockOverlayActivity.isShowing) return
         Log.i(TAG, "🚫 차단 대상 감지: $blockedPackage → 차단 화면 표시")
 
         /*
