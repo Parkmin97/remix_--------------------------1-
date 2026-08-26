@@ -2,6 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { BeatType, ClassicalPiece, SessionData } from '../types';
 import { CLASSICAL_PIECES } from '../data/classicalPieces';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
+import {
+  StrokeTracker,
+  expectedDirectionFor,
+  directionArrow,
+  directionLabel,
+  type StrokeDirection,
+  type StrokeResult,
+} from '../lib/conductingMotion';
 import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target, VolumeX, Sparkles } from 'lucide-react';
 
 // 미션 통과 기준(정확 타점 비율 %). 화면 안내 문구와 판정 로직이 이 값 하나를 공유한다.
@@ -132,12 +140,27 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   const [isGuidePulsing, setIsGuidePulsing] = useState<boolean>(false);
   // 마지막 판정. 토스트가 문장을 맡고, 무대는 이 값으로 색과 모션을 반응한다.
   // seq는 같은 판정이 연속으로 나와도 CSS 애니메이션을 다시 재생시키기 위한 키다.
-  const [lastJudgement, setLastJudgement] = useState<'PERFECT' | 'MISS' | 'DUPLICATE' | null>(null);
+  const [lastJudgement, setLastJudgement] = useState<'PERFECT' | 'MISS' | 'DUPLICATE' | 'WRONG_WAY' | null>(null);
   const [judgementSeq, setJudgementSeq] = useState<number>(0);
 
   // Device Motion & Permission States
   const [permissionState, setPermissionState] = useState<'UNKNOWN' | 'GRANTED' | 'DENIED' | 'NOT_SUPPORTED'>('UNKNOWN');
   const [currentAccValue, setCurrentAccValue] = useState<number>(0);
+
+  // ── 방향 인식(지휘 방향 판정) ────────────────────────────────────────
+  // 세기만 보던 기존 판정은 아무렇게나 흔들어도 통과됐다. 이 모드는 스윙이
+  // 그어진 방향까지 보고 박자별 지휘 패턴과 맞는지 확인한다.
+  // 첫 실기기 튜닝 전이라 켜고 끌 수 있게 두고, 기본값은 켜짐이다.
+  const [directionModeOn, setDirectionModeOn] = useState<boolean>(true);
+  // 튜닝용 표시. 마지막 스윙이 어떻게 읽혔는지 화면에서 바로 확인한다.
+  const [lastStroke, setLastStroke] = useState<StrokeResult | null>(null);
+  const [lastExpectedDir, setLastExpectedDir] = useState<StrokeDirection>('UNKNOWN');
+  const [showMotionDebug, setShowMotionDebug] = useState<boolean>(true);
+  const strokeTrackerRef = useRef<StrokeTracker>(new StrokeTracker());
+  // 방향을 한 번도 못 읽었으면 센서가 못 받쳐주는 기기다. 그때는 세기 판정으로 되돌린다.
+  const directionUnavailableRef = useRef<boolean>(false);
+  const strokeSampleCountRef = useRef<number>(0);
+  const strokeConfidentCountRef = useRef<number>(0);
 
   const [isAudioPreviewPlaying, setIsAudioPreviewPlaying] = useState<boolean>(false);
   // 브라우저 정책으로 오디오가 잠긴 상태. 튜토리얼에서 박자 소리가 안 들릴 때 알린다.
@@ -150,9 +173,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   const lastBeatTimeRef = useRef<number>(0);
   const musicStartTimeRef = useRef<number>(0);
   const matchedBeatIndicesRef = useRef<Set<number>>(new Set());
-  const lastAccRef = useRef<{ x: number; y: number; z: number }>({ x: 0, y: 0, z: 0 });
-  const isArmedForSwingRef = useRef<boolean>(false);
-  const lastAccMagnitudeRef = useRef<number>(0);
   const bgAudioRef = useRef<HTMLAudioElement | null>(null);
   const previewTimerRef = useRef<number | null>(null);
   const guidePulseTimerRef = useRef<number | null>(null);
@@ -160,7 +180,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
   // 판정 반응은 다음 박이 오기 전에 사라져야 박자 추적이 끊기지 않는다.
   // 그래서 유지 시간을 한 박(최소 약 440ms)보다 훨씬 짧게 잡는다.
-  const flashJudgement = (kind: 'PERFECT' | 'MISS' | 'DUPLICATE') => {
+  const flashJudgement = (kind: 'PERFECT' | 'MISS' | 'DUPLICATE' | 'WRONG_WAY') => {
     setLastJudgement(kind);
     setJudgementSeq(prev => prev + 1);
     if (judgementFlashTimerRef.current !== null) {
@@ -271,6 +291,8 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
   // Calculate Total Expected Beats in 60s for current classical piece
   const beatIntervalMs = (60 / currentPiece.bpm) * 1000;
+  // 마디당 박 수. 판정·모션 훅·화면이 모두 쓰므로 훅보다 위에서 선언한다.
+  const beatsPerBar = selectedBeat === '4/4' ? 4 : selectedBeat === '3/4' ? 3 : selectedBeat === '2/4' ? 2 : 1;
   const totalExpectedBeatsIn60s = Math.floor(60000 / beatIntervalMs);
   const requiredBeatsToPass = Math.ceil(totalExpectedBeatsIn60s * (PASS_THRESHOLD_PERCENT / 100));
 
@@ -339,6 +361,15 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     setLastJudgement(null);
     setTimeLeft(60);
     matchedBeatIndicesRef.current.clear();
+
+    // 방향 인식 상태도 매 시도마다 초기화한다.
+    // (기기 판정까지 초기화해야 이전 시도의 결과가 다음 시도를 좌우하지 않는다.)
+    setLastStroke(null);
+    setLastExpectedDir('UNKNOWN');
+    strokeSampleCountRef.current = 0;
+    strokeConfidentCountRef.current = 0;
+    directionUnavailableRef.current = false;
+    strokeTrackerRef.current.reset();
 
     audioSynthesizer.playCountdownBeep(false);
 
@@ -425,7 +456,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
   // Evaluate Rhythm Swing Timing with Dynamic Beat-based Tolerance
   // 4/4 beat scale: 1/4 (62.5ms), 2/4 (125ms), 3/4 (187.5ms), 4/4 (250ms)
-  const processUserSwingGesture = () => {
+  const processUserSwingGesture = (stroke?: StrokeResult | null) => {
     const now = Date.now();
     const elapsedMs = now - musicStartTimeRef.current;
     if (elapsedMs < 0) return; // Not started yet
@@ -454,8 +485,28 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     const beatSpread = beatsPerBar > 1 ? (beatInBarNum - 1) / (beatsPerBar - 1) : 1;
     const toleranceMs = minToleranceMs + (maxToleranceMs - minToleranceMs) * beatSpread;
 
+    // ── 방향 판정 ─────────────────────────────────────────────────────
+    // 이 박에 기대되는 지휘 방향(1박 하강, 2박 안쪽 …)과 실제 스윙 방향을 견준다.
+    const expectedDir = expectedDirectionFor(selectedBeat, beatInBarNum);
+    setLastExpectedDir(expectedDir);
+    if (stroke) setLastStroke(stroke);
+
+    // 방향을 볼 수 있는 조건일 때만 본다.
+    // 센서가 방향을 못 주는 기기에서까지 막으면 잠금을 영영 못 푸는 사람이 생긴다.
+    // (차단 화면은 잠금을 푸는 유일한 출구다 — 여기서는 항상 세기 판정으로 되돌린다.)
+    const directionJudgeable =
+      directionModeOn &&
+      !directionUnavailableRef.current &&
+      Boolean(stroke?.confident) &&
+      expectedDir !== 'UNKNOWN';
+
+    const directionMatches = !directionJudgeable || stroke?.direction === expectedDir;
+
     if (diffMs <= toleranceMs) {
-      if (!matchedBeatIndicesRef.current.has(closestBeatIndex)) {
+      if (!directionMatches) {
+        // 타이밍은 맞았지만 방향이 다르다. 흔들기만으로는 통과하지 못하는 지점이다.
+        flashJudgement('WRONG_WAY');
+      } else if (!matchedBeatIndicesRef.current.has(closestBeatIndex)) {
         matchedBeatIndicesRef.current.add(closestBeatIndex);
         setAccurateBeatCount(prev => prev + 1);
         flashJudgement('PERFECT');
@@ -553,38 +604,43 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     };
   }, [gameState, currentPiece, requiredBeatsToPass]);
 
-  // Handle Motion Detection via Mobile Accelerometer (Peak Detection Algorithm to prevent spam shaking)
+  // 가속도계로 스윙을 잡는다.
+  // 세기의 정점(22 넘김 → 16 아래로)으로 한 번의 스윙을 구분하는 것은 그대로 두고,
+  // 그 구간의 가속도를 적분해 **어느 쪽으로 그었는지**까지 함께 뽑는다. (conductingMotion.ts)
   useEffect(() => {
     if (gameState !== 'CONDUCTING') return;
 
+    const tracker = strokeTrackerRef.current;
+    tracker.reset();
+
     const handleDeviceMotion = (e: DeviceMotionEvent) => {
-      const acc = e.acceleration || e.accelerationIncludingGravity;
-      if (!acc) return;
+      const accG = e.accelerationIncludingGravity;
+      const acc = e.acceleration;
+      if (!acc && !accG) return;
 
-      const x = acc.x || 0;
-      const y = acc.y || 0;
-      const z = acc.z || 0;
+      const toVec = (a: DeviceMotionEventAcceleration | null) =>
+        a ? { x: a.x || 0, y: a.y || 0, z: a.z || 0 } : null;
 
-      const totalAccMagnitude = Math.sqrt(x * x + y * y + z * z);
-      setCurrentAccValue(Math.min(100, Math.round(totalAccMagnitude * 3)));
+      const stroke = tracker.push(toVec(acc), toVec(accG), e.timeStamp || performance.now());
 
-      // Motion Swing Peak Detection Algorithm (High-Intensity Strong Motion Requirement):
-      // 1. Arm only when acceleration exceeds STRONG gesture threshold (> 22 m/s²)
-      // 2. Trigger gesture when acceleration starts dropping from peak (drops below 16 m/s²)
-      if (totalAccMagnitude > 22) {
-        isArmedForSwingRef.current = true;
-      } else if (isArmedForSwingRef.current && totalAccMagnitude < 16) {
-        isArmedForSwingRef.current = false;
-        processUserSwingGesture();
+      setCurrentAccValue(Math.min(100, Math.round(tracker.magnitude * 3)));
+
+      if (!stroke) return;
+
+      // 방향을 읽을 수 있는 기기인지 누적해서 본다. 스윙을 여러 번 했는데
+      // 한 번도 방향이 안 잡히면 센서가 못 받쳐주는 기기로 보고 세기 판정으로 되돌린다.
+      strokeSampleCountRef.current += 1;
+      if (stroke.confident) strokeConfidentCountRef.current += 1;
+      if (strokeSampleCountRef.current >= 8 && strokeConfidentCountRef.current === 0) {
+        directionUnavailableRef.current = true;
       }
 
-      lastAccMagnitudeRef.current = totalAccMagnitude;
-      lastAccRef.current = { x, y, z };
+      processUserSwingGesture(stroke);
     };
 
     window.addEventListener('devicemotion', handleDeviceMotion, true);
     return () => window.removeEventListener('devicemotion', handleDeviceMotion, true);
-  }, [gameState]);
+  }, [gameState, directionModeOn, selectedBeat, beatIntervalMs, beatsPerBar]);
 
   const handleWin = () => {
     setGameState('SUCCESS');
@@ -675,11 +731,12 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     }
   };
 
+  // 지금 박에 그어야 할 방향. 화면 안내용이다.
+  const currentGuideDirection = expectedDirectionFor(selectedBeat, guideBeat);
+
   const currentMatchPercent = totalExpectedBeatsIn60s > 0
     ? Math.round((accurateBeatCount / totalExpectedBeatsIn60s) * 100)
     : 0;
-
-  const beatsPerBar = selectedBeat === '4/4' ? 4 : selectedBeat === '3/4' ? 3 : selectedBeat === '2/4' ? 2 : 1;
 
   // 판정 색은 마커 위에 덧씌우지 않는다. 마커는 항상 곡의 현재 박만 보여주고,
   // 판정은 마커를 감싸는 링과 화면 전체 플래시로 스쳐 지나가게 해서 박자 추적을 가리지 않는다.
@@ -690,7 +747,9 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         ? 'border-rose-400'
         : lastJudgement === 'DUPLICATE'
           ? 'border-amber-400'
-          : null;
+          : lastJudgement === 'WRONG_WAY'
+            ? 'border-sky-400'
+            : null;
 
   // 화면 전체 판정 플래시. 진한 색으로 한 번 깜빡이고 즉시 사라진다.
   const judgementFlashTone =
@@ -698,7 +757,11 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       ? 'bg-emerald-500/80'
       : lastJudgement === 'MISS'
         ? 'bg-rose-600/80'
-        : null;
+        : lastJudgement === 'WRONG_WAY'
+          // 방향이 틀렸을 때는 '실패'와 다른 색을 쓴다. 타이밍은 맞았다는 뜻이라
+          // 사용자가 무엇을 고쳐야 하는지 구분할 수 있어야 한다.
+          ? 'bg-sky-600/70'
+          : null;
 
   return (
     <div className="min-h-full w-full max-w-2xl mx-auto px-4 py-4 flex flex-col gap-4 text-black relative select-none">
@@ -849,6 +912,38 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 센서 권한이 거부되었습니다. 지휘 미션은 스마트폰을 흔드는 동작으로만 진행되니, 설정에서 동작 센서 권한을 허용해주세요.
               </div>
             )}
+
+            {/*
+              방향 인식 테스트 스위치 — 실기기 튜닝 중에만 둔다.
+              끄면 기존 세기 판정(흔들기만 해도 통과)으로 돌아가므로 둘을 바로 비교할 수 있다.
+            */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+              <label className="flex items-center justify-between gap-2 cursor-pointer">
+                <span className="text-xs font-bold text-black break-keep">
+                  방향 인식 판정 <span className="text-slate-500 font-medium">(테스트)</span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={directionModeOn}
+                  onChange={e => setDirectionModeOn(e.target.checked)}
+                  className="w-4 h-4 accent-[#FE9A00]"
+                />
+              </label>
+              <label className="flex items-center justify-between gap-2 cursor-pointer">
+                <span className="text-xs font-bold text-black break-keep">
+                  센서 값 표시 <span className="text-slate-500 font-medium">(튜닝용)</span>
+                </span>
+                <input
+                  type="checkbox"
+                  checked={showMotionDebug}
+                  onChange={e => setShowMotionDebug(e.target.checked)}
+                  className="w-4 h-4 accent-[#FE9A00]"
+                />
+              </label>
+              <p className="text-[11px] text-slate-500 leading-snug break-keep">
+                켜면 박자마다 정해진 방향(1박 아래, 2박 안쪽…)으로 그어야 타점으로 인정됩니다.
+              </p>
+            </div>
 
             {/* 가로 2열 버튼 (튜토리얼 후 시작 vs 취소) */}
             <div className="pt-2 grid grid-cols-[1.6fr_1fr] items-stretch gap-2.5 w-full">
@@ -1068,7 +1163,67 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 <span className={`transition-all duration-150 ${guideBeat === 3 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♫</span>
                 <span className={`transition-all duration-150 ${guideBeat === 4 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♬</span>
               </div>
+
+              {/*
+                지금 그어야 할 방향. 방향을 판정하면서 알려주지 않으면
+                사용자는 왜 틀렸는지 알 수 없다. 튜토리얼 그림과 같은 패턴이다.
+              */}
+              {directionModeOn && !directionUnavailableRef.current && currentGuideDirection !== 'UNKNOWN' && (
+                <div className="mt-3 flex items-center gap-2 pointer-events-none select-none">
+                  <span
+                    className={`font-bold leading-none transition-all duration-150 ${
+                      isGuidePulsing ? 'text-[#FE9A00] text-6xl scale-110' : 'text-slate-300 text-5xl'
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {directionArrow(currentGuideDirection)}
+                  </span>
+                  <span className="text-sm font-semibold text-slate-500">
+                    {guideBeat}박 · {directionLabel(currentGuideDirection)}
+                  </span>
+                </div>
+              )}
             </div>
+
+            {/*
+              방향 인식 튜닝 표시 — 임계값을 실기기에서 잡기 위한 것이다.
+              값이 정해지면 이 블록은 걷어낸다.
+            */}
+            {showMotionDebug && (
+              <div className="w-full shrink-0 rounded-xl bg-slate-900/95 text-slate-100 font-mono text-[11px] leading-tight px-3 py-2 mb-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-slate-400">읽은 방향</span>
+                  <span className="text-base font-bold">
+                    {lastStroke ? directionArrow(lastStroke.direction) : '·'}
+                  </span>
+                  <span className="text-slate-400">기대</span>
+                  <span className="text-base font-bold text-[#FE9A00]">
+                    {directionArrow(lastExpectedDir)}
+                  </span>
+                  <span
+                    className={
+                      lastJudgement === 'PERFECT'
+                        ? 'text-emerald-400 font-bold'
+                        : lastJudgement === 'WRONG_WAY'
+                          ? 'text-sky-400 font-bold'
+                          : lastJudgement === 'MISS'
+                            ? 'text-rose-400 font-bold'
+                            : 'text-slate-500'
+                    }
+                  >
+                    {lastJudgement ?? '—'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 mt-1 text-slate-400">
+                  <span>↓{lastStroke ? lastStroke.downComponent.toFixed(2) : '0.00'}</span>
+                  <span>→{lastStroke ? lastStroke.rightComponent.toFixed(2) : '0.00'}</span>
+                  <span>|v|{lastStroke ? lastStroke.speed.toFixed(2) : '0.00'}</span>
+                  <span>{lastStroke?.confident ? 'OK' : 'LOW'}</span>
+                  <span>{strokeConfidentCountRef.current}/{strokeSampleCountRef.current}</span>
+                  {directionUnavailableRef.current && <span className="text-amber-400">세기판정</span>}
+                </div>
+              </div>
+            )}
 
             {/* 3. 하단 대형 남은 시간 타이머 */}
             <div className="w-full flex items-center justify-center gap-3 my-2">
