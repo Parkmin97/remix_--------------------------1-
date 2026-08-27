@@ -207,11 +207,13 @@ class BlockerService : Service() {
 
         val status = BlockSessionStore.getStatus(this)
 
-        // 모드 B: "먼저 쓰기로 한 시간"이 끝나 잠금으로 넘어가는 순간을 잡는다.
-        // 사용자가 SNS를 보는 도중에 일어나는 전환이라 예고 없이 막히면 고장으로 오해한다.
+        // 잠금이 걸리기 시작한 순간을 잡는다.
+        // 모드 B는 사용자가 SNS를 보는 도중에 전환되므로 예고 없이 막히면 고장으로 오해하고,
+        // 모드 A는 방금 버튼을 눌러 홈으로 나온 참이라 "정말 걸렸는지" 확인이 필요하다.
+        // 두 경우는 사정이 다르므로 알림 문구도 갈라진다. (notifyLockStarted 참고)
         val nowLocked = status.isLocked
         if (wasLocked == false && nowLocked) {
-            notifyLockStarted()
+            notifyLockStarted(status)
         }
         wasLocked = nowLocked
 
@@ -388,17 +390,39 @@ class BlockerService : Service() {
     }
 
     /**
-     * 모드 B에서 "먼저 쓰기로 한 시간"이 끝나 잠금이 시작됐음을 알린다.
+     * 잠금이 시작됐음을 알린다.
      *
-     * 이 전환은 사용자가 SNS를 보고 있는 도중에 일어난다.
-     * 예고 없이 갑자기 막히면 고장으로 오해하므로 반드시 알려야 한다.
+     * ⚠️ 두 모드의 문구가 달라야 한다.
+     *    예전에는 모드 B 문구 하나만 있었는데, 이 함수는 모드와 무관하게
+     *    "잠금이 걸린 순간"마다 불린다. 그래서 바로 잠금을 걸어도
+     *    "약속한 사용 시간이 끝났습니다"라는, 있지도 않은 사용 시간을 말하는
+     *    알림이 떴다.
+     *
+     *    - 모드 B(예약 잠금): 먼저 쓰기로 한 시간이 끝나 전환된 것.
+     *      사용자는 SNS를 보던 중이라 왜 갑자기 막혔는지 알려줘야 한다.
+     *    - 모드 A(바로 잠금): 방금 버튼을 눌러 홈으로 나온 참이다.
+     *      왜 막혔는지는 이미 알고 있으니 잠겼다는 사실만 짧게 확인시킨다.
+     *
+     *    두 모드를 가르는 표식은 usageEndsAt 하나뿐이다.
+     *    모드 B만 "먼저 쓸 시간"이 있어 값이 있고, 모드 A는 0이다.
+     *    (BlockSessionStore.startSession 의 usageEndsAt 설명 참고)
      */
-    private fun notifyLockStarted() {
-        notifyHeadsUp(
-            NOTIFICATION_LOCK_STARTED_ID,
-            "이제 잠금이 시작됩니다",
-            "약속한 사용 시간이 끝났습니다. 지금부터 선택한 앱이 잠깁니다."
-        )
+    private fun notifyLockStarted(status: BlockSessionStore.Status) {
+        val hasUsageWindow = status.usageEndsAt > 0L
+
+        if (hasUsageWindow) {
+            notifyHeadsUp(
+                NOTIFICATION_LOCK_STARTED_ID,
+                "이제 잠금이 시작됩니다",
+                "약속한 사용 시간이 끝났습니다. 지금부터 선택한 앱이 잠깁니다."
+            )
+        } else {
+            notifyHeadsUp(
+                NOTIFICATION_LOCK_STARTED_ID,
+                "잠금이 시작되었습니다",
+                "선택한 앱이 지금부터 잠깁니다."
+            )
+        }
     }
 
     // ─────────────────────────────────────────────
