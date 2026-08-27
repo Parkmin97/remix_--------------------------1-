@@ -738,30 +738,35 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     ? Math.round((accurateBeatCount / totalExpectedBeatsIn60s) * 100)
     : 0;
 
+  /*
+   * 판정 색은 초록(성공)과 빨강(실패) 두 가지뿐이다.
+   *
+   * 예전에는 MISS(빨강)·DUPLICATE(노랑)·WRONG_WAY(파랑)를 각각 다른 색으로 나눴다.
+   * 그런데 색이 네 가지가 되면 1분 내내 박자를 좇는 중에 색을 해석할 여유가 없어,
+   * "맞았나 틀렸나"라는 정작 필요한 정보가 오히려 묻힌다.
+   * 무엇이 틀렸는지는 색이 아니라 방향 화살표와 안내 문구가 맡는다.
+   *
+   * 판정 종류 자체는 그대로 구분해 둔다(튜닝 표시와 추후 분석에 쓴다).
+   * 여기서는 화면에 나가는 색만 둘로 합친다.
+   */
+  const isPerfectJudgement = lastJudgement === 'PERFECT';
+  const isFailedJudgement =
+    lastJudgement === 'MISS' || lastJudgement === 'DUPLICATE' || lastJudgement === 'WRONG_WAY';
+
   // 판정 색은 마커 위에 덧씌우지 않는다. 마커는 항상 곡의 현재 박만 보여주고,
   // 판정은 마커를 감싸는 링과 화면 전체 플래시로 스쳐 지나가게 해서 박자 추적을 가리지 않는다.
-  const judgementAccent =
-    lastJudgement === 'PERFECT'
-      ? 'border-emerald-300'
-      : lastJudgement === 'MISS'
-        ? 'border-rose-400'
-        : lastJudgement === 'DUPLICATE'
-          ? 'border-amber-400'
-          : lastJudgement === 'WRONG_WAY'
-            ? 'border-sky-400'
-            : null;
+  const judgementAccent = isPerfectJudgement
+    ? 'border-emerald-300'
+    : isFailedJudgement
+      ? 'border-rose-400'
+      : null;
 
   // 화면 전체 판정 플래시. 진한 색으로 한 번 깜빡이고 즉시 사라진다.
-  const judgementFlashTone =
-    lastJudgement === 'PERFECT'
-      ? 'bg-emerald-500/80'
-      : lastJudgement === 'MISS'
-        ? 'bg-rose-600/80'
-        : lastJudgement === 'WRONG_WAY'
-          // 방향이 틀렸을 때는 '실패'와 다른 색을 쓴다. 타이밍은 맞았다는 뜻이라
-          // 사용자가 무엇을 고쳐야 하는지 구분할 수 있어야 한다.
-          ? 'bg-sky-600/70'
-          : null;
+  const judgementFlashTone = isPerfectJudgement
+    ? 'bg-emerald-500/80'
+    : isFailedJudgement
+      ? 'bg-rose-600/80'
+      : null;
 
   return (
     <div className="min-h-full w-full max-w-2xl mx-auto px-4 py-4 flex flex-col gap-4 text-black relative select-none">
@@ -1200,15 +1205,17 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   <span className="text-base font-bold text-[#FE9A00]">
                     {directionArrow(lastExpectedDir)}
                   </span>
+                  {/*
+                    화면 판정은 초록/빨강 둘로 합쳤지만, 튜닝 표시에는 판정 이름을
+                    그대로 적는다. WRONG_WAY 인지 MISS 인지 구분돼야 임계값을 잡을 수 있다.
+                  */}
                   <span
                     className={
-                      lastJudgement === 'PERFECT'
+                      isPerfectJudgement
                         ? 'text-emerald-400 font-bold'
-                        : lastJudgement === 'WRONG_WAY'
-                          ? 'text-sky-400 font-bold'
-                          : lastJudgement === 'MISS'
-                            ? 'text-rose-400 font-bold'
-                            : 'text-slate-500'
+                        : isFailedJudgement
+                          ? 'text-rose-400 font-bold'
+                          : 'text-slate-500'
                     }
                   >
                     {lastJudgement ?? '—'}
