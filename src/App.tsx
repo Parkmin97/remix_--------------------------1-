@@ -120,9 +120,24 @@ function AppContent() {
   useEffect(() => {
     if (isBlockMode()) return; // 차단 화면 자신은 동기화 대상이 아니다
 
+    /*
+     * corrected 플래그만 믿지 않는다.
+     *
+     * corrected 는 "네이티브에는 세션이 없는데 웹에만 살아 있어서 고쳤다" 는
+     * 경우에만 true 다. 그런데 잠금 시간이 지나 만료된 경우에는
+     * syncSessionFromNative 안에서 getStoredActiveSession() 이 이미
+     * COMPLETED 로 고쳐놓은 뒤라 그 분기에 걸리지 않아 corrected 가 false 다.
+     * 그래서 저장소는 끝났는데 화면만 "잠금 중"으로 남았다.
+     *
+     * 저장소가 늘 먼저 갱신되므로(handleStartSession 도 저장 후 상태를 바꾼다),
+     * 돌려받은 세션과 지금 상태가 다르면 그대로 맞춘다.
+     */
     const sync = () => {
-      syncSessionFromNative(null).then(({ session, corrected }) => {
-        if (corrected) setActiveSession(session);
+      syncSessionFromNative(null).then(({ session }) => {
+        setActiveSession(prev => {
+          if (prev?.id === session?.id && prev?.state === session?.state) return prev;
+          return session;
+        });
       });
     };
 
@@ -158,6 +173,45 @@ function AppContent() {
     if (!isSessionRunning(activeSession)) return;
     const timer = setInterval(() => setLockClock(Date.now()), 5_000);
     return () => clearInterval(timer);
+  }, [activeSession]);
+
+  /*
+   * 잠금 시간이 끝나면 화면이 들고 있는 세션도 끝난 것으로 바꾼다.
+   *
+   * ■ 무엇이 잘못됐었나
+   *   getStoredActiveSession() 은 읽을 때마다 시계를 보고, 종료 시각을 지난 세션을
+   *   COMPLETED 로 고쳐 저장한다. 그런데 그건 localStorage 쪽 이야기다.
+   *   화면이 실제로 쓰는 것은 메모리에 있는 이 activeSession 상태다.
+   *
+   *   그래서 앱을 켜둔 채 잠금 시간이 끝나면 저장소만 COMPLETED 가 되고
+   *   화면은 계속 "잠금 중"으로 남았다. 앱을 완전히 종료했다 다시 켜야만
+   *   풀렸던 이유가 이것이다 — 다시 켤 때 mount 훅이
+   *   getStoredActiveSession() 을 읽어 그제서야 메모리와 저장소가 맞춰진다.
+   *
+   * ■ 왜 setInterval 이 아니라 setTimeout 인가
+   *   종료 시각에 정확히 한 번 깨우면 되는 일이다. 5초 간격 시계에 얹으면
+   *   최대 5초 늦게 풀려 "끝났는데 아직 잠겨 있다"는 체감이 그대로 남는다.
+   */
+  useEffect(() => {
+    if (!isSessionRunning(activeSession) || !activeSession?.focusEndsAt) return;
+
+    const endsAt = new Date(activeSession.focusEndsAt).getTime();
+    if (!Number.isFinite(endsAt)) return;
+
+    const finishNow = () => {
+      const finished: SessionData = { ...activeSession, state: 'COMPLETED' };
+      saveActiveSession(finished);
+      setActiveSession(finished);
+    };
+
+    const remainingMs = endsAt - Date.now();
+    if (remainingMs <= 0) {
+      finishNow();
+      return;
+    }
+
+    const timer = window.setTimeout(finishNow, remainingMs);
+    return () => window.clearTimeout(timer);
   }, [activeSession]);
 
   // Supabase 인증 상태 구독
