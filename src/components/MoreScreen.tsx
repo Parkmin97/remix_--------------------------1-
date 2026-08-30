@@ -87,6 +87,7 @@ export const MoreScreen: React.FC<MoreScreenProps> = ({ onNavigateToScreen, lock
         items: [
           { icon: BarChart3, label: '디톡스 주간 리포트', target: 'report' },
           { icon: HelpCircle, label: '지휘 동작 튜토리얼', target: 'tutorial' },
+          { icon: HelpCircle, label: '자주 묻는 질문 (FAQ)', target: 'faq' },
           { icon: Settings, label: '설정 및 서비스 정보', target: 'settings' },
         ],
       },

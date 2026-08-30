@@ -22,6 +22,7 @@ import { SelfReflectionScreen } from './components/SelfReflectionScreen';
 import { ReportScreen } from './components/ReportScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
+import { FaqScreen } from './components/FaqScreen';
 import { BlockChoiceScreen } from './components/BlockChoiceScreen';
 import { getBlockInfo, getInitialScreen, isBlockMode, reportMissionResult } from './lib/blockBridge';
 import { Blocker, goToRealHomeScreen } from './lib/blocker';
@@ -432,6 +433,10 @@ function AppContent() {
             isMuted={isMuted}
             setIsMuted={setIsMuted}
           />
+        )}
+
+        {currentTab === 'faq' && (
+          <FaqScreen onBack={handleBackToMore} />
         )}
         </>
         )}

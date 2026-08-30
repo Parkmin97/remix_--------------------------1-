@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, ShieldCheck, Music, Clock, Sparkles, AlertCircle } from 'lucide-react';
+import { X, ShieldCheck, Music, Clock, AlertCircle } from 'lucide-react';
 import { setOnboardingCompleted } from '../lib/storage';
 
 interface OnboardingModalProps {
@@ -67,16 +67,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               <h4 className="font-semibold text-amber-200">2. 1분 클래식 지휘 미션</h4>
               <p className="text-stone-400 mt-0.5">
                 4/4, 3/4, 2/4 박자의 오케스트라 클래식 곡에 맞춰 스마트폰 움직임(DeviceMotion), 손가락/마우스 지휘, 또는 웹캠 모션으로 박자를 맞추는 지휘 미션을 수행합니다.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-3 bg-stone-800/60 rounded-xl border border-stone-700/50">
-            <Sparkles className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-amber-200">3. 성찰 질문과 10분 연장 정책</h4>
-              <p className="text-stone-400 mt-0.5">
-                지휘 미션 성공 시 질문에 따라 1회 최대 10분만 연장 가능하며, 연장 후에는 스스로 내 삶의 원래 목표로 돌아가는 성취 리포트가 남습니다.
               </p>
             </div>
           </div>

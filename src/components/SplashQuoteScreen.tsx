@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
 
 /**
  * 앱 진입 화면 — 오늘의 한마디.
@@ -14,7 +13,7 @@ import { ArrowRight } from 'lucide-react';
  *   바로 기능 화면을 들이밀지 않고 한 문장을 먼저 보여주는 것이 이 제품의 태도다.
  *
  * ■ 동작
- *   2.5초 뒤 자동으로 넘어가고, 급하면 화면 아무 데나 눌러 즉시 건너뛴다.
+ *   3초 뒤 자동으로 넘어가고, 급하면 화면 아무 데나 눌러 즉시 건너뛴다.
  */
 
 /** 앱을 켤 때마다 순서대로 돌아가는 한마디 — 지휘·시간·삶을 아우른다. */
@@ -58,8 +57,8 @@ const CONDUCTOR_QUOTES: Array<{ en: string; ko: string; author: string }> = [
 
 const QUOTE_INDEX_KEY = 'life_conductor_quote_index';
 
-/** 진입 화면이 저절로 사라지기까지의 시간 */
-const AUTO_DISMISS_MS = 2500;
+/** 진입 화면이 저절로 사라지기까지의 시간 (3초) */
+const AUTO_DISMISS_MS = 3000;
 
 /**
  * 이번에 보여줄 한마디를 고르고, 다음 번을 위해 인덱스를 하나 밀어둔다.
@@ -86,29 +85,40 @@ function pickQuote() {
   return CONDUCTOR_QUOTES[index];
 }
 
+const SUB_SLOGANS = [
+  { line1: '스마트폰을 잠시 내려놓고,', line2: '오늘 하루의 리듬을 되찾아보세요.' },
+  { line1: '잠시 화면을 끄고,', line2: '당신의 시간에 귀 기울여보세요.' },
+];
+
+function pickSlogan() {
+  return SUB_SLOGANS[Math.floor(Math.random() * SUB_SLOGANS.length)];
+}
+
 interface SplashQuoteScreenProps {
   /** 진입 화면이 끝났을 때(자동/탭 모두) 호출된다. */
   onDone: () => void;
 }
 
 export const SplashQuoteScreen: React.FC<SplashQuoteScreenProps> = ({ onDone }) => {
-  // 컴포넌트가 살아 있는 동안 한마디는 바뀌지 않는다.
+  // 컴포넌트가 살아 있는 동안 한마디와 슬로건은 바뀌지 않는다.
   const [quote] = useState(pickQuote);
+  const [slogan] = useState(pickSlogan);
+  const [progress, setProgress] = useState<number>(0);
 
-  /*
-   * ⚠️ 타이머는 **한 번만** 건다.
-   *    onDone 을 의존성에 넣으면, 부모가 인라인 화살표 함수를 넘기는 한
-   *    부모가 다시 그려질 때마다 함수 신원이 바뀌어 타이머가 처음부터 다시 시작한다.
-   *    앱을 켠 직후에는 인증·세션·앱 목록이 연달아 도착해 리렌더가 잦아서,
-   *    그대로 두면 진입 화면이 2.5초를 넘겨 계속 떠 있을 수 있다.
-   *    그래서 최신 콜백은 ref 로 들고, 타이머는 마운트 시 한 번만 건다.
-   */
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
   useEffect(() => {
+    // 3초 동안 부드럽게 게이지가 차오름
+    const anim = requestAnimationFrame(() => {
+      setProgress(100);
+    });
+
     const timer = setTimeout(() => onDoneRef.current(), AUTO_DISMISS_MS);
-    return () => clearTimeout(timer);
+    return () => {
+      cancelAnimationFrame(anim);
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
@@ -118,21 +128,17 @@ export const SplashQuoteScreen: React.FC<SplashQuoteScreenProps> = ({ onDone }) 
       aria-label="진입 화면 건너뛰기"
       onClick={onDone}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onDone(); }}
-      className="fixed inset-0 z-[100] bg-black bg-cover bg-center flex flex-col items-center justify-between p-8 text-center animate-fade-in select-none overflow-hidden touch-none cursor-pointer"
-      style={{ backgroundImage: "url('/splash_conductor.png')" }}
+      className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-between p-8 text-center animate-fade-in select-none overflow-hidden touch-none cursor-pointer"
     >
-      {/* 배경 위 어둠막 — 글자 대비 확보 */}
-      <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
-
       {/* 상단 타이틀 카드 */}
       <div className="pt-8 z-10 w-full max-w-xs">
-        <div className="space-y-2 rounded-2xl bg-black/70 backdrop-blur-md border border-neutral-700 px-6 py-4 shadow-2xl text-center">
+        <div className="space-y-2 rounded-2xl bg-neutral-900/80 backdrop-blur-md border border-neutral-800 px-6 py-4 shadow-2xl text-center">
           <h1 className="text-lg sm:text-xl font-sans font-extrabold tracking-widest text-white text-center">
             MY LIFE MAESTRO
           </h1>
           <p className="text-xs text-neutral-300 font-serif leading-relaxed px-2">
-            디지털 도파민 피드에서 벗어나,<br />
-            당신의 라이프 스타일을 품격 있게 연주하세요.
+            {slogan.line1}<br />
+            {slogan.line2}
           </p>
         </div>
       </div>
@@ -157,16 +163,16 @@ export const SplashQuoteScreen: React.FC<SplashQuoteScreenProps> = ({ onDone }) 
         </div>
       </div>
 
-      {/* 하단 진행 표시 */}
+      {/* 하단 진행 게이지 바 (3초 동안 매끄럽게 차오름, 텍스트 제거) */}
       <div className="pb-8 z-10 w-full max-w-xs">
-        <div className="rounded-2xl bg-black/70 backdrop-blur-md border border-neutral-700 px-5 py-3.5 space-y-3 shadow-2xl">
-          <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden border border-neutral-700">
-            <div className="bg-[#FE9A00] h-full w-full animate-pulse rounded-full"></div>
-          </div>
-          <div className="flex items-center justify-center gap-1 text-[11px] text-white font-medium">
-            <span>내인생 지휘자 어플 진입 중... (화면을 누르면 바로 시작)</span>
-            <ArrowRight className="w-3.5 h-3.5 text-[#FE9A00] animate-pulse" />
-          </div>
+        <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden border border-neutral-800 shadow-inner">
+          <div
+            className="bg-[#FE9A00] h-full rounded-full transition-all ease-linear shadow-[0_0_8px_rgba(254,154,0,0.6)]"
+            style={{
+              width: `${progress}%`,
+              transitionDuration: `${AUTO_DISMISS_MS}ms`,
+            }}
+          />
         </div>
       </div>
     </div>

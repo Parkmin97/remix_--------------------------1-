@@ -1,60 +1,29 @@
 import React, { useState } from 'react';
-import { getSoundMuted, setSoundMuted } from '../lib/storage';
-import { audioSynthesizer } from '../lib/audioSynthesizer';
-import { Volume2, VolumeX, Activity, HelpCircle, CheckCircle2, FileText, ExternalLink, ShieldCheck, ArrowLeft, Sparkles, Smartphone } from 'lucide-react';
+import { HelpCircle, FileText, ExternalLink, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 /**
  * 약관 및 개인정보처리방침 PDF 파일 경로
  */
 const PRIVACY_POLICY_URL = '/privacy_terms.pdf';
-const TERMS_OF_SERVICE_URL = '/privacy_terms.pdf';
 
 interface SettingsScreenProps {
   onBack?: () => void;
   onOpenOnboarding: () => void;
-  isMuted: boolean;
-  setIsMuted: (muted: boolean) => void;
+  isMuted?: boolean;
+  setIsMuted?: (muted: boolean) => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   onBack,
   onOpenOnboarding,
-  isMuted,
-  setIsMuted
 }) => {
-  const [calibrated, setCalibrated] = useState(false);
   const [legalNoticeMessage, setLegalNoticeMessage] = useState<string | null>(null);
-
-  const toggleSound = () => {
-    const next = !isMuted;
-    setIsMuted(next);
-    setSoundMuted(next);
-    audioSynthesizer.setMuted(next);
-  };
-
-  const handleTestSound = () => {
-    audioSynthesizer.playCountdownBeep(true);
-  };
-
-  const handleCalibrateSensors = () => {
-    setCalibrated(true);
-    setTimeout(() => setCalibrated(false), 3000);
-  };
 
   const handleOpenPrivacyPolicy = () => {
     if (PRIVACY_POLICY_URL) {
       window.open(PRIVACY_POLICY_URL, '_blank', 'noopener,noreferrer');
     } else {
       setLegalNoticeMessage('개인정보처리방침 웹페이지 준비 중입니다. 노션/웹 URL이 지정되면 자동으로 연결됩니다.');
-      setTimeout(() => setLegalNoticeMessage(null), 4000);
-    }
-  };
-
-  const handleOpenTerms = () => {
-    if (TERMS_OF_SERVICE_URL) {
-      window.open(TERMS_OF_SERVICE_URL, '_blank', 'noopener,noreferrer');
-    } else {
-      setLegalNoticeMessage('서비스 이용약관 웹페이지 준비 중입니다. 노션/웹 URL이 지정되면 자동으로 연결됩니다.');
       setTimeout(() => setLegalNoticeMessage(null), 4000);
     }
   };
@@ -66,7 +35,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {onBack && (
           <button
             onClick={onBack}
-            className="p-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-black transition-colors active:scale-95 shadow-sm"
+            className="p-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-black transition-colors active:scale-95 shadow-sm cursor-pointer"
             title="뒤로가기"
             aria-label="뒤로가기"
           >
@@ -78,74 +47,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </h2>
       </div>
 
-      {/* 2. 사운드 및 메트로놈 설정 카드 */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3.5">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-2xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0">
-              {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-[#FE9A00]" />}
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-bold text-black break-keep">오케스트라 & 메트로놈 사운드</h3>
-              <p className="text-xs text-slate-500 break-keep mt-0.5">
-                지휘 미션 및 박자 카운트다운 소리를 제어합니다.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={handleTestSound}
-              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold rounded-xl border border-slate-200 transition-colors active:scale-95"
-            >
-              소리 테스트
-            </button>
-            <button
-              onClick={toggleSound}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer ${
-                isMuted
-                  ? 'bg-slate-100 text-slate-500 border border-slate-200'
-                  : 'bg-black text-white border border-black shadow-md'
-              }`}
-            >
-              {isMuted ? '음소거' : '켜짐'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. 모션 센서 보정 카드 */}
-      <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-2xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0">
-              <Activity className="w-4 h-4 text-[#FE9A00]" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-bold text-black break-keep">지휘 모션 센서 보정</h3>
-              <p className="text-xs text-slate-500 break-keep mt-0.5">
-                스마트폰의 가속도계 센서 반응 감도를 최적화합니다.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleCalibrateSensors}
-            className="px-3.5 py-2 bg-black hover:bg-neutral-800 text-white font-bold rounded-xl text-xs shadow-md transition-all shrink-0 active:scale-95"
-          >
-            센서 보정
-          </button>
-        </div>
-
-        {calibrated && (
-          <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
-            <span>지휘 모션 센서가 성공적으로 보정되었습니다!</span>
-          </div>
-        )}
-      </div>
-
-      {/* 4. 온보딩 안내 다시 보기 카드 */}
+      {/* 2. 서비스 작동 방식 안내 카드 */}
       <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-9 h-9 rounded-2xl bg-[#FE9A00]/15 border border-[#FE9A00]/40 flex items-center justify-center text-[#FE9A00] shrink-0">
@@ -161,13 +63,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
         <button
           onClick={onOpenOnboarding}
-          className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-black font-bold rounded-xl text-xs border border-slate-200 transition-colors active:scale-95 shrink-0"
+          className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-black font-bold rounded-xl text-xs border border-slate-200 transition-colors active:scale-95 shrink-0 cursor-pointer"
         >
           가이드 열기
         </button>
       </div>
 
-      {/* 5. 약관 및 법적 고지 카드 */}
+      {/* 3. 약관 및 법적 고지 카드 */}
       <div className="p-4 sm:p-5 rounded-3xl bg-white border border-slate-200 shadow-xl space-y-3">
         <div className="text-xs font-bold text-black/60 uppercase tracking-wider flex items-center gap-1.5 px-1">
           <FileText className="w-3.5 h-3.5 text-[#FE9A00]" />
@@ -194,7 +96,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         )}
       </div>
 
-      {/* 6. 앱 버전 및 개발팀 정보 푸터 배너 (피그마 톤앤매너 완벽 맞춤) */}
+      {/* 4. 앱 버전 및 개발팀 정보 푸터 배너 (심플 & 미니멀) */}
       <div className="mt-2 p-5 rounded-3xl bg-black text-white border border-black shadow-xl flex flex-col items-center justify-center text-center space-y-2">
         <div className="flex items-center gap-2">
           <span className="font-sans font-extrabold text-sm sm:text-base tracking-widest text-white">
@@ -204,11 +106,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             v1.0.0
           </span>
         </div>
-        <p className="text-[11px] text-neutral-400 font-medium">
-          스마트폰 사용 절제를 위한 클래식 인터랙션 앱
-        </p>
-        <div className="text-[10px] text-neutral-500 font-mono pt-1 border-t border-neutral-800 w-full">
-          Designed & Developed with Passion by Team Maestro
+        <div className="text-[10px] text-neutral-400 font-mono pt-1.5 border-t border-neutral-800 w-full">
+          Designed & Developed with Passion by Team AIZ
         </div>
       </div>
     </div>

@@ -1131,7 +1131,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         {/* CONDUCTING STATE (피그마 2번 시안 완벽 맞춤) */}
         {gameState === 'CONDUCTING' && (
           <div className="w-full h-full flex flex-col justify-between items-center z-10 py-1 sm:py-3">
-            {/* 1. 상단 대형 타점 스코어보드 */}
+            {/* 1. 상단 대형 타점 스코어보드 & 실시간 달성률 게이지 바 */}
             <div className="w-full flex flex-col items-center pt-2">
               <div className="flex items-center justify-center gap-3">
                 <Activity className="w-11 h-11 sm:w-12 sm:h-12 text-[#FE9A00] stroke-[3]" aria-hidden="true" />
@@ -1140,10 +1140,21 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                   <span className="text-slate-400 font-light">/{requiredBeatsToPass}</span>
                 </div>
               </div>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-4" />
+
+              {/* 실시간 달성률 로딩 게이지 바: 70% 미만 빨간색, 70% 이상 초록색 */}
+              <div className="w-full h-2 bg-slate-100 rounded-full mt-4 overflow-hidden border border-slate-200 shadow-inner">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    currentMatchPercent >= 70
+                      ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
+                      : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.4)]'
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(0, currentMatchPercent))}%` }}
+                />
+              </div>
             </div>
 
-            {/* 2. 중앙 인터랙티브 지휘 스테이지 */}
+            {/* 2. 중앙 인터랙티브 지휘 스테이지 (원형 링 및 방향 가이드 제거, 순수 음표 4개만 배치) */}
             <div className="relative w-full flex-1 flex flex-col items-center justify-center my-3 overflow-hidden">
               <canvas
                 ref={canvasRef}
@@ -1152,15 +1163,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 className="absolute inset-0 w-full h-full pointer-events-none opacity-80"
               />
 
-              {/* 판정 링 애니메이션 */}
-              {judgementAccent && (
-                <span
-                  key={`judge-${judgementSeq}`}
-                  aria-hidden="true"
-                  className={`cm-hit-ring pointer-events-none absolute w-24 h-24 rounded-full border-4 ${judgementAccent}`}
-                />
-              )}
-
               {/* 중앙 은은한 음표 4개 */}
               <div className="w-full flex items-center justify-around text-4xl sm:text-5xl text-slate-200 pointer-events-none select-none px-4">
                 <span className={`transition-all duration-150 ${guideBeat === 1 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♩</span>
@@ -1168,69 +1170,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 <span className={`transition-all duration-150 ${guideBeat === 3 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♫</span>
                 <span className={`transition-all duration-150 ${guideBeat === 4 ? 'text-[#FE9A00] scale-125 font-bold' : ''}`}>♬</span>
               </div>
-
-              {/*
-                지금 그어야 할 방향. 방향을 판정하면서 알려주지 않으면
-                사용자는 왜 틀렸는지 알 수 없다. 튜토리얼 그림과 같은 패턴이다.
-              */}
-              {directionModeOn && !directionUnavailableRef.current && currentGuideDirection !== 'UNKNOWN' && (
-                <div className="mt-3 flex items-center gap-2 pointer-events-none select-none">
-                  <span
-                    className={`font-bold leading-none transition-all duration-150 ${
-                      isGuidePulsing ? 'text-[#FE9A00] text-6xl scale-110' : 'text-slate-300 text-5xl'
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {directionArrow(currentGuideDirection)}
-                  </span>
-                  <span className="text-sm font-semibold text-slate-500">
-                    {guideBeat}박 · {directionLabel(currentGuideDirection)}
-                  </span>
-                </div>
-              )}
             </div>
-
-            {/*
-              방향 인식 튜닝 표시 — 임계값을 실기기에서 잡기 위한 것이다.
-              값이 정해지면 이 블록은 걷어낸다.
-            */}
-            {showMotionDebug && (
-              <div className="w-full shrink-0 rounded-xl bg-slate-900/95 text-slate-100 font-mono text-[11px] leading-tight px-3 py-2 mb-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-slate-400">읽은 방향</span>
-                  <span className="text-base font-bold">
-                    {lastStroke ? directionArrow(lastStroke.direction) : '·'}
-                  </span>
-                  <span className="text-slate-400">기대</span>
-                  <span className="text-base font-bold text-[#FE9A00]">
-                    {directionArrow(lastExpectedDir)}
-                  </span>
-                  {/*
-                    화면 판정은 초록/빨강 둘로 합쳤지만, 튜닝 표시에는 판정 이름을
-                    그대로 적는다. WRONG_WAY 인지 MISS 인지 구분돼야 임계값을 잡을 수 있다.
-                  */}
-                  <span
-                    className={
-                      isPerfectJudgement
-                        ? 'text-emerald-400 font-bold'
-                        : isFailedJudgement
-                          ? 'text-rose-400 font-bold'
-                          : 'text-slate-500'
-                    }
-                  >
-                    {lastJudgement ?? '—'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-2 mt-1 text-slate-400">
-                  <span>↓{lastStroke ? lastStroke.downComponent.toFixed(2) : '0.00'}</span>
-                  <span>→{lastStroke ? lastStroke.rightComponent.toFixed(2) : '0.00'}</span>
-                  <span>|v|{lastStroke ? lastStroke.speed.toFixed(2) : '0.00'}</span>
-                  <span>{lastStroke?.confident ? 'OK' : 'LOW'}</span>
-                  <span>{strokeConfidentCountRef.current}/{strokeSampleCountRef.current}</span>
-                  {directionUnavailableRef.current && <span className="text-amber-400">세기판정</span>}
-                </div>
-              </div>
-            )}
 
             {/* 3. 하단 대형 남은 시간 타이머 */}
             <div className="w-full flex items-center justify-center gap-3 my-2">
