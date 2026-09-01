@@ -71,12 +71,18 @@ export const CLASSICAL_PIECES: ClassicalPiece[] = [
   /*
    * 2026-09-01 추가. 박자표는 사용자가 지정한 값이다.
    *
+   * 음원 출처: Musopen (https://musopen.org/music/2204-the-nutcracker-suite-op-71a/)
+   * 라이선스: CC0 1.0 Universal — Public Domain Dedication (2026-09-01 확인)
+   *   다운로드 페이지에 사선 C 아이콘과 "Public Domain Dedication" 표기가 있었고,
+   *   BY(사람 아이콘)·SA(회전 화살표)는 없었다. 표기 의무도 상업적 사용 제한도 없다.
+   *   ※ Musopen 은 음원마다 라이선스가 다르다(PD/CC0/CC BY-SA 혼재).
+   *      곡을 추가할 때마다 개별 음원의 배지를 반드시 확인할 것.
+   *
    * ⚠️ bpm 은 잠정값이다. 음원의 에너지 포락선 자기상관으로 측정했으나 후보가
    *    여러 개로 갈려 확정하지 못했다. 실기기에서 메트로놈과 음악이 어긋나면
    *    이 값부터 조정할 것.
-   * ⚠️ fallbackAudioUrl 이 비어 있다. 음원 출처가 아직 확인되지 않아
-   *    (파일 메타데이터가 전부 비어 있음) 라이선스 확정 후 채운다.
-   *    출처가 퍼블릭 도메인/CC0 이 아니면 봄·여름처럼 빼야 한다.
+   * ⚠️ fallbackAudioUrl 은 비워 둔다. Musopen 다운로드 주소는 안정적인 직접 링크가
+   *    아니라, 넣어봤자 폴백으로 못 쓴다. (예전 "봄"의 폴백이 404 였던 전례가 있다)
    */
   {
     id: 'piece-trepak',
