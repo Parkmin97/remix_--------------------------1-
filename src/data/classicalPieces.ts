@@ -17,6 +17,20 @@ function generateNotesForPiece(bpm: number, beatType: string, baseNotes: string[
   return notes;
 }
 
+/**
+ * 미션에 쓰는 클래식 곡.
+ *
+ * ⚠️ 음원은 반드시 퍼블릭 도메인이거나 CC0 여야 한다.
+ *    2026-09-01에 비발디 사계 "봄"·"여름"을 뺐다. 두 곡 모두 John Harrison 연주
+ *    음반(Wichita State University Chamber Players)이었고 CC BY-SA 라이선스다.
+ *    - BY: 연주자 표기 의무가 생긴다
+ *    - SA: 90초로 잘라 쓰는 것 자체가 개작이라, 결과물도 같은 조건으로
+ *          배포해야 한다. 상업 배포와 맞지 않는다.
+ *    곡을 추가할 때는 라이선스를 먼저 확인할 것.
+ *    (커먼즈 API: action=query&prop=imageinfo&iiprop=extmetadata 로 조회 가능)
+ *
+ * 현재 3곡으로 2/4·3/4·4/4 를 모두 덮는다. 1/4 을 쓰는 곡은 없다.
+ */
 export const CLASSICAL_PIECES: ClassicalPiece[] = [
   {
     id: 'piece-4-4',
@@ -54,30 +68,42 @@ export const CLASSICAL_PIECES: ClassicalPiece[] = [
     fallbackAudioUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Carmen%20-%20Prelude%20to%20Act%201.ogg',
     notesSequence: generateNotesForPiece(116, '4/4', ['A4', 'C5', 'E5', 'E5', 'D5', 'C5', 'B4', 'A4', 'G#4', 'A4'])
   },
+  /*
+   * 2026-09-01 추가. 박자표는 사용자가 지정한 값이다.
+   *
+   * ⚠️ bpm 은 잠정값이다. 음원의 에너지 포락선 자기상관으로 측정했으나 후보가
+   *    여러 개로 갈려 확정하지 못했다. 실기기에서 메트로놈과 음악이 어긋나면
+   *    이 값부터 조정할 것.
+   * ⚠️ fallbackAudioUrl 이 비어 있다. 음원 출처가 아직 확인되지 않아
+   *    (파일 메타데이터가 전부 비어 있음) 라이선스 확정 후 채운다.
+   *    출처가 퍼블릭 도메인/CC0 이 아니면 봄·여름처럼 빼야 한다.
+   */
   {
-    id: 'piece-1-4',
-    title: '사계 중 "여름" 3악장 프레스토',
-    composer: '안토니오 비발디 (A. Vivaldi)',
-    beatType: '3/4',
-    bpm: 132,
+    id: 'piece-trepak',
+    title: '호두까기 인형 - 러시안 댄스 (트레팍)',
+    composer: '표트르 차이콥스키 (P. I. Tchaikovsky)',
+    beatType: '2/4',
+    // 측정된 펄스는 약 170. 그대로 쓰면 한 박이 353ms 라 60초 내내 흔들기가
+    // 불가능에 가깝고, 아래 '허용 오차' 문제로 타이밍 판정도 무의미해진다.
+    // 그래서 절반으로 잡아 두 펄스에 한 번 젓게 한다.
+    bpm: 85,
     durationSeconds: 60,
-    description: '폭풍우처럼 강렬하고 빠르게 몰아치는 카리스마 현악 오케스트라입니다. 원곡 그대로 3박자 흐름을 명확한 강박으로 이끄세요.',
-    audioUrl: '/audio/summer.mp3',
-    fallbackAudioUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Vivaldi%20-%20Four%20Seasons%202%20Summer%20mvt%203%20Presto%20-%20John%20Harrison%20violin.oga',
-    notesSequence: generateNotesForPiece(132, '3/4', ['G5', 'G5', 'F5', 'Eb5', 'D5', 'C5', 'B4', 'C5', 'D5', 'G4', 'C5', 'D5'])
+    description: '러시아 민속춤의 폭발적인 에너지로 몰아치는 짧고 강렬한 곡입니다. 2박자의 힘찬 상하 동작으로 이끄세요.',
+    audioUrl: '/audio/trepak.mp3',
+    notesSequence: generateNotesForPiece(85, '2/4', ['D5', 'D5', 'A4', 'D5', 'F#5', 'A5', 'D5', 'A4'])
   },
   {
-    id: 'piece-spring-1',
-    title: '사계 중 "봄" 1악장 알레그로',
-    composer: '안토니오 비발디 (A. Vivaldi)',
+    id: 'piece-galop',
+    title: '호두까기 인형 - 어린이 갤럽',
+    composer: '표트르 차이콥스키 (P. I. Tchaikovsky)',
     beatType: '4/4',
-    bpm: 108,
+    // 측정 최고 후보는 81.5, 두 번째가 99.5 였다. 4박자로 젓기에 적당한 99 를 골랐다.
+    bpm: 99,
     durationSeconds: 60,
-    description: '봄의 도래를 노래하는 만개한 햇살처럼 밝고 경쾌한 바이올린 오케스트라입니다. 4박자의 경쾌한 지휘로 박자를 맞추세요.',
-    audioUrl: '/audio/spring.mp3',
-    fallbackAudioUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bd/Vivaldi_-_Four_Seasons_-_01_-_Spring_1_Allegro.mp3',
-    notesSequence: generateNotesForPiece(108, '4/4', ['E5', 'G#5', 'G#5', 'G#5', 'F#5', 'E5', 'B4', 'E5', 'G#5', 'G#5', 'G#5', 'F#5', 'E5', 'B4'])
-  }
+    description: '아이들이 뛰노는 듯 경쾌하고 빠르게 달려가는 곡입니다. 4박자의 또렷한 흐름으로 이끄세요.',
+    audioUrl: '/audio/galop.mp3',
+    notesSequence: generateNotesForPiece(99, '4/4', ['G4', 'B4', 'D5', 'G5', 'D5', 'B4', 'C5', 'E5', 'G5', 'E5'])
+  },
 ];
 
 export const DAILY_QUOTES = [
