@@ -477,13 +477,35 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     // 마디 안 박자 위치. 곡의 박자표(3/4, 2/4 등)를 그대로 따른다.
     const beatInBarNum = (closestBeatIndex % beatsPerBar) + 1;
 
-    // 허용 오차: 강박(1박)은 정확도를 요구하고 뒤로 갈수록 넉넉해진다.
-    // 마디 길이에 비례해 나누면 2/4 곡의 1박이 4/4 곡보다 더 좁아지는 역전이 생겨,
-    // 박자표와 무관하게 같은 폭(150ms ~ 250ms)을 쓰도록 고정한다.
-    const minToleranceMs = 150;
-    const maxToleranceMs = 250;
+    /*
+     * 허용 오차 — 박 간격에 대한 '비율'로 정한다.
+     *
+     * ■ 왜 고정 ms 를 버렸나
+     *   위에서 가장 가까운 박을 찾으므로 diffMs 는 구조적으로 박 간격의 절반을
+     *   넘을 수 없다. 그런데 예전에는 허용 오차가 150~250ms 로 고정이었다.
+     *   박 간격이 500ms 보다 짧아지면(= BPM 120 초과) 허용치가 그 절반을 넘어서
+     *   **아무렇게나 쳐도 항상 통과**하게 된다.
+     *   실제로 꽃의 왈츠(136 BPM, 간격 441ms, 최대 오차 220ms)는 뒷박 허용치가
+     *   250ms 라 이미 무조건 통과였다.
+     *
+     * ■ 그래도 빠른 곡이 어려운 건 맞다
+     *   그래서 "빠를수록 너그럽게"라는 원래 의도는 비율을 키우는 방식으로 살린다.
+     *   빠른 곡은 (더 좁은) 박 간격의 더 큰 비율을 받는다. 절대 시간은 줄어도
+     *   체감 난이도는 완만해지고, 50%(= 항상 통과)에는 절대 닿지 않는다.
+     */
     const beatSpread = beatsPerBar > 1 ? (beatInBarNum - 1) / (beatsPerBar - 1) : 1;
-    const toleranceMs = minToleranceMs + (maxToleranceMs - minToleranceMs) * beatSpread;
+
+    // 박 위치별 기본 비율. 강박(1박)은 엄격하고 뒤로 갈수록 너그럽다.
+    const baseRatio = 0.30 + (0.40 - 0.30) * beatSpread;
+
+    // 빠른 곡 보정. 120 BPM 을 넘어서면서부터 비율을 키운다(180 BPM 에서 최대 +0.04).
+    const speedBonus = Math.min(0.04, Math.max(0, (currentPiece.bpm - 120) / 60) * 0.04);
+
+    // 상한 0.44. 절반(0.5)이 곧 '항상 통과'라, 어떤 곡에서도 판정이 죽지 않게 막는다.
+    const toleranceRatio = Math.min(0.44, baseRatio + speedBonus);
+
+    // 아주 느린 곡에서 창이 과하게 벌어지지 않도록 절대 상한도 둔다.
+    const toleranceMs = Math.min(300, beatIntervalMs * toleranceRatio);
 
     // ── 방향 판정 ─────────────────────────────────────────────────────
     // 이 박에 기대되는 지휘 방향(1박 하강, 2박 안쪽 …)과 실제 스윙 방향을 견준다.
