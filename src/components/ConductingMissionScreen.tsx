@@ -10,6 +10,7 @@ import {
   type StrokeDirection,
   type StrokeResult,
 } from '../lib/conductingMotion';
+import { TutorialScreen } from './TutorialScreen';
 import { Music, Play, CheckCircle2, AlertCircle, Activity, Smartphone, Hand, Shuffle, Headphones, Pause, SkipForward, X, Timer, Target, VolumeX, Sparkles } from 'lucide-react';
 
 // 미션 통과 기준(정확 타점 비율 %). 화면 안내 문구와 판정 로직이 이 값 하나를 공유한다.
@@ -940,38 +941,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
               </div>
             )}
 
-            {/*
-              방향 인식 테스트 스위치 — 실기기 튜닝 중에만 둔다.
-              끄면 기존 세기 판정(흔들기만 해도 통과)으로 돌아가므로 둘을 바로 비교할 수 있다.
-            */}
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
-              <label className="flex items-center justify-between gap-2 cursor-pointer">
-                <span className="text-xs font-bold text-black break-keep">
-                  방향 인식 판정 <span className="text-slate-500 font-medium">(테스트)</span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={directionModeOn}
-                  onChange={e => setDirectionModeOn(e.target.checked)}
-                  className="w-4 h-4 accent-[#FE9A00]"
-                />
-              </label>
-              <label className="flex items-center justify-between gap-2 cursor-pointer">
-                <span className="text-xs font-bold text-black break-keep">
-                  센서 값 표시 <span className="text-slate-500 font-medium">(튜닝용)</span>
-                </span>
-                <input
-                  type="checkbox"
-                  checked={showMotionDebug}
-                  onChange={e => setShowMotionDebug(e.target.checked)}
-                  className="w-4 h-4 accent-[#FE9A00]"
-                />
-              </label>
-              <p className="text-[11px] text-slate-500 leading-snug break-keep">
-                켜면 박자마다 정해진 방향(1박 아래, 2박 안쪽…)으로 그어야 타점으로 인정됩니다.
-              </p>
-            </div>
-
             {/* 가로 2열 버튼 (튜토리얼 후 시작 vs 취소) */}
             <div className="pt-2 grid grid-cols-[1.6fr_1fr] items-stretch gap-2.5 w-full">
               <button
@@ -993,148 +962,13 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
         {/* TUTORIAL PREVIEW STATE (10s BEFORE 3, 2, 1 COUNTDOWN) */}
         {gameState === 'TUTORIAL_PREVIEW' && (
-          <div className="text-center space-y-4 max-w-md z-10 w-full animate-fade-in flex flex-col items-center">
-            {/* Top Status Header (검은색 알약 배지) */}
-            <div className="inline-flex items-center gap-2 bg-black border border-black rounded-full px-5 py-2 shadow-md">
-              <Music className="w-4 h-4 text-[#FE9A00] shrink-0" aria-hidden="true" />
-              <div className="text-xs font-bold text-white">{selectedBeat} 지휘 동작 가이드</div>
-            </div>
-
-            {/* 소리가 안 들리는 두 가지 원인(앱 음소거, 브라우저 오디오 잠금)을 구분해 알린다. */}
-            {isAppMuted ? (
-              <div className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left">
-                <VolumeX className="w-4 h-4 shrink-0 text-[#FE9A00]" aria-hidden="true" />
-                <span className="min-w-0 text-[11px] leading-snug text-black break-keep">
-                  앱 음소거가 켜져 있어 박자 소리가 나지 않습니다. 상단 스피커 버튼으로 해제해 주세요.
-                </span>
-              </div>
-            ) : isAudioBlocked ? (
-              <button
-                type="button"
-                onClick={handleUnlockAudio}
-                className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left transition-colors hover:bg-slate-100 active:translate-y-px"
-              >
-                <VolumeX className="w-4 h-4 shrink-0 text-[#FE9A00]" aria-hidden="true" />
-                <span className="min-w-0 text-[11px] leading-snug text-black break-keep">
-                  박자 소리가 차단되어 있습니다. 여기를 눌러 소리를 켜고, 기기의 무음 스위치도 확인해 주세요.
-                </span>
-              </button>
-            ) : null}
-
-            {/* Pattern Visualizer Fullsize Diagram (피그마 2번 시안 맞춤) */}
-            {(() => {
-              const guide = TUTORIAL_SVG_GUIDES[selectedBeat] || TUTORIAL_SVG_GUIDES['4/4'];
-              const isSuccessDemo = tutorialDemoMode === 'SUCCESS';
-              const activePoint = guide.points.find(pt => pt.beat === activeTutorialBeat) ?? guide.points[0];
-              return (
-                <div
-                  className={`relative w-full h-[290px] sm:h-[330px] rounded-2xl border overflow-hidden flex items-center justify-center shadow-inner ${
-                    isSuccessDemo
-                      ? 'bg-emerald-50/40 border-emerald-300'
-                      : 'bg-rose-50/40 border-rose-300'
-                  }`}
-                >
-                  <svg viewBox="0 0 200 150" className="w-full h-full p-4">
-                    <path d={guide.svgPath} fill="none" stroke="#94a3b8" strokeWidth="3.5" strokeDasharray="5 5" />
-                    {guide.points.map(pt => {
-                      const isActive = activeTutorialBeat === pt.beat;
-                      const activeFill = isSuccessDemo
-                        ? 'fill-emerald-500 stroke-emerald-200 stroke-2'
-                        : 'fill-rose-500 stroke-rose-300 stroke-2';
-                      return (
-                        <g key={pt.beat}>
-                          <circle
-                            cx={pt.x}
-                            cy={pt.y}
-                            r={isActive ? 12 : 7}
-                            className={isActive ? activeFill : 'fill-slate-300 stroke-slate-400 stroke-1'}
-                          />
-                          <text
-                            x={pt.x}
-                            y={pt.y + 20}
-                            textAnchor="middle"
-                            fill={isActive ? (isSuccessDemo ? '#059669' : '#e11d48') : '#64748b'}
-                            fontSize="9.5"
-                            fontWeight={isActive ? 'bold' : 'normal'}
-                            className="font-mono"
-                          >
-                            {pt.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-
-                    {isSuccessDemo ? (
-                      <circle
-                        cx={activePoint.x}
-                        cy={activePoint.y}
-                        r={18}
-                        fill="none"
-                        stroke="#059669"
-                        strokeWidth="2.5"
-                        opacity="0.85"
-                      />
-                    ) : (
-                      <g>
-                        <circle
-                          cx={activePoint.x + 20}
-                          cy={activePoint.y + 14}
-                          r={9}
-                          fill="none"
-                          stroke="#e11d48"
-                          strokeWidth="2"
-                          strokeDasharray="3 3"
-                        />
-                        <line
-                          x1={activePoint.x}
-                          y1={activePoint.y}
-                          x2={activePoint.x + 20}
-                          y2={activePoint.y + 14}
-                          stroke="#e11d48"
-                          strokeWidth="1.5"
-                          strokeDasharray="2 3"
-                          opacity="0.8"
-                        />
-                      </g>
-                    )}
-                  </svg>
-
-                  {/* 좌측 상단 박자 카운터 배지 */}
-                  <div className="absolute top-3 left-3 bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-mono text-black tabular-nums shadow-sm">
-                    <span className={`font-bold ${isSuccessDemo ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {activeTutorialBeat}
-                    </span>{' '}
-                    / {guide.points.length}박
-                  </div>
-
-                  {/* 우측 상단 성공/실패 예시 배지 */}
-                  <div
-                    className={`absolute top-3 right-3 px-3 py-1.5 rounded-lg text-xs font-bold tracking-wide border shadow-sm ${
-                      isSuccessDemo
-                        ? 'bg-emerald-100/90 border-emerald-300 text-emerald-800'
-                        : 'bg-rose-100/90 border-rose-300 text-rose-800'
-                    }`}
-                  >
-                    {isSuccessDemo ? '성공 예시 (정확한 타점)' : '실패 예시 (벗어난 궤적)'}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Bottom Buttons: Skip & Timer (가로 2열 배치) */}
-            <div className="pt-2 grid grid-cols-[1.6fr_1fr] items-stretch gap-2.5 w-full">
-              <button
-                onClick={start321Countdown}
-                type="button"
-                className="py-3.5 bg-black hover:bg-neutral-800 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-colors active:translate-y-px"
-              >
-                <SkipForward className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
-                <span>건너뛰고 바로 시작</span>
-              </button>
-              <div className="py-3.5 bg-[#FE9A00] text-black font-bold text-sm sm:text-base rounded-2xl shadow-md flex items-center justify-center tabular-nums">
-                {tutorialTimeLeft}초 후 시작
-              </div>
-            </div>
+          <div className="w-full max-w-md mx-auto animate-fade-in">
+            <TutorialScreen
+              isMissionMode={true}
+              presetBeat={selectedBeat}
+              missionTimeLeft={tutorialTimeLeft}
+              onSkipMissionTutorial={start321Countdown}
+            />
           </div>
         )}
 

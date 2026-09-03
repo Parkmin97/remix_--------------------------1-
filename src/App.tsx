@@ -57,7 +57,7 @@ function AppContent() {
   // ⚠️ 차단 화면 웹뷰에서는 띄우지 않는다.
   //    잠근 앱을 열어 차단 화면이 뜨는 순간에 명언부터 보여주면
   //    사용자는 미션에 닿기까지 2.5초를 더 기다려야 한다. 그 자리에 낄 화면이 아니다.
-  const [showSplash, setShowSplash] = useState<boolean>(() => !isBlockMode());
+  const [showSplash, setShowSplash] = useState<boolean>(() => !isBlockMode() && !getInitialScreen());
   const [activeSession, setActiveSession] = useState<SessionData | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);

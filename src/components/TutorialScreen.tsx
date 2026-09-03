@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Volume2, VolumeX, ArrowLeft, Play, Pause, RotateCcw } from 'lucide-react';
+import { Sparkles, Volume2, VolumeX, ArrowLeft, Play, Pause, RotateCcw, SkipForward } from 'lucide-react';
 import { BeatType } from '../types';
 import { audioSynthesizer } from '../lib/audioSynthesizer';
 
 interface TutorialScreenProps {
   onNavigateToScreen?: (tab: string) => void;
-  onBack: () => void;
+  onBack?: () => void;
+  isMissionMode?: boolean;
+  presetBeat?: BeatType;
+  missionTimeLeft?: number;
+  onSkipMissionTutorial?: () => void;
 }
 
 interface BeatInfo {
@@ -79,8 +83,14 @@ const BEAT_TUTORIALS: Record<BeatType, BeatInfo> = {
   },
 };
 
-export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onBack }) => {
-  const [selectedBeat, setSelectedBeat] = useState<BeatType>('4/4');
+export const TutorialScreen: React.FC<TutorialScreenProps> = ({
+  onBack,
+  isMissionMode = false,
+  presetBeat = '4/4',
+  missionTimeLeft = 10,
+  onSkipMissionTutorial,
+}) => {
+  const [selectedBeat, setSelectedBeat] = useState<BeatType>(presetBeat);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [soundOn, setSoundOn] = useState<boolean>(true);
   const [activeBeat, setActiveBeat] = useState<number>(1);
@@ -179,42 +189,48 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onBack }) => {
   return (
     <div className="min-h-full text-black px-4 py-3 sm:py-4 flex flex-col relative select-none">
       <div className="w-full max-w-lg mx-auto flex flex-col gap-3.5">
-        {/* 1. 상단 뒤로가기 & 서브 타이틀 */}
-        <div className="flex items-center gap-3 shrink-0 pt-0.5 pb-1">
-          <button
-            onClick={onBack}
-            className="p-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-black transition-colors active:scale-95 shadow-sm cursor-pointer"
-            title="뒤로가기"
-            aria-label="뒤로가기"
-          >
-            <ArrowLeft className="w-4 h-4 text-black" />
-          </button>
-          <h2 className="text-base sm:text-lg font-sans font-extrabold text-black tracking-wide">
-            지휘 동작 튜토리얼
-          </h2>
-        </div>
-
-        {/* 2. 박자 선택 칩 (가로 알약 4/4박자, 3/4박자, 2/4박자) */}
-        <div className="shrink-0 flex items-center gap-2.5">
-          {(['4/4', '3/4', '2/4'] as BeatType[]).map((beat) => {
-            const isSelected = selectedBeat === beat;
-            return (
+        {/* 1. 상단 헤더 (더보기 탭 전용) */}
+        {!isMissionMode && (
+          <div className="flex items-center gap-3 shrink-0 pt-0.5 pb-1">
+            {onBack && (
               <button
-                key={beat}
-                onClick={() => {
-                  setSelectedBeat(beat);
-                }}
-                className={`px-5 py-2.5 rounded-2xl border text-sm font-bold transition-all shrink-0 cursor-pointer ${
-                  isSelected
-                    ? 'bg-black text-white border-black shadow-md'
-                    : 'bg-white border-slate-200 text-black hover:border-slate-300'
-                }`}
+                onClick={onBack}
+                className="p-2 rounded-2xl bg-white border border-slate-200 hover:bg-slate-100 text-black transition-colors active:scale-95 shadow-sm cursor-pointer"
+                title="뒤로가기"
+                aria-label="뒤로가기"
               >
-                {beat}박자
+                <ArrowLeft className="w-4 h-4 text-black" />
               </button>
-            );
-          })}
-        </div>
+            )}
+            <h2 className="text-base sm:text-lg font-sans font-extrabold text-black tracking-wide">
+              지휘 동작 튜토리얼
+            </h2>
+          </div>
+        )}
+
+        {/* 2. 박자 선택 칩 (미션 모드 시 숨김) */}
+        {!isMissionMode && (
+          <div className="shrink-0 flex items-center gap-2.5">
+            {(['4/4', '3/4', '2/4'] as BeatType[]).map((beat) => {
+              const isSelected = selectedBeat === beat;
+              return (
+                <button
+                  key={beat}
+                  onClick={() => {
+                    setSelectedBeat(beat);
+                  }}
+                  className={`px-5 py-2.5 rounded-2xl border text-sm font-bold transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? 'bg-black text-white border-black shadow-md'
+                      : 'bg-white border-slate-200 text-black hover:border-slate-300'
+                  }`}
+                >
+                  {beat}박자
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* 3. 메인 지휘 튜토리얼 시연 카드 */}
         <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3.5 shrink-0">
@@ -386,6 +402,23 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({ onBack }) => {
             💡 <strong className="text-black">{tutorial.title} 핵심: </strong>
             {tutorial.description}
           </div>
+
+          {/* 하단 미션 전용 건너뛰기 & 타이머 컨트롤 박스 */}
+          {isMissionMode && (
+            <div className="pt-1 grid grid-cols-[1.6fr_1fr] items-stretch gap-2.5 w-full shrink-0">
+              <button
+                type="button"
+                onClick={onSkipMissionTutorial}
+                className="py-3.5 bg-black hover:bg-neutral-800 text-white font-bold text-sm sm:text-base rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-colors active:translate-y-px cursor-pointer"
+              >
+                <SkipForward className="w-4 h-4 text-[#FE9A00]" aria-hidden="true" />
+                <span>건너뛰고 바로 시작</span>
+              </button>
+              <div className="py-3.5 bg-[#FE9A00] text-black font-bold text-sm sm:text-base rounded-2xl shadow-md flex items-center justify-center tabular-nums font-mono">
+                {missionTimeLeft}초 후 시작
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
