@@ -35,7 +35,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ onStartSession, onNaviga
 
   return (
     <div className="h-full app-bg-light text-neutral-900 flex flex-col font-sans relative select-none">
-      {/* 예약 잠금 진행 중이면 어느 탭에 있든 남은 시간이 보인다 */}
+      {/* 잠금 진행 중(바로 잠금/예약 잠금)이면 어느 탭에 있든 상단에 남은 시간이 보인다 */}
       <UsageCountdownBar activeSession={activeSession} />
 
       {/* Main Content Area — 콘텐츠가 길면 세로 스크롤 허용 */}

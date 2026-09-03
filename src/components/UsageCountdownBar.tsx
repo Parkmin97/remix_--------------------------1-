@@ -1,23 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Hourglass, Lock } from 'lucide-react';
 import { SessionData } from '../types';
-import { isModeRunning } from '../lib/sessionState';
+import { isSessionRunning } from '../lib/sessionState';
 import { formatRemaining } from '../lib/countdown';
 
 /**
- * 예약 잠금 모드에서 "아직 앱을 쓸 수 있는 시간"을 초 단위로 계속 보여주는 띠.
+ * 잠금 모드(바로 잠금 및 예약 잠금)에서 "잠금 잔여 시간 / 사용 가능 시간"을 초 단위로 보여주는 상단 띠.
  *
- * ■ 왜 항상 떠 있어야 하는가
- *   예약 잠금은 "M분 먼저 쓰고 그 다음 잠근다"는 약속이다.
- *   남은 시간이 안 보이면 사용자는 언제 막힐지 모른 채 SNS 를 보다가
- *   갑자기 차단 화면을 만나고, 그것을 고장으로 오해한다.
- *
- *   그래서 앱 안에서는 어느 탭에 있든 이 띠가 보이고(여기),
- *   앱 밖 — 잠글 앱을 실제로 쓰는 동안 — 은 네이티브 오버레이가 같은 값을 띄운다
- *   (UsageOverlay.kt).
+ * ■ 동작
+ *   1. 예약 잠금(GUIDED_USE) 사용 가능 시간 중: 주황색 띠에 "사용 가능 시간 {시간} 뒤 잠금 시작" 표시
+ *   2. 잠금 진행 중(바로 잠금 FOCUS_NOW 및 예약 잠금의 잠금 구간): 검은색 띠에 "잠금 중 · 해제까지 {시간}" 표시
  *
  * ■ 표시하지 않는 경우
- *   예약 잠금 세션이 없거나 이미 끝났을 때. 자리만 차지한다.
+ *   진행 중인 세션이 없거나 이미 종료되었을 때 (null 반환).
  */
 
 interface UsageCountdownBarProps {
@@ -28,21 +23,21 @@ export const UsageCountdownBar: React.FC<UsageCountdownBarProps> = ({ activeSess
   // 1초마다 다시 그리기 위한 값. 시각 자체는 세션의 타임스탬프에서 계산한다.
   const [now, setNow] = useState<number>(() => Date.now());
 
-  const isModeBActive = isModeRunning(activeSession, 'GUIDED_USE');
+  const isRunning = isSessionRunning(activeSession);
 
   useEffect(() => {
-    if (!isModeBActive) return;
+    if (!isRunning) return;
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
-  }, [isModeBActive]);
+  }, [isRunning]);
 
-  if (!isModeBActive || !activeSession) return null;
+  if (!isRunning || !activeSession) return null;
 
   const usageEndsMs = activeSession.usageEndsAt ? new Date(activeSession.usageEndsAt).getTime() : 0;
   const focusEndsMs = activeSession.focusEndsAt ? new Date(activeSession.focusEndsAt).getTime() : 0;
 
-  // ① 아직 쓸 수 있는 시간 — 사용자가 가장 궁금해하는 값
-  if (usageEndsMs > now) {
+  // ① 예약 잠금 모드에서 아직 쓸 수 있는 시간 (사용 가능 시간)
+  if (activeSession.mode === 'GUIDED_USE' && usageEndsMs > now) {
     return (
       <div className="shrink-0 z-40 bg-[#FE9A00] text-black px-4 py-2 shadow-md">
         <div className="max-w-2xl mx-auto flex items-center justify-center gap-2">
@@ -57,8 +52,7 @@ export const UsageCountdownBar: React.FC<UsageCountdownBarProps> = ({ activeSess
     );
   }
 
-  // ② 사용 시간이 끝난 뒤 — 띠가 그냥 사라지면 "왜 없어졌지?"가 된다.
-  //    잠금이 시작됐다는 사실과 언제 풀리는지를 이어서 보여준다.
+  // ② 잠금 진행 중 (바로 잠금 모드 및 예약 잠금의 잠금 단계)
   if (focusEndsMs > now) {
     return (
       <div className="shrink-0 z-40 bg-neutral-900 text-white px-4 py-2 shadow-md">

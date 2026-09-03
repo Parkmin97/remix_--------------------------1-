@@ -330,6 +330,10 @@ function AppContent() {
   // 사용자는 나갈 방법이 없다고 느낀다.
   const lockRunning = isLockActive(activeSession, lockClock);
 
+  if (showSplash) {
+    return <SplashQuoteScreen onDone={() => setShowSplash(false)} />;
+  }
+
   return (
     <div className={`h-[100dvh] overflow-hidden flex flex-col font-sans antialiased selection:bg-amber-400 selection:text-neutral-950 ${currentTab === 'landing' ? 'bg-white text-neutral-900' : 'app-bg-light text-neutral-900'}`}>
       {/* Mobile-optimized status badge */}
@@ -455,9 +459,6 @@ function AppContent() {
         onStartMission={handleStartMissionFromIntervention}
         focusTask={activeSession?.focusTask}
       />
-
-      {/* 진입 화면 — 모든 것 위에 덮이고, 2.5초 뒤 또는 탭하면 사라진다 */}
-      {showSplash && <SplashQuoteScreen onDone={() => setShowSplash(false)} />}
     </div>
   );
 }

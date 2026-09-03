@@ -11,7 +11,7 @@
  */
 
 import React, { useState } from 'react';
-import { ShieldCheck, Eye, BatteryCharging, Check, ChevronRight, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Eye, Check, ChevronRight, AlertTriangle } from 'lucide-react';
 import { PermissionKind, useBlockerPermissions } from '../lib/blockerPermissions';
 
 /** 앱 이름 — 설정 화면 목록에서 사용자가 찾아야 하는 이름과 같아야 한다 */
@@ -62,19 +62,6 @@ const ITEMS: PermissionItem[] = [
       '뒤로 나오면 자동으로 확인됩니다',
     ],
     path: '설정 › 앱 › 특수한 접근 › 다른 앱 위에 표시',
-  },
-  {
-    kind: 'battery',
-    title: '배터리 최적화 제외',
-    why: '없어도 당장은 되지만, 며칠 뒤 감시가 꺼져 잠금이 풀릴 수 있습니다.',
-    required: false,
-    Icon: BatteryCharging,
-    steps: [
-      "위쪽 목록을 '모든 앱'으로 바꿉니다",
-      `'${APP_NAME}'을 찾아 누릅니다`,
-      "'최적화 안 함'을 선택합니다",
-    ],
-    path: '설정 › 배터리 › 백그라운드 사용 제한',
   },
 ];
 
@@ -225,26 +212,26 @@ export const PermissionSetupScreen: React.FC<{ onSkip: () => void; onDone: () =>
  * 모두 켜져 있거나 웹 환경이면 아무것도 그리지 않는다.
  */
 export const PermissionNotice: React.FC = () => {
-  const { env, permissions, canBlock, batteryOk, request, returnedWithoutGrant } = useBlockerPermissions();
+  const { env, permissions, canBlock, request, returnedWithoutGrant } = useBlockerPermissions();
 
   if (env !== 'native' || !permissions) return null;
-  if (canBlock && batteryOk) return null;
+  // 필수 권한(사용 정보 접근 + 다른 앱 위에 표시)이 모두 켜져 있으면 아무것도 그리지 않는다.
+  if (canBlock) return null;
 
-  // 필수가 빠졌으면 그것만, 필수가 다 있고 배터리만 빠졌으면 그것만 보여준다.
-  const missing = ITEMS.filter(item => !isGranted(item.kind, permissions) && (canBlock ? !item.required : item.required));
+  // 필수 권한이 빠져 있는 경우에만 표시
+  const missing = ITEMS.filter(item => item.required && !isGranted(item.kind, permissions));
+  if (missing.length === 0) return null;
 
   return (
-    <div className={`rounded-2xl border p-3.5 space-y-2.5 ${canBlock ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-300 shadow-xl'}`}>
+    <div className="rounded-2xl border p-3.5 space-y-2.5 bg-white border-slate-300 shadow-xl">
       <div className="flex items-start gap-2">
         <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-[#FE9A00]" />
         <p className="text-xs text-black leading-relaxed break-keep">
-          {canBlock
-            ? '배터리 최적화 제외가 꺼져 있습니다. 지금은 잠기지만 며칠 뒤 잠금이 풀릴 수 있습니다.'
-            : '권한이 없어 잠금이 실제로 걸리지 않습니다. 아래 권한을 켠 뒤 실행해 주세요.'}
+          권한이 없어 잠금이 실제로 걸리지 않습니다. 아래 필수 권한을 켠 뒤 실행해 주세요.
         </p>
       </div>
 
-      {/* 켜는 방법 안내는 설정 화면과 똑같이 보여준다. 여기서만 다르면 또 헤맨다. */}
+      {/* 켜는 방법 안내는 설정 화면과 똑같이 보여준다. */}
       {missing.map(item => (
         <PermissionRow
           key={item.kind}

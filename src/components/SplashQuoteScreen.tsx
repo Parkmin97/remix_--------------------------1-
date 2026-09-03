@@ -128,51 +128,53 @@ export const SplashQuoteScreen: React.FC<SplashQuoteScreenProps> = ({ onDone }) 
       aria-label="진입 화면 건너뛰기"
       onClick={onDone}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onDone(); }}
-      className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-between p-8 text-center animate-fade-in select-none overflow-hidden touch-none cursor-pointer"
+      className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-between p-8 text-center select-none overflow-hidden touch-none cursor-pointer"
     >
-      {/* 상단 타이틀 카드 */}
-      <div className="pt-8 z-10 w-full max-w-xs">
-        <div className="space-y-2 rounded-2xl bg-neutral-900/80 backdrop-blur-md border border-neutral-800 px-6 py-4 shadow-2xl text-center">
-          <h1 className="text-lg sm:text-xl font-sans font-extrabold tracking-widest text-white text-center">
-            MY LIFE MAESTRO
-          </h1>
-          <p className="text-xs text-neutral-300 font-serif leading-relaxed px-2">
-            {slogan.line1}<br />
-            {slogan.line2}
+      <div className="w-full h-full flex flex-col items-center justify-between animate-fade-in">
+        {/* 상단 타이틀 카드 */}
+        <div className="pt-8 z-10 w-full max-w-xs">
+          <div className="space-y-2 rounded-2xl bg-neutral-900/80 backdrop-blur-md border border-neutral-800 px-6 py-4 shadow-2xl text-center">
+            <h1 className="text-lg sm:text-xl font-sans font-extrabold tracking-widest text-white text-center">
+              MY LIFE MAESTRO
+            </h1>
+            <p className="text-xs text-neutral-300 font-serif leading-relaxed px-2">
+              {slogan.line1}<br />
+              {slogan.line2}
+            </p>
+          </div>
+        </div>
+
+        {/* 오늘의 한마디 */}
+        <div className="z-10 w-full px-2 text-center">
+          <div className="mb-3 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.28em] text-[#FE9A00]">
+            <span className="text-base text-[#FE9A00]">𝄞</span>
+            <span>오늘의 한마디</span>
+          </div>
+          <span className="pointer-events-none block select-none font-serif text-6xl leading-none text-[#FE9A00]/50">“</span>
+          <p className="-mt-2 font-serif text-lg sm:text-2xl italic font-semibold leading-snug text-white drop-shadow-md">
+            {quote.en}
           </p>
+          <p className="mt-4 text-base sm:text-xl font-medium leading-relaxed text-neutral-200 break-keep drop-shadow-md">
+            {quote.ko}
+          </p>
+          <div className="mt-5 flex items-center justify-center gap-2.5">
+            <span className="h-px w-8 bg-[#FE9A00]/60"></span>
+            <span className="text-sm font-bold text-[#FE9A00] break-keep">{quote.author}</span>
+            <span className="h-px w-8 bg-[#FE9A00]/60"></span>
+          </div>
         </div>
-      </div>
 
-      {/* 오늘의 한마디 */}
-      <div className="z-10 w-full px-2 text-center">
-        <div className="mb-3 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.28em] text-[#FE9A00]">
-          <span className="text-base text-[#FE9A00]">𝄞</span>
-          <span>오늘의 한마디</span>
-        </div>
-        <span className="pointer-events-none block select-none font-serif text-6xl leading-none text-[#FE9A00]/50">“</span>
-        <p className="-mt-2 font-serif text-lg sm:text-2xl italic font-semibold leading-snug text-white drop-shadow-md">
-          {quote.en}
-        </p>
-        <p className="mt-4 text-base sm:text-xl font-medium leading-relaxed text-neutral-200 break-keep drop-shadow-md">
-          {quote.ko}
-        </p>
-        <div className="mt-5 flex items-center justify-center gap-2.5">
-          <span className="h-px w-8 bg-[#FE9A00]/60"></span>
-          <span className="text-sm font-bold text-[#FE9A00] break-keep">{quote.author}</span>
-          <span className="h-px w-8 bg-[#FE9A00]/60"></span>
-        </div>
-      </div>
-
-      {/* 하단 진행 게이지 바 (3초 동안 매끄럽게 차오름, 텍스트 제거) */}
-      <div className="pb-8 z-10 w-full max-w-xs">
-        <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden border border-neutral-800 shadow-inner">
-          <div
-            className="bg-[#FE9A00] h-full rounded-full transition-all ease-linear shadow-[0_0_8px_rgba(254,154,0,0.6)]"
-            style={{
-              width: `${progress}%`,
-              transitionDuration: `${AUTO_DISMISS_MS}ms`,
-            }}
-          />
+        {/* 하단 진행 게이지 바 (3초 동안 매끄럽게 차오름, 텍스트 제거) */}
+        <div className="pb-8 z-10 w-full max-w-xs">
+          <div className="w-full bg-neutral-900 h-1.5 rounded-full overflow-hidden border border-neutral-800 shadow-inner">
+            <div
+              className="bg-[#FE9A00] h-full rounded-full transition-all ease-linear shadow-[0_0_8px_rgba(254,154,0,0.6)]"
+              style={{
+                width: `${progress}%`,
+                transitionDuration: `${AUTO_DISMISS_MS}ms`,
+              }}
+            />
+          </div>
         </div>
       </div>
     </div>
