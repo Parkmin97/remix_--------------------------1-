@@ -94,9 +94,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [soundOn, setSoundOn] = useState<boolean>(true);
   const [activeBeat, setActiveBeat] = useState<number>(1);
-  const [wandPos, setWandPos] = useState<{ x: number; y: number }>({ x: 100, y: 25 });
   const [pathLength, setPathLength] = useState<number>(0);
   const [dashOffset, setDashOffset] = useState<number>(0);
+  const [showVideoIntro, setShowVideoIntro] = useState<boolean>(true);
+  const [videoError, setVideoError] = useState<boolean>(false);
 
   const pathRef = useRef<SVGPathElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
@@ -114,8 +115,6 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
       progressRef.current = 0;
       lastTriggeredBeatRef.current = 0;
       setActiveBeat(1);
-      const startPt = pathRef.current.getPointAtLength(0);
-      setWandPos({ x: startPt.x, y: startPt.y });
     }
   }, [selectedBeat]);
 
@@ -140,8 +139,6 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
 
       if (pathRef.current && pathLength > 0) {
         const currentDist = progressRef.current * pathLength;
-        const pt = pathRef.current.getPointAtLength(currentDist);
-        setWandPos({ x: pt.x, y: pt.y });
 
         // 흐르는 혜성 꼬리(Moving Trail) 오프셋 업데이트
         setDashOffset(-currentDist);
@@ -178,16 +175,63 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     progressRef.current = 0;
     lastTriggeredBeatRef.current = 0;
     setActiveBeat(1);
-    if (pathRef.current) {
-      const startPt = pathRef.current.getPointAtLength(0);
-      setWandPos({ x: startPt.x, y: startPt.y });
-    }
   };
 
   const trailLength = pathLength > 0 ? pathLength * 0.38 : 100;
 
   return (
     <div className="min-h-full text-black px-4 py-3 sm:py-4 flex flex-col relative select-none">
+      {/* 0. 지휘 시연 MP4 비디오 비주얼 오버레이 (튜토리얼 시작 시 1차 노출) */}
+      {showVideoIntro && (
+        <div
+          onClick={() => setShowVideoIntro(false)}
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-between p-6 sm:p-8 cursor-pointer select-none animate-fade-in"
+        >
+          {/* 상단 닫기/안내 헤더 */}
+          <div className="w-full max-w-sm flex items-center justify-between pt-2">
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
+              <Sparkles className="w-4 h-4 text-[#FE9A00]" />
+              <span className="text-xs font-bold text-white tracking-wide">지휘 동작 시연 가이드</span>
+            </div>
+            <span className="text-xs font-medium text-white/60">화면 아무 데나 터치하여 닫기 ✕</span>
+          </div>
+
+          {/* MP4 비디오 비주얼 프레임 */}
+          <div className="relative my-auto flex flex-col items-center justify-center max-w-sm w-full">
+            <div className="relative w-full max-w-[260px] sm:max-w-[300px] aspect-[9/16] max-h-[55vh] rounded-3xl overflow-hidden border-2 border-[#FE9A00]/70 shadow-[0_0_35px_rgba(254,154,0,0.4)] bg-black flex items-center justify-center">
+              {!videoError ? (
+                <video
+                  src="/conducting_demo.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  onError={() => setVideoError(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center p-6 text-center text-white/80 gap-3">
+                  <div className="w-16 h-16 rounded-full bg-[#FE9A00]/20 flex items-center justify-center border border-[#FE9A00]/40 animate-pulse">
+                    <Sparkles className="w-8 h-8 text-[#FE9A00]" />
+                  </div>
+                  <p className="text-sm font-bold">지휘 시연 영상을 준비 중입니다</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 하단 가이드 멘트 및 탭 유도 */}
+          <div className="w-full max-w-sm flex flex-col items-center text-center gap-3 pb-4">
+            <div className="bg-[#FE9A00] text-black font-extrabold text-base sm:text-lg px-6 py-3 rounded-2xl shadow-xl border border-yellow-300 transform transition-transform hover:scale-105 active:scale-95">
+              "영상처럼 핸드폰을 움직여보세요"
+            </div>
+            <div className="flex items-center gap-1.5 text-white/80 text-xs font-medium animate-bounce pt-1">
+              <span>터치하면 튜토리얼이 시작됩니다</span>
+              <span className="text-base">👆</span>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-lg mx-auto flex flex-col gap-3.5">
         {/* 1. 상단 헤더 (더보기 탭 전용) */}
         {!isMissionMode && (
@@ -360,27 +404,6 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
                   </g>
                 );
               })}
-
-              {/* 4. 실시간으로 곡선을 누비는 빛나는 지휘봉 완드 팁 (Glowing Wand Pointer) */}
-              <g filter="url(#glowEffect)">
-                {/* 지휘봉 바깥 빛무리 */}
-                <circle
-                  cx={wandPos.x}
-                  cy={wandPos.y}
-                  r="9"
-                  fill="#FE9A00"
-                  opacity="0.55"
-                />
-                {/* 지휘봉 중심 백색 코어 */}
-                <circle
-                  cx={wandPos.x}
-                  cy={wandPos.y}
-                  r="5.5"
-                  fill="#FFFFFF"
-                  stroke="#FE9A00"
-                  strokeWidth="2"
-                />
-              </g>
             </svg>
 
             {/* 좌측 상단 실시간 현재 박자 뱃지 */}
