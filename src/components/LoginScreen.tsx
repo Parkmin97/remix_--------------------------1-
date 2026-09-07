@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { Mail, Lock, LogIn, UserPlus, LogOut, CheckCircle2, Loader2, Music } from 'lucide-react';
 import { supabase, toKoreanAuthError, isSupabaseConfigured } from '../lib/supabase';
+import { openExternalUrl } from '../lib/externalBrowser';
 
 interface LoginScreenProps {
   user: User | null;
@@ -216,14 +217,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
                     서비스 이용약관 및 개인정보처리방침에 동의합니다.
                   </span>
                 </label>
-                <a
-                  href="/privacy_terms.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-stone-400 hover:text-amber-300 underline shrink-0 mt-0.5"
+                <button
+                  type="button"
+                  onClick={() => openExternalUrl('/privacy_terms.pdf')}
+                  className="text-[11px] text-stone-400 hover:text-amber-300 underline shrink-0 mt-0.5 cursor-pointer"
                 >
                   보기
-                </a>
+                </button>
               </div>
             </div>
           )}
