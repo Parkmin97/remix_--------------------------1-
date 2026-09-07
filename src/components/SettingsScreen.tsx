@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { HelpCircle, FileText, ExternalLink, ShieldCheck, ArrowLeft, User, ChevronRight } from 'lucide-react';
+import { openExternalUrl } from '../lib/externalBrowser';
 
 /**
  * 약관 및 개인정보처리방침 PDF 파일 경로
@@ -23,7 +24,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handleOpenPrivacyPolicy = () => {
     if (PRIVACY_POLICY_URL) {
-      window.open(PRIVACY_POLICY_URL, '_blank', 'noopener,noreferrer');
+      openExternalUrl(PRIVACY_POLICY_URL);
     } else {
       setLegalNoticeMessage('개인정보처리방침 웹페이지 준비 중입니다. 노션/웹 URL이 지정되면 자동으로 연결됩니다.');
       setTimeout(() => setLegalNoticeMessage(null), 4000);
