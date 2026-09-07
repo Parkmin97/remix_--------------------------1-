@@ -3,9 +3,14 @@ import { HelpCircle, FileText, ExternalLink, ShieldCheck, ArrowLeft, User, Chevr
 import { openExternalUrl } from '../lib/externalBrowser';
 
 /**
- * 약관 및 개인정보처리방침 PDF 파일 경로
+ * 약관·개인정보처리방침·계정 삭제 안내를 모아둔 공개 웹 페이지.
+ *
+ * ⚠️ 앱 내부 PDF 경로가 아니라 **공개 URL** 이어야 한다.
+ *    Google Play 는 개인정보처리방침을 웹에서 접근 가능한 주소로 요구하고,
+ *    계정 삭제도 앱 내 경로와 별도로 웹 링크를 요구한다.
+ *    Play Console 에 등록하는 주소와 같은 곳을 가리켜야 심사에서 혼선이 없다.
  */
-const PRIVACY_POLICY_URL = '/privacy_terms.pdf';
+const PRIVACY_POLICY_URL = 'https://parkmin97.github.io/remix_--------------------------1-/';
 
 interface SettingsScreenProps {
   onBack?: () => void;
