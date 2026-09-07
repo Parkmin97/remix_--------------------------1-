@@ -15,7 +15,9 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
   setActiveSession,
   onNavigateToScreen
 }) => {
-  const focusTask = activeSession?.focusTask || '자기소개서 작성 및 자격증 공부';
+  // 목표는 사용자가 직접 적은 것만 쓴다. 안 적었으면 빈 값으로 두고 화면에서도 감춘다.
+  // 예전에는 여기 기본 문구가 박혀 있어, 적지도 않은 목표가 화면에 뜨고 서버에도 저장됐다.
+  const focusTask = activeSession?.focusTask?.trim() || '';
 
   // Option 1: Choose NOT to use app despite mission success (Keep lock active & return to phone home)
   const handleChooseNotToUse = () => {
@@ -33,7 +35,8 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
       // Supabase DB 백업 (로그인 유저가 있는 경우)
       syncSessionDecisionToSupabase({
         sessionId: activeSession.id,
-        focusTask,
+        // 적지 않은 목표를 서버에 만들어 넣지 않는다.
+        focusTask: focusTask || undefined,
         choseNotToUse: true,
       });
     }
@@ -46,7 +49,8 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
       // Supabase DB 백업 (로그인 유저가 있는 경우)
       syncSessionDecisionToSupabase({
         sessionId: activeSession.id,
-        focusTask,
+        // 적지 않은 목표를 서버에 만들어 넣지 않는다.
+        focusTask: focusTask || undefined,
         choseNotToUse: false,
       });
     }
@@ -63,9 +67,11 @@ export const SelfReflectionScreen: React.FC<SelfReflectionScreenProps> = ({
             지휘 미션을 훌륭히 통과했습니다!<br />이제 어떻게 하시겠어요?
           </h2>
 
-          <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-black/80 break-keep">
-            원래 목표: <strong className="text-[#FE9A00] font-bold">{focusTask}</strong>
-          </div>
+          {focusTask && (
+            <div className="p-2.5 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-black/80 break-keep">
+              원래 목표: <strong className="text-[#FE9A00] font-bold">{focusTask}</strong>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2.5 pt-1">

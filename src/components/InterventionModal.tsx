@@ -12,9 +12,12 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
   isOpen,
   onClose,
   onStartMission,
-  focusTask = '자기소개서 작성 및 자격증 공부'
+  focusTask
 }) => {
   if (!isOpen) return null;
+
+  // 사용자가 직접 적은 목표만 보여준다. 안 적었으면 목표 줄을 아예 그리지 않는다.
+  const goal = focusTask?.trim();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
@@ -35,9 +38,11 @@ export const InterventionModal: React.FC<InterventionModalProps> = ({
           <h3 className="text-xl font-bold font-serif text-black leading-snug">
             잠금 모드 실행 중이에요.<br />남이 아닌 내 인생을 지휘해보세요.
           </h3>
-          <p className="text-xs text-black/80 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-            목표: <strong className="text-[#FE9A00] font-bold">{focusTask}</strong>
-          </p>
+          {goal && (
+            <p className="text-xs text-black/80 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              목표: <strong className="text-[#FE9A00] font-bold">{goal}</strong>
+            </p>
+          )}
         </div>
 
         <div className="space-y-3 pt-1">

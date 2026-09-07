@@ -40,6 +40,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
       setError('비밀번호는 최소 6자 이상이어야 합니다.');
       return;
     }
+    // 오프라인이면 서버에 갈 이유가 없다. 기다리게 하지 말고 바로 알려준다.
+    // (온라인으로 나와도 실제로는 막힐 수 있어, 최종 방어는 toKoreanAuthError 가 맡는다.)
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setError('인터넷에 연결되어 있지 않습니다. Wi-Fi 또는 데이터를 켠 뒤 다시 시도해주세요.');
+      return;
+    }
 
     setLoading(true);
     try {

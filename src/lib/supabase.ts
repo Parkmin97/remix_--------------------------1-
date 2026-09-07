@@ -31,6 +31,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 /** Supabase Auth 에러 메시지를 한국어로 보기 좋게 변환한다. */
 export function toKoreanAuthError(message: string): string {
   const m = message.toLowerCase();
+
+  // 네트워크가 끊긴 상태. 실기기에서 Wi-Fi 가 꺼져 있거나 SIM 이 없으면
+  // 로그인·회원가입이 전부 실패하는데, 예전에는 "Failed to fetch" 같은
+  // 영문 원문이 그대로 노출돼 사용자가 앱 고장으로 오해했다.
+  if (
+    m.includes('failed to fetch') ||
+    m.includes('load failed') ||
+    m.includes('networkerror') ||
+    m.includes('network request failed') ||
+    m.includes('err_internet_disconnected') ||
+    m.includes('err_name_not_resolved')
+  ) {
+    return '인터넷에 연결되어 있지 않습니다. Wi-Fi 또는 데이터를 켠 뒤 다시 시도해주세요.';
+  }
+
   if (m.includes('invalid login credentials')) return '이메일 또는 비밀번호가 올바르지 않습니다.';
   if (m.includes('email not confirmed')) return '이메일 인증이 완료되지 않았습니다. 메일함의 확인 링크를 눌러주세요.';
   if (m.includes('user already registered')) return '이미 가입된 이메일입니다. 로그인해주세요.';
@@ -83,7 +98,6 @@ export async function syncDailyReportToSupabase(report: {
   date: string;
   completedFocusMinutes: number;
   confirmedCount: number;
-  totalSnsMinutes?: number;
   cancelledCount: number;
   missionSuccessCount: number;
   missionFailCount: number;
@@ -100,7 +114,6 @@ export async function syncDailyReportToSupabase(report: {
         date: report.date,
         completed_focus_minutes: report.completedFocusMinutes,
         confirmed_count: report.confirmedCount,
-        total_sns_minutes: report.totalSnsMinutes || 0,
         cancelled_count: report.cancelledCount,
         mission_success_count: report.missionSuccessCount,
         mission_fail_count: report.missionFailCount,
@@ -122,60 +135,12 @@ export async function syncDailyReportToSupabase(report: {
 }
 
 /**
- * 잠금 이력(LockHistoryEntry) 데이터를 Supabase DB에 동기화 백업한다.
- */
-export async function syncLockHistoryToSupabase(history: {
-  sessionId: string;
-  date: string;
-  startedAt: number;
-  endedAt: number;
-  heldMinutes: number;
-  plannedMinutes: number;
-  endReason: string;
-  blockedAppCount: number;
-  launchAttempts: number;
-}): Promise<boolean> {
-  try {
-    const { data: authData } = await supabase.auth.getSession();
-    const user = authData.session?.user;
-    if (!user) return false;
-
-    const { error } = await supabase.from('lock_histories').upsert(
-      {
-        user_id: user.id,
-        session_id: history.sessionId,
-        date: history.date,
-        started_at: history.startedAt,
-        ended_at: history.endedAt,
-        held_minutes: history.heldMinutes,
-        planned_minutes: history.plannedMinutes,
-        end_reason: history.endReason,
-        blocked_app_count: history.blockedAppCount,
-        launch_attempts: history.launchAttempts,
-        created_at: new Date().toISOString(),
-      },
-      { onConflict: 'user_id,session_id' }
-    );
-
-    if (error) {
-      console.warn('[Supabase] 잠금 이력 백업 실패:', error.message);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.warn('[Supabase] 잠금 이력 백업 중 예외 발생:', err);
-    return false;
-  }
-}
-
-/**
  * 로그인한 유저의 Supabase DB에서 일별 리포트 목록을 조회하여 복원한다.
  */
 export async function fetchDailyReportsFromSupabase(): Promise<Array<{
   date: string;
   completedFocusMinutes: number;
   confirmedCount: number;
-  totalSnsMinutes?: number;
   cancelledCount: number;
   missionSuccessCount: number;
   missionFailCount: number;
@@ -203,7 +168,6 @@ export async function fetchDailyReportsFromSupabase(): Promise<Array<{
       date: row.date,
       completedFocusMinutes: row.completed_focus_minutes || 0,
       confirmedCount: row.confirmed_count || 0,
-      totalSnsMinutes: row.total_sns_minutes || 0,
       cancelledCount: row.cancelled_count || 0,
       missionSuccessCount: row.mission_success_count || 0,
       missionFailCount: row.mission_fail_count || 0,
