@@ -19,6 +19,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isAgeConfirmed, setIsAgeConfirmed] = useState(false);
+  const [isTermsAgreed, setIsTermsAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -36,9 +38,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
       setError('이메일과 비밀번호를 모두 입력해주세요.');
       return;
     }
-    if (mode === 'signup' && password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다.');
-      return;
+    if (mode === 'signup') {
+      if (password.length < 6) {
+        setError('비밀번호는 최소 6자 이상이어야 합니다.');
+        return;
+      }
+      if (!isAgeConfirmed) {
+        setError('만 14세 이상만 회원가입이 가능합니다.');
+        return;
+      }
+      if (!isTermsAgreed) {
+        setError('서비스 이용약관 및 개인정보처리방침에 동의해주세요.');
+        return;
+      }
     }
 
     setLoading(true);
@@ -174,6 +186,48 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
             />
           </div>
 
+          {mode === 'signup' && (
+            <div className="pt-1 pb-1 space-y-2.5">
+              {/* 1. 만 14세 이상 체크박스 */}
+              <label className="flex items-start gap-2.5 cursor-pointer select-none text-xs text-stone-300">
+                <input
+                  type="checkbox"
+                  checked={isAgeConfirmed}
+                  onChange={(e) => setIsAgeConfirmed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-neutral-700 bg-neutral-900 text-amber-500 focus:ring-amber-500/40 accent-amber-500 cursor-pointer shrink-0"
+                />
+                <span className="leading-snug break-keep">
+                  <span className="font-bold text-amber-400 mr-1">[필수]</span>
+                  만 14세 이상입니다.
+                </span>
+              </label>
+
+              {/* 2. 서비스 이용약관 및 개인정보처리방침 동의 체크박스 */}
+              <div className="flex items-start justify-between gap-2 text-xs text-stone-300">
+                <label className="flex items-start gap-2.5 cursor-pointer select-none flex-1 min-w-0">
+                  <input
+                    type="checkbox"
+                    checked={isTermsAgreed}
+                    onChange={(e) => setIsTermsAgreed(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-neutral-700 bg-neutral-900 text-amber-500 focus:ring-amber-500/40 accent-amber-500 cursor-pointer shrink-0"
+                  />
+                  <span className="leading-snug break-keep">
+                    <span className="font-bold text-amber-400 mr-1">[필수]</span>
+                    서비스 이용약관 및 개인정보처리방침에 동의합니다.
+                  </span>
+                </label>
+                <a
+                  href="/privacy_terms.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-stone-400 hover:text-amber-300 underline shrink-0 mt-0.5"
+                >
+                  보기
+                </a>
+              </div>
+            </div>
+          )}
+
           {error && (
             <p className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">{error}</p>
           )}
@@ -183,8 +237,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
 
           <button
             type="submit"
-            disabled={loading || !isSupabaseConfigured}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-3.5 text-sm font-black text-stone-950 transition-all hover:from-amber-300 hover:to-amber-400 active:scale-[0.98] disabled:opacity-60"
+            disabled={loading || !isSupabaseConfigured || (mode === 'signup' && (!isAgeConfirmed || !isTermsAgreed))}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 py-3.5 text-sm font-black text-stone-950 transition-all hover:from-amber-300 hover:to-amber-400 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
