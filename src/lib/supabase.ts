@@ -215,3 +215,51 @@ export async function fetchDailyReportsFromSupabase(): Promise<Array<{
   }
 }
 
+
+/**
+ * 회원 탈퇴 — 계정과 서버 데이터를 영구 삭제한다.
+ *
+ * ⚠️ 로그아웃과 전혀 다르다.
+ *    로그아웃(`supabase.auth.signOut`)은 이 기기의 세션만 끊고 계정은 그대로 남아
+ *    다시 로그인하면 데이터가 돌아온다.
+ *    탈퇴는 daily_reports · lock_histories · session_decisions 의 본인 행과
+ *    인증 계정 자체를 지우며, **되돌릴 수 없다.**
+ *
+ * 계정 삭제는 service_role 권한이 필요하고 그 키는 앱에 둘 수 없으므로,
+ * 서버의 Edge Function(`delete-account`)이 대신 수행한다.
+ * 함수가 아직 배포되지 않았으면 실패로 돌려준다 — **지우지 못했는데 성공이라고 말하지 않는다.**
+ *
+ * @returns 성공 여부와, 실패 시 사용자에게 보여줄 한국어 사유
+ */
+export async function deleteAccountOnServer(): Promise<{ ok: boolean; message?: string }> {
+  try {
+    const { data: authData } = await supabase.auth.getSession();
+    if (!authData.session) {
+      return { ok: false, message: '로그인 상태를 확인하지 못했습니다. 다시 로그인해주세요.' };
+    }
+
+    const { data, error } = await supabase.functions.invoke('delete-account', {
+      method: 'POST',
+    });
+
+    if (error) {
+      console.error('[Supabase] 탈퇴 함수 호출 실패:', error.message);
+      return {
+        ok: false,
+        message: '탈퇴 처리에 실패했습니다. 잠시 후 다시 시도하거나 고객센터로 문의해주세요.',
+      };
+    }
+
+    if (!data?.ok) {
+      return {
+        ok: false,
+        message: (data?.error as string) || '탈퇴 처리에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      };
+    }
+
+    return { ok: true };
+  } catch (err) {
+    console.error('[Supabase] 탈퇴 처리 예외:', err);
+    return { ok: false, message: '네트워크 연결을 확인한 뒤 다시 시도해주세요.' };
+  }
+}

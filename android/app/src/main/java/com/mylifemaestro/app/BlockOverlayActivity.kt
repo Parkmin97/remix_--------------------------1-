@@ -14,6 +14,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.view.WindowManager
 import androidx.webkit.WebViewAssetLoader
+import org.json.JSONObject
 
 /**
  * 차단 화면.
@@ -60,6 +61,7 @@ class BlockOverlayActivity : Activity() {
     /** 지금 웹뷰에 실제로 올라가 있는 내용. 같은 내용이면 다시 읽지 않는다. */
     private var loadedPackage: String? = null
     private var loadedMissionAttempted: Boolean = false
+    private var loadedFocusTask: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,15 +93,23 @@ class BlockOverlayActivity : Activity() {
      */
     private fun loadContentIfNeeded() {
         val blockedPackage = intent?.getStringExtra(EXTRA_BLOCKED_PACKAGE) ?: "unknown"
-        val missionAttempted = BlockSessionStore.getStatus(this).missionAttempted
+        val status = BlockSessionStore.getStatus(this)
+        val missionAttempted = status.missionAttempted
+        // 목표 문구도 비교 대상이다. 세션이 바뀌어 목표만 달라졌는데 화면을 재사용하면
+        // 이미 그려진 웹뷰가 예전 목표를 그대로 들고 있어 엉뚱한 문구가 뜬다.
+        val focusTask = status.focusTask
 
-        if (blockedPackage == loadedPackage && missionAttempted == loadedMissionAttempted) {
+        if (blockedPackage == loadedPackage &&
+            missionAttempted == loadedMissionAttempted &&
+            focusTask == loadedFocusTask
+        ) {
             Log.i(TAG, "차단 화면 재사용 — 대상: $blockedPackage")
             return
         }
 
         loadedPackage = blockedPackage
         loadedMissionAttempted = missionAttempted
+        loadedFocusTask = focusTask
 
         // 차단 화면은 선택지부터 보여준다. 미션은 사용자가 "잠금 풀기"를 골랐을 때 시작된다.
         val url = "https://$ASSET_HOST/index.html?screen=block-choice&mode=block&pkg=$blockedPackage"
@@ -171,17 +181,25 @@ class BlockOverlayActivity : Activity() {
          *
          * 특히 `missionAttempted` 가 중요하다. 이미 미션을 시도했다면
          * "잠금 풀기" 선택지를 보여주면 안 된다. 우리 플로우상 재도전이 없기 때문이다.
+         *
+         * ⚠️ 문자열을 이어붙여 JSON 을 만들지 않는다.
+         *    `focusTask` 는 사용자가 직접 쓴 자유 텍스트라 따옴표·역슬래시·개행이 들어올 수 있고,
+         *    하나만 새어 나가도 웹의 JSON.parse 가 통째로 실패해 차단 화면이 빈 화면이 된다.
+         *    [JSONObject] 가 이스케이프를 책임지게 한다.
          */
         @JavascriptInterface
         fun getBlockInfo(): String {
             val status = BlockSessionStore.getStatus(this@BlockOverlayActivity)
             val pkg = intent?.getStringExtra(EXTRA_BLOCKED_PACKAGE) ?: ""
-            return """
-                {"blockedPackage":"$pkg",
-                 "missionAttempted":${status.missionAttempted},
-                 "lockEndsAt":${status.lockEndsAt},
-                 "launchAttempts":${status.launchAttempts}}
-            """.trimIndent().replace("\n", "")
+            return JSONObject()
+                .put("blockedPackage", pkg)
+                .put("missionAttempted", status.missionAttempted)
+                // epoch millis. 차단 화면의 실시간 카운트다운이 이 값을 그대로 쓴다.
+                .put("lockEndsAt", status.lockEndsAt)
+                .put("launchAttempts", status.launchAttempts)
+                // 사용자가 정한 목표 문구. 설정하지 않았으면 빈 문자열이다.
+                .put("focusTask", status.focusTask)
+                .toString()
         }
 
         @JavascriptInterface

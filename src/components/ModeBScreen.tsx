@@ -31,8 +31,10 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
   const [focusDuration, setFocusDuration] = useState<number>(() => {
     return runningSession?.focusDurationMinutes ?? 60;
   });
+  // 기본값을 두지 않는다. 차단 화면에는 사용자가 직접 적은 목표만 떠야 하므로,
+  // 안 적었으면 빈 문자열로 넘어가 차단 화면에서 목표 줄이 아예 숨겨진다.
   const [focusTask, setFocusTask] = useState<string>(() => {
-    return runningSession?.focusTask ?? '자기소개서 작성 및 자격증 공부';
+    return runningSession?.focusTask ?? '';
   });
 
   // 진행 중인 예약 잠금 세션이 있을 때만 폼을 잠근다.

@@ -144,9 +144,13 @@ class BlockerPlugin : Plugin() {
             }
         }
 
+        // 사용자가 이번 잠금 동안 하기로 한 일. 차단 화면에 그대로 보여준다.
+        // 선택값이므로 없어도 세션은 정상 시작된다 — 여기서 reject 하면 안 된다.
+        val focusTask = call.getString("focusTask")?.trim().orEmpty()
+
         BlockSessionStore.startSession(
             context, sessionId, lockEndsAt, usageEndsAt,
-            packages, categories, packageCategories
+            packages, categories, packageCategories, focusTask
         )
 
         // 세션이 생겼으니 감시를 시작한다. 이미 돌고 있으면 무시된다.

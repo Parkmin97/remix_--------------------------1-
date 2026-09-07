@@ -150,3 +150,42 @@ export const syncReportsFromSupabase = async (): Promise<boolean> => {
 export const clearAllData = (): void => {
   localStorage.clear();
 };
+
+/**
+ * 프로필 사진 (기기 안에만 보관).
+ *
+ * 갤러리에서 고른 사진은 **폰 밖으로 나가지 않는다.** 서버에 올리지 않기로 한 결정이라
+ * Play 데이터 보안 양식의 "사진 수집 안 함"을 그대로 유지할 수 있다.
+ * 대신 앱을 지우거나 기기를 바꾸면 사라지고, 다른 기기에서는 보이지 않는다.
+ *
+ * 계정별로 키를 나눈다. 한 폰에서 여러 계정을 쓸 때 남의 사진이 보이면 안 된다.
+ * 값은 축소·압축된 data URL 이다(원본을 그대로 넣으면 localStorage 용량을 넘긴다).
+ */
+const avatarKey = (userId: string) => `life_conductor_avatar_${userId}`;
+
+export const getLocalAvatar = (userId: string | undefined): string | null => {
+  if (!userId) return null;
+  try {
+    return localStorage.getItem(avatarKey(userId));
+  } catch {
+    return null;
+  }
+};
+
+export const saveLocalAvatar = (userId: string, dataUrl: string): boolean => {
+  try {
+    localStorage.setItem(avatarKey(userId), dataUrl);
+    return true;
+  } catch {
+    // 용량 초과 등. 저장에 실패해도 앱은 계속 동작해야 한다.
+    return false;
+  }
+};
+
+export const clearLocalAvatar = (userId: string): void => {
+  try {
+    localStorage.removeItem(avatarKey(userId));
+  } catch {
+    /* 지우기 실패는 무시한다 */
+  }
+};

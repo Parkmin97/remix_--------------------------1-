@@ -32,6 +32,8 @@ object BlockSessionStore {
     private const val KEY_BLOCKED_CATEGORIES = "blocked_categories"
     /** 패키지 → 카테고리 대응표. "패키지=카테고리" 형태의 문자열 집합으로 둔다. */
     private const val KEY_PACKAGE_CATEGORIES = "package_categories"
+    /** 사용자가 이번 잠금 동안 하기로 한 일. 차단 화면에 그대로 보여준다. */
+    private const val KEY_FOCUS_TASK = "focus_task"
     private const val KEY_MISSION_ATTEMPTED = "mission_attempted"
     private const val KEY_LAUNCH_ATTEMPTS = "launch_attempts"
 
@@ -50,6 +52,8 @@ object BlockSessionStore {
         val blockedCategories: Set<String>,
         /** 패키지 → 카테고리. 잠근 카테고리에 속한 앱만 들어 있다. */
         val packageCategories: Map<String, String>,
+        /** 사용자가 정한 목표 문구. 설정하지 않았으면 빈 문자열. */
+        val focusTask: String,
         /** 이번 세션에서 미션을 이미 시도했는지. 했으면 다시 못 한다. */
         val missionAttempted: Boolean,
         val launchAttempts: Int
@@ -65,6 +69,7 @@ object BlockSessionStore {
      * @param lockEndsAt   잠금이 끝나는 시각(epoch millis)
      * @param usageEndsAt  모드 B에서 "먼저 쓰기로 한" 시간의 종료 시각.
      *                     이 시각 전까지는 차단하지 않는다. 모드 A면 0.
+     * @param focusTask    사용자가 이번 잠금 동안 하기로 한 일. 선택값이라 없으면 빈 문자열.
      */
     fun startSession(
         context: Context,
@@ -73,7 +78,8 @@ object BlockSessionStore {
         usageEndsAt: Long,
         blockedPackages: Set<String>,
         blockedCategories: Set<String> = emptySet(),
-        packageCategories: Map<String, String> = emptyMap()
+        packageCategories: Map<String, String> = emptyMap(),
+        focusTask: String = ""
     ) {
         prefs(context).edit()
             .putString(KEY_SESSION_ID, sessionId)
@@ -86,6 +92,7 @@ object BlockSessionStore {
                 KEY_PACKAGE_CATEGORIES,
                 packageCategories.map { (pkg, cat) -> "$pkg=$cat" }.toSet()
             )
+            .putString(KEY_FOCUS_TASK, focusTask)
             .putBoolean(KEY_MISSION_ATTEMPTED, false)
             .putInt(KEY_LAUNCH_ATTEMPTS, 0)
             .apply()
@@ -166,6 +173,7 @@ object BlockSessionStore {
                     if (i <= 0) null else entry.substring(0, i) to entry.substring(i + 1)
                 }
                 .toMap(),
+            focusTask = p.getString(KEY_FOCUS_TASK, "") ?: "",
             missionAttempted = p.getBoolean(KEY_MISSION_ATTEMPTED, false),
             launchAttempts = p.getInt(KEY_LAUNCH_ATTEMPTS, 0)
         )

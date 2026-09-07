@@ -24,6 +24,13 @@ export interface BlockInfo {
   lockEndsAt: number;
   /** 잠근 앱을 열려고 시도한 횟수 */
   launchAttempts: number;
+  /**
+   * 사용자가 세션 시작 때 적어둔 목표 문구.
+   *
+   * 네이티브가 내려주는 값이며 **없을 수 있다.**
+   * (목표를 적지 않았거나, 이 필드가 생기기 전에 시작된 기존 세션)
+   */
+  focusTask?: string;
 }
 
 declare global {

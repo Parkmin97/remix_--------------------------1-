@@ -283,6 +283,8 @@ function AppContent() {
         blockedPackages: packages,
         blockedCategories: categoryIds,
         packageCategories,
+        // 차단 화면에 "무엇에 집중하기로 했는지"를 띄우기 위해 넘긴다. 안 적었으면 undefined.
+        focusTask: session.focusTask,
       }).catch(err => console.warn('[App] 네이티브 차단 시작 실패(웹 환경일 수 있음)', err));
     }
 
