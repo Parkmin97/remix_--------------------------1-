@@ -227,12 +227,23 @@ function AppContent() {
       }
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       setAuthChecked(true);
       if (currentUser) {
         syncReportsFromSupabase();
+      }
+
+      // 로그아웃·탈퇴 후에는 로그인 화면으로 되돌린다.
+      // 게이트(needsAuth)가 'home' 탭에서만 걸리므로, 프로필 설정 같은 다른 화면에서
+      // 로그아웃하면 user 만 비고 화면은 그대로 남아 있었다.
+      // SIGNED_OUT 만 본다 — 처음 들어온 미로그인 상태(INITIAL_SESSION)까지 잡으면
+      // 공개 화면인 랜딩을 못 보게 된다.
+      // 단, 차단 화면 웹뷰에서는 옮기지 않는다. 인증 이벤트가 잠긴 앱을 빠져나가는
+      // 통로가 되면 안 된다.
+      if (event === 'SIGNED_OUT' && !isBlockMode()) {
+        setCurrentTab('home');
       }
     });
 
