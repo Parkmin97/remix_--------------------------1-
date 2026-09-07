@@ -96,7 +96,8 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
    */
   const { canBlock } = useBlockerPermissions();
 
-  const canStart = hasSelectableApp && canBlock;
+  const isTimeValid = focusDuration > 0;
+  const canStart = hasSelectableApp && canBlock && isTimeValid;
 
   // 지금 잠금 실행 버튼 클릭 시 세션 적용 및 폰 홈 화면 이동
   const handleStart = () => {
@@ -171,15 +172,15 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
                 <Clock className="w-3.5 h-3.5 text-[#FE9A00]" />
                 <span>잠금 시간 설정</span>
                 <span className="text-[10px] text-black/60 font-normal">
-                  (최소 15분{TEST_EXTRA_MINUTES.length > 0 ? ' · 테스트용 1분' : ''})
+                  (0시간 ~ 12시간)
                 </span>
                 {isLocked && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
               </label>
               <TimeSlotPicker
                 value={focusDuration}
                 onChange={(val) => setFocusDuration(val)}
-                min={15}
-                max={360}
+                min={5}
+                max={720}
                 step={5}
                 extraOptions={TEST_EXTRA_MINUTES}
               />
@@ -215,6 +216,7 @@ export const ModeAScreen: React.FC<ModeAScreenProps> = ({ onStartSession, active
             <span>
               {!hasSelectableApp ? '잠글 앱을 먼저 선택하세요'
                 : !canBlock ? '잠금 권한을 먼저 켜주세요'
+                : !isTimeValid ? '시간을 설정해 주세요'
                 : '지금 잠금 모드 실행'}
             </span>
           </button>

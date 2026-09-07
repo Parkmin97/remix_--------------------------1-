@@ -21,6 +21,7 @@ import { ConductingMissionScreen } from './components/ConductingMissionScreen';
 import { SelfReflectionScreen } from './components/SelfReflectionScreen';
 import { ReportScreen } from './components/ReportScreen';
 import { SettingsScreen } from './components/SettingsScreen';
+import { ProfileSettingsScreen } from './components/ProfileSettingsScreen';
 import { TutorialScreen } from './components/TutorialScreen';
 import { FaqScreen } from './components/FaqScreen';
 import { BlockChoiceScreen } from './components/BlockChoiceScreen';
@@ -326,7 +327,7 @@ function AppContent() {
   const SHOW_TOP_NAV = false;
 
   // 잠금이 도는 동안에는 로그아웃을 막는다 — 사유는 MoreScreen 의 lockRunning 주석 참고.
-  // 시계까지 보는 isLockActive 를 쓴다. 잠금 시간이 지났는데 버튼이 계속 잠겨 있으면
+  // 시계까지보는 isLockActive 를 쓴다. 잠금 시간이 지났는데 버튼이 계속 잠겨 있으면
   // 사용자는 나갈 방법이 없다고 느낀다.
   const lockRunning = isLockActive(activeSession, lockClock);
 
@@ -434,8 +435,16 @@ function AppContent() {
           <SettingsScreen
             onBack={handleBackToMore}
             onOpenOnboarding={() => setIsOnboardingOpen(true)}
+            onNavigateToScreen={setCurrentTab}
             isMuted={isMuted}
             setIsMuted={setIsMuted}
+          />
+        )}
+
+        {currentTab === 'profile-settings' && (
+          <ProfileSettingsScreen
+            onBack={() => setCurrentTab('settings')}
+            lockRunning={lockRunning}
           />
         )}
 

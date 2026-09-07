@@ -2,21 +2,16 @@ import React, { useRef, useEffect } from 'react';
 
 /**
  * 정식 출시 전까지만 쓰는 테스트용 임시 시간 옵션(분).
- *
- * 잠금이 실제로 걸리고 풀리는지 확인하려면 최소 15분을 기다려야 해서
- * 실기기 검증이 사실상 불가능하다. 그래서 1분을 임시로 열어둔다.
- * **출시 전에 이 배열을 비우면** 원래 최소 시간 규칙으로 그대로 돌아간다.
  */
-export const TEST_EXTRA_MINUTES: number[] = [1];
+export const TEST_EXTRA_MINUTES: number[] = [];
 
 interface TimeSlotPickerProps {
-  value: number; // minutes, e.g. 5, 10, 15...
+  value: number; // total minutes (e.g. 0, 5, 10, 60, 90...)
   onChange: (value: number) => void;
   min?: number;
   max?: number;
   step?: number;
-  heightPx?: number; // overall wheel height; compact frames pass a smaller value
-  /** min 아래로 추가할 값들(분). 테스트용 1분처럼 규칙 밖의 값을 끼워 넣는 용도. */
+  heightPx?: number;
   extraOptions?: number[];
 }
 
@@ -29,98 +24,161 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   heightPx = 160,
   extraOptions = [],
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const hoursRef = useRef<HTMLDivElement>(null);
+  const minutesRef = useRef<HTMLDivElement>(null);
 
-  // Generate options list based on min, max, step
-  const options: number[] = [];
-  for (let i = min; i <= max; i += step) {
-    options.push(i);
+  // Hours options: 0 ~ 12
+  const maxHours = Math.min(12, Math.floor(max / 60));
+  const hourOptions: number[] = [];
+  for (let h = 0; h <= maxHours; h++) {
+    hourOptions.push(h);
   }
-  // 규칙 밖 값(테스트용 1분 등)을 앞에 붙인다. 중복·범위 밖 값은 걸러내고 오름차순 유지.
+
+  // Minutes options: 0, 5, 10, 15 ... 55 (plus extraOptions if present)
+  const minuteOptions: number[] = [];
+  for (let m = 0; m < 60; m += step) {
+    minuteOptions.push(m);
+  }
   if (extraOptions.length > 0) {
     for (const extra of extraOptions) {
-      if (extra > 0 && extra <= max && !options.includes(extra)) {
-        options.push(extra);
+      if (extra >= 0 && extra < 60 && !minuteOptions.includes(extra)) {
+        minuteOptions.push(extra);
       }
     }
-    options.sort((a, b) => a - b);
+    minuteOptions.sort((a, b) => a - b);
   }
 
-  const ITEM_HEIGHT = 40; // Height of each slot item in px
-  const padY = (heightPx - ITEM_HEIGHT) / 2; // centers the selected item in the wheel
+  const ITEM_HEIGHT = 40;
+  const padY = (heightPx - ITEM_HEIGHT) / 2;
 
+  // Deconstruct total minutes into current hours & minutes
+  const currentHours = Math.floor(value / 60);
+  const currentMins = value % 60;
+
+  // Initial scroll position synchronization
   useEffect(() => {
-    if (containerRef.current) {
-      const index = options.indexOf(value);
-      if (index !== -1) {
-        containerRef.current.scrollTop = index * ITEM_HEIGHT;
+    if (hoursRef.current) {
+      const hIdx = hourOptions.indexOf(currentHours);
+      if (hIdx !== -1) {
+        hoursRef.current.scrollTop = hIdx * ITEM_HEIGHT;
+      }
+    }
+    if (minutesRef.current) {
+      const mIdx = minuteOptions.indexOf(currentMins);
+      if (mIdx !== -1) {
+        minutesRef.current.scrollTop = mIdx * ITEM_HEIGHT;
       }
     }
   }, []);
 
-  const handleScroll = () => {
-    if (!containerRef.current) return;
-    const scrollTop = containerRef.current.scrollTop;
-    const index = Math.round(scrollTop / ITEM_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(index, options.length - 1));
-    const selectedVal = options[clampedIndex];
-    if (selectedVal !== undefined && selectedVal !== value) {
-      onChange(selectedVal);
+  const handleHourScroll = () => {
+    if (!hoursRef.current) return;
+    const index = Math.round(hoursRef.current.scrollTop / ITEM_HEIGHT);
+    const clampedIndex = Math.max(0, Math.min(index, hourOptions.length - 1));
+    const newHour = hourOptions[clampedIndex];
+    if (newHour !== undefined && newHour !== currentHours) {
+      const newTotal = newHour * 60 + currentMins;
+      onChange(newTotal);
     }
   };
 
-  const formatLabel = (mins: number) => {
-    const hours = Math.floor(mins / 60);
-    const remainderMins = mins % 60;
-
-    if (hours > 0 && remainderMins > 0) {
-      return `${hours}시간 ${remainderMins}분`;
-    } else if (hours > 0) {
-      return `${hours}시간`;
+  const handleMinuteScroll = () => {
+    if (!minutesRef.current) return;
+    const index = Math.round(minutesRef.current.scrollTop / ITEM_HEIGHT);
+    const clampedIndex = Math.max(0, Math.min(index, minuteOptions.length - 1));
+    const newMin = minuteOptions[clampedIndex];
+    if (newMin !== undefined && newMin !== currentMins) {
+      const newTotal = currentHours * 60 + newMin;
+      onChange(newTotal);
     }
-    return `${mins}분`;
   };
 
   return (
-    <div className="relative w-full bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none" style={{ height: heightPx }}>
+    <div
+      className="relative w-full bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center select-none"
+      style={{ height: heightPx }}
+    >
       {/* Top & Bottom Gradient Overlay for Slot Machine Wheel Blur Effect */}
       <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
 
-      {/* Center Highlight Slot (검은색 하이라이트) */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-black border border-black rounded-xl pointer-events-none z-0 shadow-md" />
+      {/* Center Highlight Slot (검은색 하이라이트 바) */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-black border border-black rounded-xl pointer-events-none z-0 shadow-md flex items-center justify-around">
+        <span className="text-white/20 text-xs font-bold pl-8">시간</span>
+        <span className="text-white/20 text-xs font-bold pr-8">분</span>
+      </div>
 
-      {/* Scrollable Container */}
-      <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none"
-        style={{ scrollSnapType: 'y mandatory', paddingTop: padY, paddingBottom: padY }}
-      >
-        {options.map((mins) => {
-          const isSelected = mins === value;
-          return (
-            <div
-              key={mins}
-              onClick={() => {
-                onChange(mins);
-                const index = options.indexOf(mins);
-                if (containerRef.current) {
-                  containerRef.current.scrollTo({
-                    top: index * ITEM_HEIGHT,
-                    behavior: 'smooth',
-                  });
-                }
-              }}
-              className={`h-[40px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 relative z-10 ${isSelected
-                  ? 'text-white font-extrabold text-base scale-105 drop-shadow-sm'
-                  : 'text-slate-500 text-xs hover:text-black'
+      {/* 2-Column Grid Container (Left: Hours, Right: Minutes) */}
+      <div className="w-full h-full grid grid-cols-2 relative z-10">
+        {/* Left Column: Hours */}
+        <div
+          ref={hoursRef}
+          onScroll={handleHourScroll}
+          className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none"
+          style={{ scrollSnapType: 'y mandatory', paddingTop: padY, paddingBottom: padY }}
+        >
+          {hourOptions.map((h) => {
+            const isSelected = h === currentHours;
+            return (
+              <div
+                key={`h-${h}`}
+                onClick={() => {
+                  const newTotal = h * 60 + currentMins;
+                  onChange(newTotal);
+                  const index = hourOptions.indexOf(h);
+                  if (hoursRef.current) {
+                    hoursRef.current.scrollTo({
+                      top: index * ITEM_HEIGHT,
+                      behavior: 'smooth',
+                    });
+                  }
+                }}
+                className={`h-[40px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 ${
+                  isSelected
+                    ? 'text-white font-extrabold text-base scale-105 drop-shadow-sm'
+                    : 'text-slate-500 text-xs hover:text-black'
                 }`}
-            >
-              <span>{formatLabel(mins)}</span>
-            </div>
-          );
-        })}
+              >
+                <span>{h}시간</span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right Column: Minutes */}
+        <div
+          ref={minutesRef}
+          onScroll={handleMinuteScroll}
+          className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none"
+          style={{ scrollSnapType: 'y mandatory', paddingTop: padY, paddingBottom: padY }}
+        >
+          {minuteOptions.map((m) => {
+            const isSelected = m === currentMins;
+            return (
+              <div
+                key={`m-${m}`}
+                onClick={() => {
+                  const newTotal = currentHours * 60 + m;
+                  onChange(newTotal);
+                  const index = minuteOptions.indexOf(m);
+                  if (minutesRef.current) {
+                    minutesRef.current.scrollTo({
+                      top: index * ITEM_HEIGHT,
+                      behavior: 'smooth',
+                    });
+                  }
+                }}
+                className={`h-[40px] flex items-center justify-center snap-center cursor-pointer transition-all duration-150 ${
+                  isSelected
+                    ? 'text-white font-extrabold text-base scale-105 drop-shadow-sm'
+                    : 'text-slate-500 text-xs hover:text-black'
+                }`}
+              >
+                <span>{m}분</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

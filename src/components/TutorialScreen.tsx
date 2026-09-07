@@ -42,7 +42,7 @@ const BEAT_TUTORIALS: Record<BeatType, BeatInfo> = {
   },
   '3/4': {
     type: '3/4',
-    title: '3박자 지휘법 (왈츠)',
+    title: '3박자 지휘법',
     count: 3,
     patternName: '아래 ➔ 바깥쪽 ➔ 위',
     description: '왈츠 특유의 3박자입니다. 1박(강)은 깊게 떨어지고, 2박은 우아한 바깥 곡선, 3박은 위로 떠오릅니다.',
@@ -57,7 +57,7 @@ const BEAT_TUTORIALS: Record<BeatType, BeatInfo> = {
   },
   '2/4': {
     type: '2/4',
-    title: '2박자 지휘법 (행진곡)',
+    title: '2박자 지휘법',
     count: 2,
     patternName: '아래 ➔ 위 (J자 곡선)',
     description: '행진곡에 쓰이는 지휘입니다. 1박(강)은 아래로 내렸다 안쪽으로 튕기고, 2박은 바깥쪽으로 상승합니다.',
@@ -71,7 +71,7 @@ const BEAT_TUTORIALS: Record<BeatType, BeatInfo> = {
   },
   '1/4': {
     type: '1/4',
-    title: '1박자 지휘법 (원포인트)',
+    title: '1박자 지휘법',
     count: 1,
     patternName: '위 ➔ 아래 맥박',
     description: '빠른 악장에서 한 마디를 하나의 큰 맥박으로 지휘합니다.',
@@ -154,7 +154,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
           lastTriggeredBeatRef.current = currentBeatIndex;
           setActiveBeat(currentBeatIndex);
 
-          if (soundOn) {
+          if (soundOn && !showVideoIntro) {
             const isDownBeat = currentBeatIndex === 1;
             audioSynthesizer.playMetronomeClick(isDownBeat, isDownBeat ? 0.4 : 0.2);
           }
@@ -169,7 +169,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isPlaying, pathLength, tutorial.bpm, tutorial.count, soundOn]);
+  }, [isPlaying, pathLength, tutorial.bpm, tutorial.count, soundOn, showVideoIntro]);
 
   const handleReset = () => {
     progressRef.current = 0;
@@ -206,8 +206,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
                   loop
                   muted
                   playsInline
+                  disablePictureInPicture
+                  preload="auto"
                   onError={() => setVideoError(true)}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover pointer-events-none select-none [&::-webkit-media-controls]:!hidden [&::-webkit-media-controls-start-playback-button]:!hidden [&::-webkit-media-controls-play-button]:!hidden"
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center p-6 text-center text-white/80 gap-3">
@@ -263,11 +265,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
                   onClick={() => {
                     setSelectedBeat(beat);
                   }}
-                  className={`px-5 py-2.5 rounded-2xl border text-sm font-bold transition-all shrink-0 cursor-pointer ${
-                    isSelected
+                  className={`px-5 py-2.5 rounded-2xl border text-sm font-bold transition-all shrink-0 cursor-pointer ${isSelected
                       ? 'bg-black text-white border-black shadow-md'
                       : 'bg-white border-slate-200 text-black hover:border-slate-300'
-                  }`}
+                    }`}
                 >
                   {beat}박자
                 </button>
@@ -291,11 +292,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
               {/* 소리 토글 버튼 */}
               <button
                 onClick={() => setSoundOn(!soundOn)}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
-                  soundOn
+                className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${soundOn
                     ? 'bg-white border-slate-300 text-black shadow-xs'
                     : 'bg-slate-100 border-slate-200 text-slate-400'
-                }`}
+                  }`}
                 title={soundOn ? '소리 끄기' : '소리 켜기'}
               >
                 {soundOn ? <Volume2 className="w-3.5 h-3.5 text-[#FE9A00]" /> : <VolumeX className="w-3.5 h-3.5" />}
@@ -377,11 +377,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
                       cx={pt.x}
                       cy={pt.y}
                       r={isCurrent ? 12 : 7}
-                      className={`transition-all duration-300 ${
-                        isCurrent
+                      className={`transition-all duration-300 ${isCurrent
                           ? 'fill-[#FE9A00] stroke-white stroke-2 shadow-lg'
                           : 'fill-neutral-900 stroke-neutral-700 stroke-1'
-                      }`}
+                        }`}
                     />
                     <circle
                       cx={pt.x}

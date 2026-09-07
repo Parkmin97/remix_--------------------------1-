@@ -121,8 +121,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
       <div className="w-full rounded-3xl bg-neutral-950 ring-1 ring-black/5 p-6">
         {/* 헤더 */}
         <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/15 font-serif text-xl text-amber-300">
-            𝄞
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 p-1 shadow-md overflow-hidden">
+            <img src="/app_icon.png" alt="내인생 지휘자 앱 아이콘" className="w-full h-full object-cover rounded-xl" />
           </div>
           <h2 className="mt-3 font-serif text-2xl font-bold text-amber-100 break-keep">
             {mode === 'login' ? '다시 오신 걸 환영합니다' : '내인생 지휘자 시작하기'}

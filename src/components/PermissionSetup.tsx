@@ -21,7 +21,7 @@ interface PermissionItem {
   kind: PermissionKind;
   title: string;
   /** 왜 필요한지 한 줄. 없을 때 무엇이 안 되는지를 적는다. */
-  why: string;
+  why?: string;
   required: boolean;
   Icon: React.ComponentType<{ className?: string }>;
   /**
@@ -40,7 +40,6 @@ const ITEMS: PermissionItem[] = [
   {
     kind: 'usageStats',
     title: '사용 정보 접근',
-    why: '어떤 앱을 켰는지 알아야 막을 수 있습니다. 없으면 감지 자체가 불가능합니다.',
     required: true,
     Icon: ShieldCheck,
     steps: [
@@ -53,7 +52,6 @@ const ITEMS: PermissionItem[] = [
   {
     kind: 'overlay',
     title: '다른 앱 위에 표시',
-    why: '잠근 앱을 열었을 때 차단 화면을 띄웁니다. 없으면 감지해도 막지 못합니다.',
     required: true,
     Icon: Eye,
     steps: [
@@ -107,7 +105,7 @@ const PermissionRow: React.FC<{
               </span>
             )}
           </div>
-          {!granted && (
+          {!granted && item.why && (
             <p className="text-xs text-slate-600 leading-relaxed break-keep mt-1">{item.why}</p>
           )}
         </div>
