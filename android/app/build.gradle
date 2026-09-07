@@ -1,6 +1,20 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
+// 릴리스 서명 정보는 저장소에 커밋하지 않는 android/keystore.properties 에서 읽는다.
+// 파일이 없으면(신규 클론·CI 등) 서명 설정을 붙이지 않아 debug 빌드는 그대로 동작한다.
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = null
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties = new Properties()
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+    def ksFile = rootProject.file(keystoreProperties['storeFile'])
+    if (!ksFile.exists()) {
+        logger.warn("keystore.properties 의 storeFile 을 찾을 수 없습니다: ${ksFile}. release 서명을 건너뜁니다.")
+        keystoreProperties = null
+    }
+}
+
 android {
     namespace = "com.mylifemaestro.app"
 
@@ -17,8 +31,10 @@ android {
         applicationId "com.mylifemaestro.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
+        // Play 업로드마다 versionCode 는 반드시 증가시켜야 한다 (재사용 불가).
+        // 갱신 방법은 _workspace/release_android_signing.md 참고.
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -26,8 +42,27 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (keystoreProperties != null) {
+            release {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                // minSdk 24(Android 7.0) 이상은 APK Signature Scheme v2 를 지원하므로
+                // 구형 v1(JAR) 서명은 불필요하다. v2/v3 만 사용해 서명 검증을 강하게 유지한다.
+                // 주의: Groovy DSL 에서 '=' 없이 쓰면 조용히 무시된다. 반드시 대입 형태로 둘 것.
+                enableV1Signing = false
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystoreProperties != null) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

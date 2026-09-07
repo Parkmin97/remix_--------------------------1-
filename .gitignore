@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+내인생지휘자_debug.apk
+
+# 릴리스 서명 자료 — 절대 커밋 금지
+*.jks
+*.keystore
+keystore.properties
