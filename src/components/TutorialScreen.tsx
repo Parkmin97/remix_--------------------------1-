@@ -99,6 +99,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   const [showVideoIntro, setShowVideoIntro] = useState<boolean>(true);
   const [videoError, setVideoError] = useState<boolean>(false);
 
+  const demoVideoRef = useRef<HTMLVideoElement | null>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
@@ -106,6 +107,16 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   const lastTriggeredBeatRef = useRef<number>(0);
 
   const tutorial = BEAT_TUTORIALS[selectedBeat];
+
+  // 시연 영상은 autoPlay 속성만으로는 기기에 따라 시작되지 않는 경우가 있다.
+  // 시작되지 않으면 poster 만 멈춰 보이므로, 오버레이가 뜰 때 직접 재생을 한 번 더 시도한다.
+  useEffect(() => {
+    if (!showVideoIntro) return;
+    const el = demoVideoRef.current;
+    if (!el) return;
+    // muted 상태의 재생은 브라우저 정책상 허용되지만, 거부되더라도 조용히 넘어간다.
+    el.play().catch(() => {});
+  }, [showVideoIntro, videoError]);
 
   // 박자 변경 시 경로 길이 측정 및 초기화
   useEffect(() => {
@@ -185,7 +196,9 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
       {showVideoIntro && (
         <div
           onClick={() => setShowVideoIntro(false)}
-          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-between p-6 sm:p-8 cursor-pointer select-none animate-fade-in"
+          /* 페이드인을 걸지 않는다. animate-fade-in 은 0.6초 both 라 시작 시 opacity:0 으로
+             고정돼, 튜토리얼을 눌러도 시연 화면이 한 박자 늦게 차오르는 것처럼 보였다. */
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-between p-6 sm:p-8 cursor-pointer select-none"
         >
           {/* 상단 닫기/안내 헤더 */}
           <div className="w-full max-w-sm flex items-center justify-between pt-2">
@@ -201,15 +214,20 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
             <div className="relative w-full max-w-[260px] sm:max-w-[300px] aspect-[9/16] max-h-[55vh] rounded-3xl overflow-hidden border-2 border-[#FE9A00]/70 shadow-[0_0_35px_rgba(254,154,0,0.4)] bg-black flex items-center justify-center">
               {!videoError ? (
                 <video
+                  ref={demoVideoRef}
                   src="/conducting_demo.mp4"
+                  /* 첫 프레임을 미리 깔아 자동재생이 시작되기 전 회색 화면이 보이지 않게 한다.
+                     재생 버튼 오버레이는 .demo-video 클래스(index.css)에서 가린다. */
+                  poster="/conducting_demo_poster.jpg"
                   autoPlay
                   loop
                   muted
                   playsInline
                   disablePictureInPicture
+                  controls={false}
                   preload="auto"
                   onError={() => setVideoError(true)}
-                  className="w-full h-full object-cover pointer-events-none select-none [&::-webkit-media-controls]:!hidden [&::-webkit-media-controls-start-playback-button]:!hidden [&::-webkit-media-controls-play-button]:!hidden"
+                  className="demo-video w-full h-full object-cover pointer-events-none select-none"
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center p-6 text-center text-white/80 gap-3">

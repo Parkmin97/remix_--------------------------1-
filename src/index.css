@@ -50,6 +50,27 @@ body {
 }
 .animate-fade-in { animation: lp-fade-in 0.6s ease-out both; }
 
+/* ---------------------------------------------------------------- */
+/* 지휘 시연 영상 — 네이티브 재생 UI 감추기                            */
+/* ---------------------------------------------------------------- */
+/*
+ * 안드로이드 WebView 는 자동재생이 시작되기 전 한순간 회색 재생 버튼을 겹쳐 그린다.
+ * 그 오버레이 버튼은 ::-webkit-media-controls-overlay-play-button 이며,
+ * Tailwind 임의 변형으로는 안정적으로 잡히지 않아 별도 클래스로 둔다.
+ * 첫 프레임을 poster 로 깔아두는 것과 함께 써야 회색 화면도 보이지 않는다.
+ */
+.demo-video::-webkit-media-controls,
+.demo-video::-webkit-media-controls-enclosure,
+.demo-video::-webkit-media-controls-panel,
+.demo-video::-webkit-media-controls-play-button,
+.demo-video::-webkit-media-controls-start-playback-button,
+.demo-video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  -webkit-appearance: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 @keyframes lp-float {
   0%, 100% { transform: translateY(0) rotate(var(--tw-rotate, 0deg)); }
   50% { transform: translateY(-14px) rotate(var(--tw-rotate, 0deg)); }
