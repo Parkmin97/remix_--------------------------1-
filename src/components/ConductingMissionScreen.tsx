@@ -297,6 +297,26 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
   const totalExpectedBeatsIn60s = Math.floor(60000 / beatIntervalMs);
   const requiredBeatsToPass = Math.ceil(totalExpectedBeatsIn60s * (PASS_THRESHOLD_PERCENT / 100));
 
+  /*
+   * 화면에 보여줄 허용 오차.
+   *
+   * ⚠️ 판정부(아래 toleranceMs)와 **같은 식**을 써야 한다.
+   *    예전에는 여기에 "±0.25초"가 하드코딩돼 있어서, 곡과 박자가 달라져도
+   *    문구는 그대로였다. 실제 허용치는 곡 BPM 과 마디 안 박 위치에 따라 달라진다.
+   *
+   * 강박(1박)이 가장 엄격하고 마지막 박이 가장 너그러우므로 그 두 값을 범위로 보여준다.
+   */
+  const toleranceSecondsAt = (beatInBarNum: number) => {
+    const beatSpread = beatsPerBar > 1 ? (beatInBarNum - 1) / (beatsPerBar - 1) : 1;
+    const baseRatio = 0.30 + (0.40 - 0.30) * beatSpread;
+    const speedBonus = Math.min(0.04, Math.max(0, (currentPiece.bpm - 120) / 60) * 0.04);
+    const ratio = Math.min(0.44, baseRatio + speedBonus);
+    return Math.min(300, beatIntervalMs * ratio) / 1000;
+  };
+  const toleranceStrictSec = toleranceSecondsAt(1);
+  const toleranceLooseSec = toleranceSecondsAt(beatsPerBar);
+  const fmtSec = (s: number) => `±${s.toFixed(2)}초`;
+
   // Initial check for DeviceMotionEvent support & Unmount cleanup
   useEffect(() => {
     if (typeof window !== 'undefined' && 'DeviceMotionEvent' in window) {
@@ -905,7 +925,19 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
                 <Timer className="w-4 h-4 text-[#FE9A00] shrink-0 mt-0.5" aria-hidden="true" />
                 <div className="leading-snug break-keep">
                   <strong className="text-black font-bold">허용 오차: </strong>
-                  <span className="text-black/80">±0.25초</span>
+                  <span className="text-black/80">
+                    {beatsPerBar > 1 ? (
+                      <>
+                        강박 {fmtSec(toleranceStrictSec)} · 뒷박 {fmtSec(toleranceLooseSec)}
+                        <span className="text-black/50"> ({selectedBeat} · {currentPiece.bpm} BPM)</span>
+                      </>
+                    ) : (
+                      <>
+                        {fmtSec(toleranceLooseSec)}
+                        <span className="text-black/50"> ({currentPiece.bpm} BPM)</span>
+                      </>
+                    )}
+                  </span>
                 </div>
               </div>
               <div className="flex items-start gap-2 text-xs text-black pt-1 border-t border-slate-200">

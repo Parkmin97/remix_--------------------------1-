@@ -82,7 +82,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <HelpCircle className="w-4 h-4 text-[#FE9A00]" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-black break-keep">서비스 작동 방식 안내</h3>
+            <h3 className="text-sm font-bold text-black break-keep">서비스 안내</h3>
           </div>
         </div>
 
