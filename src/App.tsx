@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import { SessionData } from './types';
 import { getStoredActiveSession, saveActiveSession, getOnboardingCompleted, getSoundMuted, syncReportsFromSupabase } from './lib/storage';
 import { audioSynthesizer } from './lib/audioSynthesizer';
@@ -248,6 +249,54 @@ function AppContent() {
     });
 
     return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // 안드로이드 뒤로가기 처리.
+  //
+  // ⚠️ 원래 이걸 아무도 가로채지 않아서, 뒤로가기를 한 번만 눌러도 앱이 통째로 종료됐다
+  //    (실기기 재현됨 — 정식출시.md STEP 4-5). 이메일 입력 중 실수로 뒤로가기를 건드리면
+  //    회원가입 화면이 통째로 사라지는 신고가 그 증상이었다.
+  //
+  // 차단 화면(BlockOverlayActivity)은 Capacitor 브릿지가 없는 별도의 순수 WebView라서
+  // 이 리스너가 거기까지는 닿지 않는다 — 그 화면의 뒤로가기 차단은 네이티브 쪽
+  // onBackPressed()가 이미 전담한다. 여기서는 일반 앱(MainActivity) 안에서만 동작한다.
+  const currentTabRef = useRef(currentTab);
+  useEffect(() => { currentTabRef.current = currentTab; }, [currentTab]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    const listenerPromise = CapacitorApp.addListener('backButton', () => {
+      switch (currentTabRef.current) {
+        case 'tutorial':
+        case 'report':
+        case 'faq':
+        case 'settings':
+          setMainTab('more');
+          setCurrentTab('home');
+          break;
+        case 'profile-settings':
+          setCurrentTab('settings');
+          break;
+        case 'mission':
+          // 연습 중 포기와 같은 취급. 차단 모드면 reportMissionResult 가 네이티브로
+          // 넘기고 여기서는 화면만 홈으로 되돌린다(그쪽은 이미 별도 웹뷰라 실제로는 안 탄다).
+          reportMissionResult('cancel');
+          setCurrentTab('home');
+          break;
+        case 'login':
+          setCurrentTab('landing');
+          break;
+        default:
+          // 더 갈 곳이 없는 화면(홈·랜딩 등)에서는 앱을 죽이지 않고 백그라운드로 보낸다.
+          // 기본 동작(앱 종료)은 "고장난 것처럼" 느껴진다.
+          CapacitorApp.minimizeApp();
+      }
+    });
+
+    return () => {
+      listenerPromise.then((handle) => handle.remove());
+    };
   }, []);
 
   const handleStartMissionFromIntervention = () => {

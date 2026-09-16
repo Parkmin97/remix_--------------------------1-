@@ -4,6 +4,12 @@ import { Mail, Lock, LogIn, UserPlus, LogOut, CheckCircle2, Loader2, Music } fro
 import { supabase, toKoreanAuthError, isSupabaseConfigured } from '../lib/supabase';
 import { openExternalUrl } from '../lib/externalBrowser';
 
+/**
+ * 앱 내부 PDF 경로가 아니라 공개 URL이어야 한다 (SettingsScreen.tsx 참고).
+ * 네이티브 앱 안에서 상대경로를 열면 앱 전용 내부 주소로 바뀌어 외부 브라우저가 열지 못한다.
+ */
+const PRIVACY_POLICY_URL = 'https://parkmin97.github.io/remix_--------------------------1-/';
+
 interface LoginScreenProps {
   user: User | null;
   onNavigateToScreen: (screen: string) => void;
@@ -225,7 +231,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
                 </label>
                 <button
                   type="button"
-                  onClick={() => openExternalUrl('/privacy_terms.pdf')}
+                  onClick={() => openExternalUrl(PRIVACY_POLICY_URL)}
                   className="text-[11px] text-stone-400 hover:text-amber-300 underline shrink-0 mt-0.5 cursor-pointer"
                 >
                   보기
