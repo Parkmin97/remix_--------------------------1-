@@ -78,7 +78,7 @@ const BEAT_TUTORIALS: Record<BeatType, BeatInfo> = {
     bpm: 120,
     svgPath: 'M 100 25 C 100 60, 98 115, 100 135 C 102 140, 102 60, 100 25',
     points: [
-      { x: 100, y: 135, beat: 1, label: '1 (Pulse)', progress: 1.0 },
+      { x: 100, y: 135, beat: 1, label: '1 (Pulse)', progress: 0.5 },
     ],
   },
 };
@@ -96,6 +96,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   const [activeBeat, setActiveBeat] = useState<number>(1);
   const [pathLength, setPathLength] = useState<number>(0);
   const [dashOffset, setDashOffset] = useState<number>(0);
+  const [pointerPos, setPointerPos] = useState<{ x: number; y: number } | null>(null);
   const [showVideoIntro, setShowVideoIntro] = useState<boolean>(true);
   const [videoError, setVideoError] = useState<boolean>(false);
 
@@ -103,8 +104,15 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   const pathRef = useRef<SVGPathElement | null>(null);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
-  const progressRef = useRef<number>(0);
-  const lastTriggeredBeatRef = useRef<number>(0);
+  const elapsedTimeRef = useRef<number>(0);
+  const lastBeatIndexRef = useRef<number>(0);
+  // 각 타점 동그라미의 SVG 곡선 상 실제 거리 및 목표 박자 시간
+  const waypointsRef = useRef<Array<{
+    beat: number;
+    dist: number;
+    targetBeatTime: number; // 0 ~ count
+    isIctus: boolean;
+  }>>([]);
 
   const tutorial = BEAT_TUTORIALS[selectedBeat];
 
@@ -118,18 +126,90 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     el.play().catch(() => {});
   }, [showVideoIntro, videoError]);
 
-  // 박자 변경 시 경로 길이 측정 및 초기화
+  // 박자 변경 시 경로 길이 측정 및 각 타점 동그라미의 실제 곡선 거리(dist) 정밀 실측하여 waypoint 테이블 생성
   useEffect(() => {
     if (pathRef.current) {
-      const len = pathRef.current.getTotalLength();
+      const path = pathRef.current;
+      const len = path.getTotalLength();
       setPathLength(len);
-      progressRef.current = 0;
-      lastTriggeredBeatRef.current = 0;
+      elapsedTimeRef.current = 0;
+      lastBeatIndexRef.current = 0;
       setActiveBeat(1);
-    }
-  }, [selectedBeat]);
 
-  // 실시간 60fps 애니메이션 루프: 곡선을 따라 흐르는 빛의 궤적 & 지휘봉 포인터 이동
+      const samples = 400;
+      const wps: Array<{
+        beat: number;
+        dist: number;
+        targetBeatTime: number;
+        isIctus: boolean;
+      }> = [];
+
+      // 0. 시작점 (거리 0, 맨 위 원점)
+      wps.push({
+        beat: tutorial.count,
+        dist: 0,
+        targetBeatTime: 0,
+        isIctus: false,
+      });
+
+      // 1. 각 타점의 곡선상 실제 거리 정밀 측정
+      // [중요] 각 타점은 반드시 이전 타점 이후 구간(순방향)에서만 탐색하여
+      // 마지막 박자가 시작점(0px)에 잘못 매칭되어 역주행하는 오류를 완벽 차단!
+      let lastDist = 0;
+      tutorial.points.forEach((pt, idx) => {
+        const isLastBeat = idx === tutorial.points.length - 1 && tutorial.count > 1;
+        let bestDist = len;
+
+        if (isLastBeat) {
+          // 마지막 박자는 곡선의 맨 끝(len)으로 완벽하게 수렴하여 위로 복귀
+          bestDist = len;
+        } else {
+          let bestDiff = Infinity;
+          const startSample = Math.floor((lastDist / len) * samples);
+          for (let i = startSample; i <= samples; i++) {
+            const d = (i / samples) * len;
+            const pos = path.getPointAtLength(d);
+            const diff = (pos.x - pt.x) ** 2 + (pos.y - pt.y) ** 2;
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              bestDist = d;
+            }
+          }
+          lastDist = bestDist;
+        }
+
+        // 1/4박자는 중간 0.5가 아래 타점, 그 외 박자는 pt.beat 시점이 타점
+        const targetBeatTime = tutorial.count === 1 ? 0.5 : pt.beat;
+        wps.push({
+          beat: pt.beat,
+          dist: bestDist,
+          targetBeatTime,
+          isIctus: true,
+        });
+      });
+
+      // 1/4 박자인 경우 복귀 끝점(targetBeatTime: 1.0, dist: len) 추가
+      if (tutorial.count === 1) {
+        wps.push({
+          beat: 1,
+          dist: len,
+          targetBeatTime: 1.0,
+          isIctus: false,
+        });
+      }
+
+      // targetBeatTime 순으로 정렬
+      wps.sort((a, b) => a.targetBeatTime - b.targetBeatTime);
+      waypointsRef.current = wps;
+
+      const startPt = path.getPointAtLength(0);
+      setPointerPos({ x: startPt.x, y: startPt.y });
+      const currentTrail = len > 0 ? len * 0.38 : 100;
+      setDashOffset(currentTrail);
+    }
+  }, [selectedBeat, tutorial]);
+
+  // 실시간 60fps 애니메이션 루프: BPM 기반 완벽한 정박 메트로놈 + 구간별 선 정밀 동기화
   useEffect(() => {
     if (!isPlaying) {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
@@ -139,37 +219,56 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     lastTimeRef.current = performance.now();
 
     const loop = (now: number) => {
-      const delta = (now - lastTimeRef.current) / 1000;
+      const delta = Math.min((now - lastTimeRef.current) / 1000, 0.1); // 프레임 지연 폭주 방지
       lastTimeRef.current = now;
 
-      // 1마디를 도는 데 걸리는 시간 (초) = (60 / BPM) * 마디 박자수
-      const barDurationSec = (60 / tutorial.bpm) * tutorial.count;
-      const progressDelta = delta / barDurationSec;
+      elapsedTimeRef.current += delta;
 
-      progressRef.current = (progressRef.current + progressDelta) % 1;
+      const beatDurationSec = 60 / tutorial.bpm;
+      const barDurationSec = beatDurationSec * tutorial.count;
 
-      if (pathRef.current && pathLength > 0) {
-        const currentDist = progressRef.current * pathLength;
+      // 1. [정박 메트로놈] 절대 시간 기반으로 단 한 박자도 누락 없는 정박 비트 카운팅
+      const totalBeatsPassed = Math.floor(elapsedTimeRef.current / beatDurationSec);
+      if (totalBeatsPassed > lastBeatIndexRef.current) {
+        lastBeatIndexRef.current = totalBeatsPassed;
 
-        // 흐르는 혜성 꼬리(Moving Trail) 오프셋 업데이트
-        setDashOffset(-currentDist);
+        // 1박(강박)은 첫 번째 beatDurationSec 경과 시점에 도달하여 울림
+        const beatNum = ((totalBeatsPassed - 1) % tutorial.count) + 1;
+        setActiveBeat(beatNum);
 
-        // 현재 박자(타점) 도달 시 사운드 및 뱃지 업데이트
-        const beatFraction = 1 / tutorial.count;
-        const currentBeatIndex = Math.min(
-          tutorial.count,
-          Math.floor(progressRef.current / beatFraction) + 1
-        );
+        if (soundOn) {
+          const isDownBeat = beatNum === 1;
+          audioSynthesizer.playMetronomeClick(isDownBeat, isDownBeat ? 0.44 : 0.22);
+        }
+      }
 
-        if (currentBeatIndex !== lastTriggeredBeatRef.current) {
-          lastTriggeredBeatRef.current = currentBeatIndex;
-          setActiveBeat(currentBeatIndex);
+      // 2. [지휘봉 선 및 헤드 포인터 위치 동기화]
+      if (pathRef.current && pathLength > 0 && waypointsRef.current.length > 1) {
+        const barTime = elapsedTimeRef.current % barDurationSec;
+        const currentBeatFloat = (barTime / barDurationSec) * tutorial.count;
 
-          if (soundOn && !showVideoIntro) {
-            const isDownBeat = currentBeatIndex === 1;
-            audioSynthesizer.playMetronomeClick(isDownBeat, isDownBeat ? 0.4 : 0.2);
+        const wps = waypointsRef.current;
+        let p0 = wps[0];
+        let p1 = wps[wps.length - 1];
+
+        for (let i = 0; i < wps.length - 1; i++) {
+          if (currentBeatFloat >= wps[i].targetBeatTime && currentBeatFloat <= wps[i + 1].targetBeatTime) {
+            p0 = wps[i];
+            p1 = wps[i + 1];
+            break;
           }
         }
+
+        const span = p1.targetBeatTime - p0.targetBeatTime;
+        const ratio = span > 0 ? Math.max(0, Math.min(1, (currentBeatFloat - p0.targetBeatTime) / span)) : 0;
+        const headDist = p0.dist + (p1.dist - p0.dist) * ratio;
+
+        const headPos = pathRef.current.getPointAtLength(headDist);
+        setPointerPos({ x: headPos.x, y: headPos.y });
+
+        // 머리(headDist) 뒤로 trailLength 만큼 꼬리가 따라오도록 오프셋 보정
+        const calculatedTrail = pathLength * 0.38;
+        setDashOffset(calculatedTrail - headDist);
       }
 
       animFrameRef.current = requestAnimationFrame(loop);
@@ -180,18 +279,24 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isPlaying, pathLength, tutorial.bpm, tutorial.count, soundOn, showVideoIntro]);
+  }, [isPlaying, pathLength, tutorial, soundOn]);
 
   const handleReset = () => {
-    progressRef.current = 0;
-    lastTriggeredBeatRef.current = 0;
+    elapsedTimeRef.current = 0;
+    lastBeatIndexRef.current = 0;
     setActiveBeat(1);
+    const trail = pathLength > 0 ? pathLength * 0.38 : 100;
+    setDashOffset(trail);
+    if (pathRef.current) {
+      const startPt = pathRef.current.getPointAtLength(0);
+      setPointerPos({ x: startPt.x, y: startPt.y });
+    }
   };
 
   const trailLength = pathLength > 0 ? pathLength * 0.38 : 100;
 
   return (
-    <div className="min-h-full text-black px-4 py-3 sm:py-4 flex flex-col relative select-none">
+    <div className={`text-black flex flex-col relative select-none ${isMissionMode ? 'w-full flex-1 min-h-0 p-0' : 'min-h-full px-4 py-3 sm:py-4'}`}>
       {/* 0. 지휘 시연 MP4 비디오 비주얼 오버레이 (튜토리얼 시작 시 1차 노출) */}
       {showVideoIntro && (
         <div
@@ -252,7 +357,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
           </div>
         </div>
       )}
-      <div className="w-full max-w-lg mx-auto flex flex-col gap-3.5">
+      <div className={`w-full flex flex-col ${isMissionMode ? 'flex-1 min-h-0 justify-between gap-2.5 sm:gap-3.5' : 'gap-3.5 max-w-lg mx-auto'}`}>
         {/* 1. 상단 헤더 (더보기 탭 전용) */}
         {!isMissionMode && (
           <div className="flex items-center gap-3 shrink-0 pt-0.5 pb-1">
@@ -295,8 +400,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
           </div>
         )}
 
-        {/* 3. 메인 지휘 튜토리얼 시연 카드 */}
-        <div className="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3.5 shrink-0">
+        {/* 3. 메인 지휘 튜토리얼 시연 카드 (미션 모드 시 중복 테두리/배경 제거하여 단일 박스화) */}
+        <div className={isMissionMode ? 'w-full flex-1 min-h-0 flex flex-col justify-between gap-2.5 sm:gap-3.5' : 'bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3.5 shrink-0'}>
           {/* 카드 헤더 라인: 타이틀 + 컨트롤 버튼들 */}
           <div className="flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
@@ -342,10 +447,10 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
             </div>
           </div>
 
-          {/* 중앙 블랙 지휘 캔버스 스테이지 (터치 제거 & 유려한 곡선 궤적 애니메이션) */}
-          <div className="relative w-full aspect-[4/4.5] bg-neutral-950 rounded-2xl border border-neutral-800 overflow-hidden flex items-center justify-center select-none shadow-inner">
+          {/* 중앙 블랙 지휘 캔버스 스테이지 (세로 flex-1 반응형 자동 확장) */}
+          <div className={`relative w-full bg-neutral-950 rounded-2xl border border-neutral-800 overflow-hidden flex items-center justify-center select-none shadow-inner ${isMissionMode ? 'flex-1 min-h-[220px] my-0.5' : 'aspect-[4/4.5]'}`}>
             {/* SVG 곡선 궤적 및 애니메이션 */}
-            <svg viewBox="0 0 200 160" className="w-full h-full p-4">
+            <svg viewBox="0 0 200 160" className={`w-full h-full ${isMissionMode ? 'p-2' : 'p-4'}`}>
               <defs>
                 {/* 혜성처럼 흐르는 주황빛 그라데이션 */}
                 <linearGradient id="wandTrailGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -376,13 +481,25 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
                 <path
                   d={tutorial.svgPath}
                   fill="none"
-                  stroke="url(#wandTrailGradient)"
-                  strokeWidth="4.5"
+                  stroke="#FE9A00"
+                  strokeWidth="4"
                   strokeLinecap="round"
-                  strokeDasharray={`${trailLength} ${pathLength}`}
+                  strokeDasharray={`${trailLength} ${pathLength * 2}`}
                   strokeDashoffset={dashOffset}
                   filter="url(#glowEffect)"
+                  className="opacity-95"
                 />
+              )}
+
+              {/* 2-1. 선두에서 빛나는 지휘봉 헤드 포인터 */}
+              {pointerPos && (
+                <g transform={`translate(${pointerPos.x}, ${pointerPos.y})`}>
+                  {/* 외곽 부드러운 골드 펄스 후광 */}
+                  <circle r={8.5} className="fill-[#FE9A00]/40" />
+                  {/* 중심 지휘봉 팁 코어 */}
+                  <circle r={4.5} className="fill-[#FE9A00] stroke-white stroke-[1.5] shadow-md" />
+                  <circle r={2} className="fill-white" />
+                </g>
               )}
 
               {/* 3. 각 박자 타점 포인트 (Ictus Points) */}
@@ -429,11 +546,6 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
               <span className="text-xs font-mono font-bold text-neutral-200">
                 현재 박자: <span className="text-sm text-[#FE9A00] font-serif">{activeBeat}</span> / {tutorial.count}박
               </span>
-            </div>
-
-            {/* 우측 하단 궤적 안내 캡션 */}
-            <div className="absolute bottom-3 right-3 bg-black/75 border border-neutral-800/80 rounded-xl px-2.5 py-1 text-[10px] font-medium text-neutral-400 z-20">
-              {tutorial.patternName}
             </div>
           </div>
 

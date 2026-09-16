@@ -445,7 +445,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
     // Number of beats per bar for this piece
     const totalBeatsInBar = selectedBeat === '4/4' ? 4 : selectedBeat === '3/4' ? 3 : selectedBeat === '2/4' ? 2 : 1;
 
-    // Metronome beat ticker for tutorial
+    // Metronome beat ticker for tutorial (소리는 TutorialScreen에서 전담하므로 여기서는 시각/데모 상태만 갱신)
     let beatIdx = 1;
     const metronomeInterval = (60 / currentPiece.bpm) * 1000;
     tutorialMetronomeTimerRef.current = window.setInterval(() => {
@@ -455,8 +455,6 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         setTutorialDemoMode(prev => (prev === 'SUCCESS' ? 'FAIL' : 'SUCCESS'));
       }
       setActiveTutorialBeat(beatIdx);
-      const isAccent = beatIdx === 1;
-      audioSynthesizer.playMetronomeClick(isAccent, isAccent ? 0.38 : 0.22);
       // 잠금이 뒤늦게 풀리는 기기가 있어, 튜토리얼 중 상태를 계속 반영한다.
       setIsAudioBlocked(!audioSynthesizer.isAudioReady());
       setIsAppMuted(audioSynthesizer.getMuted());
@@ -838,7 +836,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
       {/* 곡 정보 카드 */}
       <div
         className={`shrink-0 rounded-3xl bg-white border border-slate-200 shadow-lg relative overflow-hidden ${
-          gameState === 'READY' ? 'p-5 text-center space-y-3' : 'px-4 py-3'
+          gameState === 'READY' ? 'p-5 text-center space-y-3' : 'px-5 py-3.5 sm:py-4'
         }`}
       >
         {gameState === 'READY' ? (
@@ -890,19 +888,21 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
         ) : (
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 text-left">
-              <p className="truncate text-sm font-bold text-black leading-tight">{currentPiece.title}</p>
-              <p className="mt-0.5 truncate text-[11px] text-black/60 leading-tight">{currentPiece.composer}</p>
+              <p className="truncate text-base sm:text-lg font-bold font-serif text-black leading-tight">{currentPiece.title}</p>
+              <p className="mt-1 truncate text-xs sm:text-sm text-black/65 font-medium leading-tight">{currentPiece.composer}</p>
             </div>
-            <div className="shrink-0 flex items-center gap-2 text-xs font-bold tabular-nums">
-              <span className="rounded-md bg-black px-2.5 py-1 text-white border border-black">{selectedBeat}</span>
-              <span className="text-black/80">{currentPiece.bpm} BPM</span>
+            <div className="shrink-0 flex items-center gap-2 text-sm font-bold tabular-nums">
+              <span className="rounded-xl bg-black px-3 py-1.5 text-white border border-black text-xs sm:text-sm">{selectedBeat}</span>
+              <span className="text-black/90 font-mono">{currentPiece.bpm} BPM</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Game Stage Area */}
-      <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center relative overflow-hidden shadow-lg">
+      <div className={`flex-1 min-h-0 bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 flex flex-col relative overflow-hidden shadow-lg ${
+        gameState === 'TUTORIAL_PREVIEW' ? 'justify-between' : 'items-center justify-center'
+      }`}>
 
         {/* READY STATE */}
         {gameState === 'READY' && (
@@ -994,7 +994,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
 
         {/* TUTORIAL PREVIEW STATE (10s BEFORE 3, 2, 1 COUNTDOWN) */}
         {gameState === 'TUTORIAL_PREVIEW' && (
-          <div className="w-full max-w-md mx-auto animate-fade-in">
+          <div className="w-full flex-1 min-h-0 flex flex-col animate-fade-in">
             <TutorialScreen
               isMissionMode={true}
               presetBeat={selectedBeat}
