@@ -998,6 +998,7 @@ export const ConductingMissionScreen: React.FC<ConductingMissionScreenProps> = (
             <TutorialScreen
               isMissionMode={true}
               presetBeat={selectedBeat}
+              targetBpm={currentPiece.bpm}
               missionTimeLeft={tutorialTimeLeft}
               onSkipMissionTutorial={start321Countdown}
             />

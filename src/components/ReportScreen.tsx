@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Capacitor } from '@capacitor/core';
 import { getDailyReports } from '../lib/storage';
 import { Blocker, LockHistoryEntry, ScreenTimeDay } from '../lib/blocker';
-import { getCategoryById, getCategoryForPackage, isSnsCategory, SNS_CATEGORY_IDS } from '../data/appCategories';
+import { getCategoryForPackage, isSnsCategory } from '../data/appCategories';
 import { ShieldCheck, Smartphone, ArrowLeft, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 
 interface ReportScreenProps {
@@ -19,9 +19,6 @@ type NativeLoadState = 'loading' | 'ready' | 'unsupported' | 'failed';
 // 'SNS 이용 시간'으로 셀 카테고리 기준은 appCategories.ts 의 isSnsCategory 하나만 쓴다.
 // 폰 전체 사용 시간과 따로 세는 이유는 비율이 곧 판단 기준이기 때문이다.
 // "3시간 중 SNS 2시간"과 "3시간 중 SNS 20분"은 전혀 다른 이야기다.
-
-/** 안내 문구에 쓰는 카테고리 이름. 기준이 바뀌면 문구도 같이 따라가도록 매핑표에서 뽑는다. */
-const SNS_CATEGORY_LABELS = SNS_CATEGORY_IDS.map((id) => getCategoryById(id).label).join(' · ');
 
 export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
   const reports = getDailyReports();
@@ -330,7 +327,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
             <span>주간 잠금 달성 현황</span>
           </h3>
 
-          {/* 주간 이동 < > 화살표 버튼 */}
+          {/* 주간 이동 < [월] > 화살표 버튼 */}
           <div className="flex items-center gap-1.5 bg-slate-100 border border-slate-200 rounded-xl p-1">
             <button
               onClick={goPrevWeek}
@@ -340,6 +337,9 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
+            <span className="text-xs font-bold text-black px-1 min-w-[28px] text-center select-none">
+              {monday.getMonth() + 1}월
+            </span>
             <button
               onClick={goNextWeek}
               disabled={weekOffset >= 0}
@@ -401,7 +401,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
           </div>
           {hasRealLockHistory && weekLockCount > 0 && (
             <div className="text-[10px] font-semibold opacity-60 break-keep">
-              잠금 {weekLockCount}회 · 계획의 {weekAchievementPercent}%
+              잠금 {weekLockCount}회
             </div>
           )}
         </button>
@@ -422,11 +422,6 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
           <div className="text-3xl font-serif font-extrabold tracking-tight">
             {totalSnsMinutes}분
           </div>
-          {hasRealScreenTime && (
-            <div className="text-[10px] font-semibold opacity-60 break-keep">
-              전체 {totalUsageMinutes}분 중 {snsSharePercent}%
-            </div>
-          )}
         </button>
       </div>
 
@@ -454,7 +449,7 @@ export const ReportScreen: React.FC<ReportScreenProps> = ({ onBack }) => {
         {activeTab === 'sns' && (
           <p className="text-[11px] text-slate-500 break-keep -mt-1">
             {hasRealScreenTime
-              ? `휴대폰이 기록한 실제 앱 사용 시간입니다. (${SNS_CATEGORY_LABELS})`
+              ? '휴대폰이 기록한 실제 앱 사용 시간입니다.'
               : '휴대폰에 기록된 앱 사용 시간입니다.'}
           </p>
         )}

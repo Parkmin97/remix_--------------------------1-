@@ -102,20 +102,19 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
       <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
 
-      {/* Center Highlight Slot (검은색 하이라이트 바) */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-black border border-black rounded-xl pointer-events-none z-0 shadow-md flex items-center justify-around">
-        <span className="text-white/20 text-xs font-bold pl-8">시간</span>
-        <span className="text-white/20 text-xs font-bold pr-8">분</span>
+      {/* Center Highlight Slot (검은색 하이라이트 바 & 정중앙 구분선 [ 시 | 분 ]) */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-3 right-3 h-[40px] bg-black border border-black rounded-xl pointer-events-none z-0 shadow-md flex items-center justify-center">
+        <div className="h-5 w-[1px] bg-white/25 rounded-full" />
       </div>
 
       {/* 2-Column Grid Container (Left: Hours, Right: Minutes) */}
-      <div className="w-full h-full grid grid-cols-2 relative z-10">
+      <div className="w-full h-full grid grid-cols-2 relative z-10 touch-pan-y overflow-hidden">
         {/* Left Column: Hours */}
         <div
           ref={hoursRef}
           onScroll={handleHourScroll}
-          className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none"
-          style={{ scrollSnapType: 'y mandatory', paddingTop: padY, paddingBottom: padY }}
+          className="w-full h-full overflow-y-scroll overflow-x-hidden touch-pan-y overscroll-contain snap-y snap-mandatory scrollbar-none"
+          style={{ scrollSnapType: 'y mandatory', touchAction: 'pan-y', paddingTop: padY, paddingBottom: padY }}
         >
           {hourOptions.map((h) => {
             const isSelected = h === currentHours;
@@ -149,8 +148,8 @@ export const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
         <div
           ref={minutesRef}
           onScroll={handleMinuteScroll}
-          className="w-full h-full overflow-y-scroll snap-y snap-mandatory scrollbar-none"
-          style={{ scrollSnapType: 'y mandatory', paddingTop: padY, paddingBottom: padY }}
+          className="w-full h-full overflow-y-scroll overflow-x-hidden touch-pan-y overscroll-contain snap-y snap-mandatory scrollbar-none"
+          style={{ scrollSnapType: 'y mandatory', touchAction: 'pan-y', paddingTop: padY, paddingBottom: padY }}
         >
           {minuteOptions.map((m) => {
             const isSelected = m === currentMins;

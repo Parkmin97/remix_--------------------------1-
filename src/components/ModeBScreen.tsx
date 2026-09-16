@@ -157,7 +157,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
               <Clock className="w-3.5 h-3.5 text-[#FE9A00]" />
               <span>예약 시간 설정</span>
               <span className="text-[10px] text-black/60 font-normal">
-                (0시간 ~ 12시간)
+                (5분 ~ 12시간 55분)
               </span>
               {isModeBActive && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
             </label>
@@ -176,7 +176,7 @@ export const ModeBScreen: React.FC<ModeBScreenProps> = ({ onStartSession, active
               <Target className="w-3.5 h-3.5 text-[#FE9A00]" />
               <span>잠금 시간 설정</span>
               <span className="text-[10px] text-black/60 font-normal">
-                (0시간 ~ 12시간)
+                (5분 ~ 12시간 55분)
               </span>
               {isModeBActive && <span className="text-[10px] text-rose-500 ml-auto font-normal">비활성화됨</span>}
             </label>

@@ -8,6 +8,7 @@ interface TutorialScreenProps {
   onBack?: () => void;
   isMissionMode?: boolean;
   presetBeat?: BeatType;
+  targetBpm?: number;
   missionTimeLeft?: number;
   onSkipMissionTutorial?: () => void;
 }
@@ -87,6 +88,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   onBack,
   isMissionMode = false,
   presetBeat = '4/4',
+  targetBpm,
   missionTimeLeft = 10,
   onSkipMissionTutorial,
 }) => {
@@ -115,6 +117,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
   }>>([]);
 
   const tutorial = BEAT_TUTORIALS[selectedBeat];
+  // 미션 모드일 때 곡의 실제 BPM 우선 적용 (없으면 튜토리얼 기본값)
+  const activeBpm = targetBpm || tutorial.bpm;
 
   // 시연 영상은 autoPlay 속성만으로는 기기에 따라 시작되지 않는 경우가 있다.
   // 시작되지 않으면 poster 만 멈춰 보이므로, 오버레이가 뜰 때 직접 재생을 한 번 더 시도한다.
@@ -224,7 +228,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
 
       elapsedTimeRef.current += delta;
 
-      const beatDurationSec = 60 / tutorial.bpm;
+      const beatDurationSec = 60 / activeBpm;
       const barDurationSec = beatDurationSec * tutorial.count;
 
       // 1. [정박 메트로놈] 절대 시간 기반으로 단 한 박자도 누락 없는 정박 비트 카운팅
@@ -279,7 +283,7 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [isPlaying, pathLength, tutorial, soundOn]);
+  }, [isPlaying, pathLength, tutorial, soundOn, activeBpm]);
 
   const handleReset = () => {
     elapsedTimeRef.current = 0;
@@ -303,17 +307,8 @@ export const TutorialScreen: React.FC<TutorialScreenProps> = ({
           onClick={() => setShowVideoIntro(false)}
           /* 페이드인을 걸지 않는다. animate-fade-in 은 0.6초 both 라 시작 시 opacity:0 으로
              고정돼, 튜토리얼을 눌러도 시연 화면이 한 박자 늦게 차오르는 것처럼 보였다. */
-          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-between p-6 sm:p-8 cursor-pointer select-none"
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex flex-col items-center justify-center gap-6 p-6 sm:p-8 cursor-pointer select-none"
         >
-          {/* 상단 닫기/안내 헤더 */}
-          <div className="w-full max-w-sm flex items-center justify-between pt-2">
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
-              <Sparkles className="w-4 h-4 text-[#FE9A00]" />
-              <span className="text-xs font-bold text-white tracking-wide">지휘 동작 시연 가이드</span>
-            </div>
-            <span className="text-xs font-medium text-white/60">화면 아무 데나 터치하여 닫기 ✕</span>
-          </div>
-
           {/* MP4 비디오 비주얼 프레임 */}
           <div className="relative my-auto flex flex-col items-center justify-center max-w-sm w-full">
             <div className="relative w-full max-w-[260px] sm:max-w-[300px] aspect-[9/16] max-h-[55vh] rounded-3xl overflow-hidden border-2 border-[#FE9A00]/70 shadow-[0_0_35px_rgba(254,154,0,0.4)] bg-black flex items-center justify-center">
