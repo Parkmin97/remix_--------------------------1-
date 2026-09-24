@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { Mail, Lock, LogIn, UserPlus, LogOut, CheckCircle2, Loader2, Music } from 'lucide-react';
+import { Mail, Lock, LogIn, UserPlus, LogOut, CheckCircle2, Loader2, Music, ArrowLeft, KeyRound, Send } from 'lucide-react';
 import { supabase, toKoreanAuthError, isSupabaseConfigured } from '../lib/supabase';
 import { openExternalUrl } from '../lib/externalBrowser';
 
@@ -20,7 +20,7 @@ interface LoginScreenProps {
   lockRunning?: boolean;
 }
 
-type Mode = 'login' | 'signup';
+type Mode = 'login' | 'signup' | 'forgot_password';
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScreen, lockRunning = false }) => {
   const [mode, setMode] = useState<Mode>('login');
@@ -28,6 +28,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
   const [password, setPassword] = useState('');
   const [isAgeConfirmed, setIsAgeConfirmed] = useState(false);
   const [isTermsAgreed, setIsTermsAgreed] = useState(false);
+  const [showIdHelpModal, setShowIdHelpModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -41,10 +42,39 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
     e.preventDefault();
     resetMessages();
 
-    if (!email.trim() || !password) {
-      setError('이메일과 비밀번호를 모두 입력해주세요.');
+    if (!email.trim()) {
+      setError('이메일을 입력해주세요.');
       return;
     }
+
+    // 오프라인이면 서버에 갈 이유가 없다. 기다리게 하지 말고 바로 알려준다.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      setError('인터넷에 연결되어 있지 않습니다. Wi-Fi 또는 데이터를 켠 뒤 다시 시도해주세요.');
+      return;
+    }
+
+    if (mode === 'forgot_password') {
+      setLoading(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: window.location.origin,
+        });
+        if (error) throw error;
+        setInfo('비밀번호 재설정 메일을 보냈습니다. 메일함의 링크를 확인해주세요.');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        setError(toKoreanAuthError(message));
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (!password) {
+      setError('비밀번호를 입력해주세요.');
+      return;
+    }
+
     if (mode === 'signup') {
       if (password.length < 6) {
         setError('비밀번호는 최소 6자 이상이어야 합니다.');
@@ -58,12 +88,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
         setError('서비스 이용약관 및 개인정보처리방침에 동의해주세요.');
         return;
       }
-    }
-    // 오프라인이면 서버에 갈 이유가 없다. 기다리게 하지 말고 바로 알려준다.
-    // (온라인으로 나와도 실제로는 막힐 수 있어, 최종 방어는 toKoreanAuthError 가 맡는다.)
-    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      setError('인터넷에 연결되어 있지 않습니다. Wi-Fi 또는 데이터를 켠 뒤 다시 시도해주세요.');
-      return;
     }
 
     setLoading(true);
@@ -147,31 +171,45 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
         {/* 헤더 */}
         <div className="text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 p-1 shadow-md overflow-hidden">
-            <img src="/app_icon.png" alt="내인생 지휘자 앱 아이콘" className="w-full h-full object-cover rounded-xl" />
+            {mode === 'forgot_password' ? (
+              <KeyRound className="h-7 w-7 text-amber-400" />
+            ) : (
+              <img src="/app_icon.png" alt="내인생 지휘자 앱 아이콘" className="w-full h-full object-cover rounded-xl" />
+            )}
           </div>
           <h2 className="mt-3 font-serif text-2xl font-bold text-amber-100 break-keep">
-            {mode === 'login' ? '다시 오신 걸 환영합니다' : '내인생 지휘자 시작하기'}
+            {mode === 'forgot_password'
+              ? '비밀번호 재설정'
+              : mode === 'login'
+              ? '다시 오신 걸 환영합니다'
+              : '내인생 지휘자 시작하기'}
           </h2>
           <p className="mt-1.5 text-sm text-stone-400">
-            {mode === 'login' ? '이메일로 로그인하세요.' : '이메일로 간단히 가입하세요.'}
+            {mode === 'forgot_password'
+              ? '가입하신 이메일로 재설정 링크를 보내드립니다.'
+              : mode === 'login'
+              ? '이메일로 로그인하세요.'
+              : '이메일로 간단히 가입하세요.'}
           </p>
         </div>
 
-        {/* 탭 */}
-        <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-neutral-900 p-1">
-          {(['login', 'signup'] as Mode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => { setMode(m); resetMessages(); }}
-              className={`rounded-lg py-2 text-sm font-semibold transition-colors ${
-                mode === m ? 'bg-amber-500 text-stone-950' : 'text-stone-400 hover:text-amber-200'
-              }`}
-            >
-              {m === 'login' ? '로그인' : '회원가입'}
-            </button>
-          ))}
-        </div>
+        {/* 탭 (비밀번호 재설정 모드가 아닐 때만 노출) */}
+        {mode !== 'forgot_password' && (
+          <div className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-neutral-900 p-1">
+            {(['login', 'signup'] as Mode[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => { setMode(m); resetMessages(); }}
+                className={`rounded-lg py-2 text-sm font-semibold transition-colors ${
+                  mode === m ? 'bg-amber-500 text-stone-950' : 'text-stone-400 hover:text-amber-200'
+                }`}
+              >
+                {m === 'login' ? '로그인' : '회원가입'}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* 폼 */}
         <form onSubmit={handleSubmit} className="mt-5 space-y-3">
@@ -187,17 +225,42 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
               className="w-full rounded-xl border border-neutral-800 bg-neutral-900 py-3 pl-10 pr-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition-colors focus:border-amber-500/60"
             />
           </div>
-          <div className="relative">
-            <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
-            <input
-              type="password"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === 'login' ? '비밀번호' : '비밀번호 (6자 이상)'}
-              className="w-full rounded-xl border border-neutral-800 bg-neutral-900 py-3 pl-10 pr-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition-colors focus:border-amber-500/60"
-            />
-          </div>
+
+          {mode !== 'forgot_password' && (
+            <>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-500" />
+                <input
+                  type="password"
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={mode === 'login' ? '비밀번호' : '비밀번호 (6자 이상)'}
+                  className="w-full rounded-xl border border-neutral-800 bg-neutral-900 py-3 pl-10 pr-3 text-sm text-stone-100 placeholder-stone-500 outline-none transition-colors focus:border-amber-500/60"
+                />
+              </div>
+
+              {mode === 'login' && (
+                <div className="flex items-center justify-end gap-2 text-[11px] text-stone-400 pt-0.5 pb-1 select-none">
+                  <button
+                    type="button"
+                    onClick={() => setShowIdHelpModal(true)}
+                    className="hover:text-amber-300 transition-colors"
+                  >
+                    아이디 찾기
+                  </button>
+                  <span className="text-stone-700">|</span>
+                  <button
+                    type="button"
+                    onClick={() => { setMode('forgot_password'); resetMessages(); }}
+                    className="hover:text-amber-300 transition-colors"
+                  >
+                    비밀번호 재설정
+                  </button>
+                </div>
+              )}
+            </>
+          )}
 
           {mode === 'signup' && (
             <div className="pt-1 pb-1 space-y-2.5">
@@ -254,12 +317,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
           >
             {loading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : mode === 'forgot_password' ? (
+              <Send className="h-4 w-4" />
             ) : mode === 'login' ? (
               <LogIn className="h-4 w-4" />
             ) : (
               <UserPlus className="h-4 w-4" />
             )}
-            {mode === 'login' ? '로그인' : '회원가입'}
+            {mode === 'forgot_password' ? '재설정 메일 받기' : mode === 'login' ? '로그인' : '회원가입'}
           </button>
         </form>
 
@@ -269,17 +334,72 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ user, onNavigateToScre
           </p>
         )}
 
-        <p className="mt-5 text-center text-xs text-stone-500">
-          {mode === 'login' ? '계정이 없으신가요? ' : '이미 계정이 있으신가요? '}
-          <button
-            type="button"
-            onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); resetMessages(); }}
-            className="font-semibold text-amber-300 hover:underline"
-          >
-            {mode === 'login' ? '회원가입' : '로그인'}
-          </button>
-        </p>
+        {mode === 'forgot_password' ? (
+          <div className="mt-5 text-center">
+            <button
+              type="button"
+              onClick={() => { setMode('login'); resetMessages(); }}
+              className="inline-flex items-center gap-1.5 text-xs text-stone-400 hover:text-amber-300 transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>로그인 화면으로 돌아가기</span>
+            </button>
+          </div>
+        ) : (
+          <p className="mt-5 text-center text-xs text-stone-500">
+            {mode === 'login' ? '계정이 없으신가요? ' : '이미 계정이 있으신가요? '}
+            <button
+              type="button"
+              onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); resetMessages(); }}
+              className="font-semibold text-amber-300 hover:underline"
+            >
+              {mode === 'login' ? '회원가입' : '로그인'}
+            </button>
+          </p>
+        )}
       </div>
+
+      {/* 아이디 찾기 안내 모달 */}
+      {showIdHelpModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 select-none animate-fade-in">
+          <div className="w-full max-w-sm rounded-3xl bg-neutral-950 border border-neutral-800 p-6 shadow-2xl text-center space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 shadow-md">
+              <Mail className="h-6 w-6 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-amber-100 font-serif">아이디 안내</h3>
+              <div className="mt-3 text-xs text-stone-300 leading-relaxed break-keep text-left bg-neutral-900/90 p-4 rounded-2xl border border-neutral-800 space-y-2">
+                <p>
+                  내인생 지휘자는 별도의 아이디 없이 <span className="font-bold text-amber-300">가입하신 이메일 주소</span>를 아이디로 사용합니다.
+                </p>
+                <p className="text-stone-400">
+                  자주 사용하시는 이메일(Google, Naver 등)로 로그인을 시도하시거나, 비밀번호 재설정을 통해 가입 여부를 확인해보실 수 있습니다.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowIdHelpModal(false);
+                  setMode('forgot_password');
+                  resetMessages();
+                }}
+                className="w-full py-3 rounded-xl bg-amber-500 text-stone-950 text-xs font-bold hover:bg-amber-400 transition-colors"
+              >
+                비밀번호 재설정하기
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowIdHelpModal(false)}
+                className="w-full py-2.5 rounded-xl border border-neutral-800 text-stone-400 text-xs hover:text-stone-200 transition-colors"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

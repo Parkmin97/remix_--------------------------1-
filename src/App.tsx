@@ -33,6 +33,7 @@ import { syncSessionFromNative } from './lib/sessionSync';
 import { BlockerPermissionsProvider, useBlockerPermissions } from './lib/blockerPermissions';
 import { PermissionSetupScreen } from './components/PermissionSetup';
 import { SplashQuoteScreen } from './components/SplashQuoteScreen';
+import { SetNewPasswordModal } from './components/SetNewPasswordModal';
 import { isLockActive, isSessionRunning } from './lib/sessionState';
 
 export default function App() {
@@ -63,6 +64,7 @@ function AppContent() {
   const [activeSession, setActiveSession] = useState<SessionData | null>(null);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isInterventionOpen, setIsInterventionOpen] = useState<boolean>(false);
+  const [showSetNewPasswordModal, setShowSetNewPasswordModal] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState<boolean>(false);
@@ -226,6 +228,9 @@ function AppContent() {
       if (currentUser) {
         syncReportsFromSupabase();
       }
+      if (typeof window !== 'undefined' && window.location.hash.includes('type=recovery')) {
+        setShowSetNewPasswordModal(true);
+      }
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
@@ -234,6 +239,10 @@ function AppContent() {
       setAuthChecked(true);
       if (currentUser) {
         syncReportsFromSupabase();
+      }
+
+      if (event === 'PASSWORD_RECOVERY') {
+        setShowSetNewPasswordModal(true);
       }
 
       // 로그아웃·탈퇴 후에는 로그인 화면으로 되돌린다.
@@ -529,6 +538,18 @@ function AppContent() {
         onClose={() => setIsInterventionOpen(false)}
         onStartMission={handleStartMissionFromIntervention}
         focusTask={activeSession?.focusTask}
+      />
+
+      {/* Set New Password Modal (비밀번호 재설정 이메일 링크 진입 시) */}
+      <SetNewPasswordModal
+        isOpen={showSetNewPasswordModal}
+        onClose={() => setShowSetNewPasswordModal(false)}
+        onSuccess={() => {
+          setShowSetNewPasswordModal(false);
+          if (typeof window !== 'undefined' && window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          }
+        }}
       />
     </div>
   );
