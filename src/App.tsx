@@ -272,10 +272,34 @@ function AppContent() {
   const currentTabRef = useRef(currentTab);
   useEffect(() => { currentTabRef.current = currentTab; }, [currentTab]);
 
+  // 로그인 여부도 같이 본다. 이유는 바로 아래 리스너의 주석 참고.
+  const userRef = useRef(user);
+  useEffect(() => { userRef.current = user; }, [user]);
+
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
 
     const listenerPromise = CapacitorApp.addListener('backButton', () => {
+      // 🔴 로그인/회원가입 화면은 currentTab 이 'login' 일 때만 뜨는 게 아니다.
+      //
+      //    실제 신규 사용자가 보는 회원가입 화면은 아래 `needsAuth` 게이트로 뜬다.
+      //    (랜딩 → 무료로 시작하기 → currentTab='home' → 로그인 안 됨 → LoginScreen)
+      //    즉 그 화면에서 currentTab 은 **'home'** 이다.
+      //
+      //    그래서 아래 switch 의 case 'login' 은 이 화면에 닿지 않고 default 로 빠져
+      //    minimizeApp() 이 불렸다. minimizeApp 은 moveTaskToBack(true) 라서
+      //    **앱이 통째로 폰 홈 화면으로 내려간다.** 크래시가 아니라 "튕겨나간 것처럼" 보이는
+      //    그 증상의 정체다. 이메일을 입력하다 뒤로가기를 스치면 여기로 온다.
+      //
+      //    (참고: 이 리스너를 붙이기 전에도 결과는 같았다. MainActivity 는 MAIN/LAUNCHER 를
+      //     가진 태스크의 루트 액티비티라, 안드로이드 12+ 의 뒤로가기 기본 동작 자체가
+      //     finish 가 아니라 moveTaskToBack 이기 때문이다. 그래서 versionCode 4 의 수정으로도
+      //     증상이 그대로였다.)
+      if (!userRef.current && currentTabRef.current === 'home') {
+        setCurrentTab('landing');
+        return;
+      }
+
       switch (currentTabRef.current) {
         case 'tutorial':
         case 'report':

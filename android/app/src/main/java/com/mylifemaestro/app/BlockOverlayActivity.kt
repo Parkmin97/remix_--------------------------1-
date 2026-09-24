@@ -8,11 +8,14 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.webkit.JavascriptInterface
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.view.WindowManager
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.webkit.WebViewAssetLoader
 import org.json.JSONObject
 
@@ -58,6 +61,21 @@ class BlockOverlayActivity : Activity() {
 
     private var webView: WebView? = null
 
+    /**
+     * 안드로이드 13+ 의 새 뒤로가기 통로에 등록할 차단기.
+     *
+     * ⚠️ 이게 없으면 **차단 화면이 뒤로가기로 뚫린다.**
+     *    공식 문서(Android 16 동작 변경): targetSdk 36 이상 앱이 안드로이드 16 이상 기기에서
+     *    돌면 "onBackPressed 는 더 이상 호출되지 않고 KeyEvent.KEYCODE_BACK 도 전달되지 않는다".
+     *    아래 [onBackPressed] override 는 그 기기에서 죽은 코드가 된다.
+     *    → 뒤로가기가 시스템 기본 동작(액티비티 종료 / 홈으로)으로 흘러가 잠금을 빠져나간다.
+     *
+     *    매니페스트에서 이 액티비티만 enableOnBackInvokedCallback="true" 로 못 박아,
+     *    안드로이드 13~15 기기에서도 같은 통로를 쓰게 한다. OS 버전마다 다른 경로로
+     *    갈라지면 한쪽만 조용히 뚫리는 일이 생긴다.
+     */
+    private var backBlocker: OnBackInvokedCallback? = null
+
     /** 지금 웹뷰에 실제로 올라가 있는 내용. 같은 내용이면 다시 읽지 않는다. */
     private var loadedPackage: String? = null
     private var loadedMissionAttempted: Boolean = false
@@ -67,8 +85,29 @@ class BlockOverlayActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         setupWindowFlags()
+        registerBackBlocker()
         setContentView(createWebView())
         loadContentIfNeeded()
+    }
+
+    /**
+     * 뒤로가기를 삼켜서 아무 일도 일어나지 않게 한다.
+     *
+     * PRIORITY_OVERLAY 를 쓰는 이유: 이 화면 위에서는 뒤로가기가 어떤 경우에도
+     * 다른 처리로 넘어가면 안 된다. 잠금을 빠져나가는 길이 되기 때문이다.
+     */
+    private fun registerBackBlocker() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+
+        val callback = OnBackInvokedCallback {
+            Log.i(TAG, "뒤로가기 차단됨 (OnBackInvokedCallback)")
+            // 아무것도 하지 않는다 = 빠져나갈 수 없다
+        }
+        onBackInvokedDispatcher.registerOnBackInvokedCallback(
+            OnBackInvokedDispatcher.PRIORITY_OVERLAY,
+            callback
+        )
+        backBlocker = callback
     }
 
     /**
@@ -157,6 +196,40 @@ class BlockOverlayActivity : Activity() {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     Log.i(TAG, "미션 화면 로드 완료")
+                }
+
+                /**
+                 * ⚠️ 화면이 안 그려지면 갇힌다.
+                 *    본문 로드가 실패하면 검은 배경만 남고 "잠금 유지하기" 버튼조차 없는데,
+                 *    뒤로가기는 [registerBackBlocker] 가 완전히 삼킨다. 빠져나갈 길이 없다.
+                 *    그래서 잠금은 그대로 둔 채 홈으로 보낸다. 다음에 잠근 앱을 다시 열면
+                 *    차단 화면이 다시 뜬다.
+                 *
+                 *    isForMainFrame 만 본다. 아이콘 하나 못 읽었다고 내보내면 안 된다.
+                 */
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
+                    if (request?.isForMainFrame != true) return
+                    Log.e(TAG, "차단 화면 로드 실패 — 홈으로 대피 (잠금 유지)")
+                    loadedPackage = null
+                    goHome()
+                }
+
+                override fun onReceivedHttpError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    errorResponse: WebResourceResponse?
+                ) {
+                    if (request?.isForMainFrame != true) return
+                    Log.e(
+                        TAG,
+                        "차단 화면 로드 실패(HTTP ${errorResponse?.statusCode}) — 홈으로 대피 (잠금 유지)"
+                    )
+                    loadedPackage = null
+                    goHome()
                 }
             }
 
@@ -279,9 +352,17 @@ class BlockOverlayActivity : Activity() {
         startActivity(home)
     }
 
-    @Suppress("DEPRECATION", "MissingSuperCall")
+    /**
+     * 안드로이드 12 이하 전용 경로.
+     *
+     * 13+ 는 [registerBackBlocker] 가 대신 막는다. 이 메서드는 그 기기들에서
+     * 아예 호출되지 않으므로, 둘 중 하나만 동작해 중복 처리될 일은 없다.
+     */
+    // GestureBackNavigation: 린트가 "onBackPressed 는 더 이상 불리지 않는다"고 경고하는 것이 맞다.
+    // 그래서 13+ 는 registerBackBlocker() 로 옮겼고, 이 메서드는 minSdk 24~32 기기 전용으로만 남긴다.
+    @Suppress("DEPRECATION", "MissingSuperCall", "GestureBackNavigation")
     override fun onBackPressed() {
-        Log.i(TAG, "뒤로가기 차단됨")
+        Log.i(TAG, "뒤로가기 차단됨 (onBackPressed)")
         // 아무것도 하지 않는다 = 빠져나갈 수 없다
     }
 
@@ -306,6 +387,10 @@ class BlockOverlayActivity : Activity() {
     override fun onDestroy() {
         // onStop 없이 파괴되는 경로가 있어도 깃발이 남지 않게 한 번 더 내린다.
         isShowing = false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            backBlocker?.let { onBackInvokedDispatcher.unregisterOnBackInvokedCallback(it) }
+        }
+        backBlocker = null
         webView?.destroy()
         webView = null
         super.onDestroy()
